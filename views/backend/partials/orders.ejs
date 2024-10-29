@@ -1,0 +1,123 @@
+ <!-- Orders Table -->
+ <div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-4  border">Order ID</th>
+          <th class="p-4  border">Order Date</th>
+          <th class="py-4 border">Email</th>
+          <th class="py-4 border">Order Status</th>
+          <th class="py-4 border">Payment Status</th>
+          <th class="py-4 border">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(order => { %>
+          <tr class="border-t">
+            <!-- Order ID -->
+            <td class="p-4 border"><%= order._id %></td> 
+
+            <!-- Order Date -->
+            <td class="p-4 border"><%= new Date(order.createdAt).toLocaleDateString() %></td>
+
+            <td class="p-4 border">
+              <% if (order.userId && order.userId.email) { %>
+                <%= order.userId.email %>
+              <% } else { %>
+                N/A
+              <% } %>
+            </td>
+
+            <!-- Order Status -->
+      <td class="p-4 border">
+        <select 
+        <%= order.orderStatus == 'delivered' ? 'disabled' : '' %>  
+          class="order-status-select"
+          data-order-id="<%= order._id %>"
+          onchange="updateOrderStatus(this)"> 
+          <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+          <option value="shipped" <%= order.orderStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
+          <option value="delivered" <%= order.orderStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
+          <option value="cancelled" <%= order.orderStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+        </select>
+      </td>
+
+      <!-- Payment Status -->
+      <td class="p-4 border">
+        <a class=""><%= order.paymentStatus %> </a>  
+      </td>
+
+
+            <!-- View Button -->
+            <td class="py-2 px-4 border text-center">
+              <a href="/admin/orders/<%= order._id %>" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                View
+              </a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+
+
+ 
+
+    <!-- Pagination -->
+    <div class="mt-4">
+      <div class="flex justify-center mt-4">
+          <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) + '&search=' + searchKeyword : '#' %>" 
+              class="px-4 py-2 mx-1 rounded 
+                     <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+               &laquo; Prev
+          </a>
+
+          <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="?page=<%= i %>&search=<%= searchKeyword %>"  
+                 class="px-4 py-2 mx-1 rounded 
+                        <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
+                  <%= i %>
+              </a>
+          <% } %>
+        
+          <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) + '&search=' + searchKeyword : '#' %>" 
+              class="px-4 py-2 mx-1 rounded 
+                     <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+               &raquo; Next   
+          </a>
+
+        </div>  
+    </div>
+
+
+
+
+
+  <script>
+    //update order status
+    function updateOrderStatus(elm){
+      const orderStatus = elm.value ;
+      const orderId =  elm.dataset.orderId ;
+    
+      fetch("/admin/updateOrderStatus",{
+        method : "POST",
+        headers : { 'Content-Type' : "application/json" },
+        body :JSON.stringify({ orderStatus, orderId }) 
+      })
+      .then(response => response.json())
+      .then(data=>{
+          if(data.success){
+            window.location.reload();
+          }else{
+            alert(data.message);
+          } 
+      })
+
+    }
+
+
+
+   
+
+  </script>

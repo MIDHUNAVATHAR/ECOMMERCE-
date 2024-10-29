@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wishlist</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+  <!-- Header --> 
+  <%- include("partials/header") %> 
+
+  
+
+<div class="p-5 bg-white" style="min-height: 75vh;">
+
+
+
+  <div class="container mx-auto mt-10">
+    <h1 class="text-2xl font-bold mb-6">Your Wishlist</h1>
+    
+    <% if (wishlist && wishlist.items.length > 0) { %> 
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% wishlist.items.forEach(item => { %>
+            
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <a href= "/product/<%= item.product._id%>?id=<%= item.sizeId%>" target="_blank">
+                  <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-full h-48 object-cover rounded">
+                
+                  <h2 class="text-lg font-semibold mt-2"><%= item.product.title %></h2>
+                  <p class="text-gray-600">Size:  <%=  item.product.sizes.find(size => size._id.toString() === item.sizeId.toString()).size; %></p>
+                  <p class="text-gray-600">Price:  ₹ <%= item.product.sizes.find(size => size._id.toString() === item.sizeId.toString()).discountedPrice %></p> 
+                </a>
+                  <div class="mt-4 flex space-x-4">
+                     
+                      <button onclick="removeItem('<%=item._id %>')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                          Remove from Wishlist
+                      </button>
+                  </div>
+               
+              </div>
+           
+          <% }) %>
+      </div>
+  <% } else { %>
+      <p class="mt-4 text-gray-600">Your wishlist is currently empty.</p>
+  <% } %>
+  
+  
+</div>
+ 
+  </div>
+
+  <!-- Footer -->
+  <%- include("partials/footer") %>
+
+
+  <script>
+
+ 
+
+   async function removeItem(itemId ){
+     const response =  await fetch(`/removeWishlistItem/${itemId}` , { method : "DELETE"} )
+      if (response.ok) {
+        window.location.reload();
+      }
+   }
+
+  
+
+   
+
+  
+  </script>
+</body>
+</html>

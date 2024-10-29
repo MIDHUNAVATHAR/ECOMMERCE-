@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Information</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+</head>
+<body class="bg-black">
+
+    
+  <!-- Header --> 
+  <%- include("partials/header") %>  
+
+  <!--breadcrumb-->
+  <nav class="text-sm mb-4 pl-10 pt-5" aria-label="Breadcrumb">
+    <ol class="list-reset inline-flex items-center space-x-2">
+        <li>
+            <a href="/" class="text-white hover:text-gray-500">Home</a>
+        </li>
+        <li>
+            <span class="text-white">/</span>
+        </li>
+        <li class="text-white">
+             My Account
+        </li>
+    </ol>
+</nav>
+<!--breadcrumb-->
+
+    <div class="container mx-auto p-4">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <div class="flex items-center mb-6">
+               
+                <svg class="w-8 h-8 text-gray-600 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 0c-4.97 0-9 4.03-9 9v1h18v-1c0-4.97-4.03-9-9-9z"></path>
+                </svg>
+                <h2 class="text-2xl font-semibold ml-4">Hello</h2> 
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Sidebar -->
+                <aside class="w-full lg:w-1/4 bg-gray-200 rounded-lg p-4">
+                    <nav class="space-y-4">
+                        <a href="/myOrders" class="block text-blue-600 font-semibold">MY ORDERS</a>
+                        <div>
+                            <h3 class="font-semibold">ACCOUNT SETTINGS</h3>
+                            <ul class="mt-2 space-y-2">
+                                <li><a href="/userProfile" class="text-gray-700">Profile Information</a></li>
+                                <li><a href="/userAdressMang" class="text-gray-700">Manage Addresses</a></li>
+                                <li><a href="/orderReturns" class="text-gray-700">Order Returns</a></li>
+                                <li><a href="/walletHistory" class="text-gray-700">Wallet History</a></li>
+                                <li><a href="/getCoupons" class="text-gray-700">Coupons</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">WALLET BALANCE</h3>
+                            <ul class="mt-2 space-y-2">
+                                <li><a href="#" class="text-gray-700">₹  <%= user.walletBalance %></a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">REFERRAL BALANCE</h3> 
+                            <ul class="mt-2 space-y-2">
+                                <li><a href="#" class="text-gray-700">₹ <%= user.rewardsBalance %></a></li>
+                            </ul>
+                            <button id="withdraw-ref-bln" class="bg-blue-500 text-white px-4 my-2 rounded hover:bg-blue-600">Withdraw</button>
+                        </div>
+                        <p class="text-indigo-900">My Referral Link  :</p>
+                        <div class="flex items-center gap-2  ">
+                          
+                             
+                            <p class="refLink text-blue-600"></p>
+                        
+                         <button onclick="copyText(this.value)" value="" class="refLink relative inline-flex items-centerp-2 rounded bg-transparent hover:bg-gray-100/10 transition-all duration-200">
+                            <span id="copyIcon" class="text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </span>  
+                            <span id="copiedMessage" class="hidden absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-2 py-1 rounded">
+                                Copied!
+                            </span>  
+                        </button>
+                        
+                        </div>
+                        <p class="text-gray-700">Send this referal link to Others . You will get Rs : 19 for each New Users</p>
+                    </nav>
+
+
+
+
+                   
+                    
+
+                    <div style="margin-top : 180px ;" > 
+                        <a href="/userLogout" class="bg-gray-900 text-white font-bold py-2 px-4  rounded">
+                            Logout
+                        </a>
+                    </div>
+
+                </aside>
+
+                
+                <!-- Main Content -->
+                <main class="w-full lg:w-3/4 bg-white rounded-lg p-4">
+                    <h3 class="text-xl font-semibold mb-4">Personal Information</h3>
+
+                    <form id="profile-form" action="/userProfile" method="post">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="firstName" class="block font-medium text-gray-700 ">First Name</label>
+                                <input type="text" value="<%= user.firstName %>" id="firstName" name="firstName" disabled
+                                       class="mt-1 p-2 w-full border border-gray-300 rounded-md input">
+                            </div>
+                            <div>
+                                <label for="lastName" class="block font-medium text-gray-700">Last Name</label>
+                                <input type="text"  value="<%= user.lastName %>" id="lastName" name="lastName" disabled
+                                       class="mt-1 p-2 w-full border border-gray-300 rounded-md input">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-medium text-gray-700">Your Gender</label>
+                            <div class="mt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="gender"  value="male"  <%= user.gender == 'male' ? 'checked' : "" %> disabled'
+                                           class="form-radio text-blue-600">
+                                    <span class="ml-2">Male</span>
+                                </label>  
+                                <label class="inline-flex items-center ml-6">
+                                    <input type="radio" name="gender" value="female" <%= user.gender == 'female' ? "checked" : "" %>  disabled
+                                           class="form-radio text-blue-600" >
+                                    <span class="ml-2">Female</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="block font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="email" name="email" value="<%= user.email %>" readonly 
+                                   class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="mobile" class="block font-medium text-gray-700">Mobile Number</label>
+                            <input type="text"  class="input" id="mobile" name="mobile" value=" <%= user.mobile %> " disabled
+                                  onkeyup="numberVal(this.value)" class="mt-1 p-2 w-full border border-gray-300 rounded-md input"> 
+                        </div>
+
+
+                        <div class="flex justify-between   mt-6">
+                            <button type="button" id="edit-btn"
+                                   class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                Edit
+                            </button>
+                     
+
+                            <button type="submit" id="saveChng" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded">
+                                Save Changes
+                            </button>
+                        </div>
+                        
+                    </form>
+                    
+                    <div class="mb-10 mt-10">
+                        <a href="/changePassword" > <button for="password" class=" block font-medium text-gray-700"  >Change Password</button></a>
+                    </div>
+
+                </main>
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+     <!-- Footer -->
+     <%- include("partials/footer") %>
+     
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>  
+
+    <script>
+        //disable and enable input fields
+        const editBtn = document.getElementById('edit-btn');
+        const inputs = document.querySelectorAll('.input');
+
+        editBtn.addEventListener('click', function () {
+            if (editBtn.innerText === 'Edit') {
+                inputs.forEach(input => input.disabled = false);
+                editBtn.innerText = 'Cancel';
+                editBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                editBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            } else {
+                inputs.forEach(input => input.disabled = true);
+                editBtn.innerText = 'Edit';
+                editBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                editBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+        });
+
+
+        //prevent save without edit
+        document.getElementById("saveChng").addEventListener( "click" , function(){  
+             if(editBtn.innerText === 'Edit'){
+                event.preventDefault();
+             }
+        } )
+
+
+        //validate number input
+        function numberVal(val){
+            if(isNaN(val)){
+            document.getElementById("mobile").value = "" ;  
+            }
+        }
+
+
+        function copyText(text) {
+    // Copy the text
+    navigator.clipboard.writeText(text);
+    
+    // Show the copied message
+    const message = document.getElementById('copiedMessage');
+    const copyIcon = document.getElementById('copyIcon');
+    
+    // Change icon to checkmark
+    copyIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    `;
+    
+    // Show message
+    message.classList.remove('hidden');
+    
+    // Hide message and restore icon after 2 seconds
+    setTimeout(() => {
+        message.classList.add('hidden');
+        copyIcon.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        `;
+    }, 2000);
+}
+
+
+
+
+//copy referal link
+
+const referralCode = '<%= user.referralCode %>' ;
+
+const url = new URL(window.location.href);
+
+const referalLink = url.origin  +  '/userSignup' + `?referral=${referralCode}`
+   
+const ref = document.querySelectorAll(".refLink") ; 
+ref[0].textContent = referalLink ;
+ref[1].value = referalLink ;
+
+
+
+
+
+
+
+
+
+
+document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
+    if('<%= user.rewardsBalance %>' == 0 ){
+        Swal.fire({
+            icon: 'error',
+            title: 'No balance',
+            text: 'You have no balance to withdraw.'
+        });
+        return;
+    }
+    fetch("/withDrawRefferalBalance", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+           
+            amount:  '<%= user.rewardsBalance %>'  ,
+            userId : '<%= user._id %>'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if(data.status){
+            Swal.fire({
+                icon: 'success',
+                title: 'Withdrawal Successful',
+                text: 'Your referral balance has been withdrawn to wallet account.'
+            }).then(() => {
+                window.location.reload();
+            });
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Withdrawal Failed',
+                text: 'Failed to withdraw referral balance.'
+            });
+
+        }
+    }) 
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+} )
+
+
+    </script>
+
+</body>
+</html>

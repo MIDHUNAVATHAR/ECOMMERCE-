@@ -1,0 +1,155 @@
+<!-- views/admin/return-orders.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Orders Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6">Return Orders Management</h1>
+        
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <% returnOrders.forEach(order => { %>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <%= order.orderId._id %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <%= order.userId.email %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <%= order.reason %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            ₹<%= order.totalRefundAmount %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <%= order.returnStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                    order.returnStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                                    order.returnStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                                    'bg-blue-100 text-blue-800' %>">
+                                <%= order.returnStatus %>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/admin/returnOrders/<%= order._id %>" class="text-blue-600 hover:text-blue-800 mr-2">View</a>
+
+                            <% if (order.returnStatus !== 'completed') { %>
+                            <form action="/admin/returnOrders/<%= order._id %>/update-status" method="POST" class="inline">
+                                <select name="status" class="mr-2 rounded border-gray-300 text-sm" 
+                                        onchange="this.form.submit()">
+                                    <option value="pending" <%= order.returnStatus === 'pending' ? 'selected' : '' %>>
+                                        Pending
+                                    </option>
+                                    <option value="approved" <%= order.returnStatus === 'approved' ? 'selected' : '' %>>
+                                        Approve
+                                    </option>
+                                    <option value="rejected" <%= order.returnStatus === 'rejected' ? 'selected' : '' %>>
+                                        Reject
+                                    </option>
+                                    <option value="completed" <%= order.returnStatus === 'completed' ? 'selected' : '' %>>
+                                        Complete
+                                    </option>
+                                </select>
+                            </form>
+                            <button 
+                            type="button"
+                            onclick='showNoteModal("<%= order._id %>", <%= order.adminNote ? JSON.stringify(order.adminNote) : "null" %>)' 
+                            class="text-blue-600 hover:text-blue-800">
+                            <%= order.adminNote ? 'Edit Note' : 'Add Note' %>
+                        </button>
+
+                            <% } else { %>
+                            <span class="text-gray-500">No actions available</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        
+        <!-- Pagination -->
+        <div class="mt-4">
+            <div class="flex justify-center mt-4">
+                <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) : '#' %>" 
+                    class="px-4 py-2 mx-1 rounded 
+                           <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+                     &laquo; Prev
+                </a>
+
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <a href="?page=<%= i %>"  
+                       class="px-4 py-2 mx-1 rounded 
+                              <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+              
+                <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) : '#' %>" 
+                    class="px-4 py-2 mx-1 rounded 
+                           <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+                     &raquo; Next
+                </a>
+            </div>
+        </div>
+
+
+
+    </div>
+
+    <!-- Admin Note Modal -->
+    <div id="noteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h3 class="text-lg font-medium mb-4">Add Admin Note</h3>
+            <form id="noteForm" method="POST">
+                <textarea id="adminNoteText" name="adminNote" class="w-full p-2 border rounded mb-4" rows="3" required></textarea>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeNoteModal()" 
+                            class="px-4 py-2 border rounded">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showNoteModal(orderId  , existingNote) {
+            const textarea = document.getElementById('adminNoteText');
+            textarea.value = existingNote ;
+
+            const modal = document.getElementById('noteModal');
+            const form = document.getElementById('noteForm');
+            form.action = `/admin/returnOrders/${orderId}/update-status`;
+            modal.classList.remove('hidden');
+        }
+
+        function closeNoteModal() {
+            const modal = document.getElementById('noteModal');
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+

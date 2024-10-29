@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Order Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6">Return Order Details</h1>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <!-- User and Order Info -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-2">User Information</h2>
+                <p><strong>Name:</strong> <%= returnOrder.userId.firstName  %> <%= returnOrder.userId.lastName %> </p>  
+                <p><strong>Email:</strong> <%= returnOrder.userId.email %></p>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-2">Order Information</h2>
+                <p><strong>Order ID:</strong> <%= returnOrder.orderId._id %></p>
+                <p><strong>Return Reason:</strong> <%= returnOrder.reason %></p>
+                <p><strong>Return Status:</strong> <%= returnOrder.returnStatus %></p>
+                <p><strong>Total Refund Amount:</strong> ₹<%= returnOrder.totalRefundAmount %></p>
+                <p><strong>Admin Note:</strong> <%= returnOrder.adminNote %></p>
+            </div>
+
+            <!-- Address Info -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-2">Pickup Address</h2>
+                <p><strong>Name:</strong> <%= returnOrder.pickupAddress.name %></p>
+                <p><strong>Address:</strong> <%= returnOrder.pickupAddress.address %>, <%= returnOrder.pickupAddress.city %>, <%= returnOrder.pickupAddress.state %> - <%= returnOrder.pickupAddress.pincode %></p>
+                <p><strong>Phone:</strong> <%= returnOrder.pickupAddress.phone %></p>
+            </div>
+
+     <!-- Product Details -->
+<div class="mb-6">
+    <h2 class="text-xl font-semibold mb-2">Product Details</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead class="border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-2 border-r border-gray-200">Image</th>
+                    <th class="px-4 py-2 border-r border-gray-200">Product</th>
+                    <th class="px-4 py-2 border-r border-gray-200">Size</th>
+                    <th class="px-4 py-2 border-r border-gray-200">Quantity</th>
+                    <th class="px-4 py-2">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% returnOrder.items.forEach(item => { %>
+                <tr class="whitespace-nowrap border-b border-gray-200">
+                    <td class="px-4 py-2 border-r border-gray-200">
+                        <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-16 h-16 object-cover rounded-lg">
+                    </td>
+                    <td class="px-4 py-2 border-r border-gray-200"><%= item.product.title %></td>
+                    <td class="px-4 py-2 border-r border-gray-200"><%= item.size %></td>
+                    <td class="px-4 py-2 border-r border-gray-200"><%= item.quantity %></td>
+                    <td class="px-4 py-2">₹<%= item.price %></td>
+                </tr>
+                <% }); %>
+            </tbody>  
+        </table>
+    </div>
+</div>
+
+
+        </div>
+    </div>
+</body>
+</html>

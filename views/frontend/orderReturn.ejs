@@ -1,0 +1,196 @@
+<!-- order-return.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>   
+</head>
+<body class="bg-gray-50">
+
+
+      <!-- Header -->   
+  <%- include("partials/header") %>   
+
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Return Order #<%= order._id %></h1>
+        
+        <!-- Order Summary -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-gray-600">Order Date</p>
+                    <p class="font-medium"><%= new Date(order.createdAt).toLocaleDateString() %></p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Delivery Date</p>
+                    <p class="font-medium"><%= order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'N/A' %></p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Order Status</p>
+                    <p class="font-medium capitalize"><%= order.orderStatus %></p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Total Amount</p>
+                    <p class="font-medium">₹<%= order.totalPrice %></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Form -->
+        <form id="returnForm" class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Select Items to Return</h2>
+            
+            <div class="space-y-6">
+                <% order.items.forEach((item, index) => { %>
+                    <div class="flex items-start space-x-4 p-4 border rounded-lg">
+                        <!-- Product Image -->
+                        <div class="w-24 h-24 flex-shrink-0">
+                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
+                                 class="w-full h-full object-cover rounded-md">
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <div class="flex-grow">
+                            <h3 class="font-medium text-lg"><%= item.product.name %></h3>
+                            <p class="text-gray-600">Size: <%= item.size %></p>
+                            <p class="text-gray-600">Price: ₹<%= item.price %></p>
+                            <p class="text-gray-600">Ordered Quantity: <%= item.quantity %></p>
+                        </div>
+                        
+                        <!-- Return Selection -->
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" 
+                                       name="returnItems[<%= index %>][selected]" 
+                                       value="true"
+                                       class="form-checkbox h-5 w-5 text-blue-600">
+                                <span class="ml-2">Return</span>
+                            </label>
+                            
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm text-gray-600">Qty to Return:</label>
+                                <input type="number" 
+                                       name="returnItems[<%= index %>][quantity]" 
+                                       min="1" 
+                                       max="<%= item.quantity %>" 
+                                       value="1"
+                                       class="w-16 px-2 py-1 border rounded-md">
+                                <input type="hidden" 
+                                       name="returnItems[<%= index %>][productId]" 
+                                       value="<%= item.product._id %>">
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+
+            <!-- Return Reason -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Return Reason
+                </label>
+                <select name="returnReason" required class="w-full p-2 border rounded-md">
+                    <option value="">Select a reason</option>
+                    <option value="wrong_size">Wrong Size</option>
+                    <option value="defective">Defective Product</option>
+                    <option value="not_as_described">Product Not As Described</option>
+                    <option value="changed_mind">Changed Mind</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-6">
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                    Submit Return Request
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+      <!-- Footer -->
+  <%- include("partials/footer") %>
+
+    <script>
+
+
+        document.getElementById('returnForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const returnItems = [];
+            
+            // Process form data
+            const entries = Array.from(formData.entries());
+            const itemsData = {};
+            
+            entries.forEach(([key, value]) => {
+                if (key.startsWith('returnItems')) {
+                    const matches = key.match(/returnItems\[(\d+)\]\[(\w+)\]/);
+                    if (matches) {
+                        const [, index, field] = matches;
+                        if (!itemsData[index]) itemsData[index] = {};
+                        itemsData[index][field] = value;
+                    }
+                }
+            });
+            
+            // Filter selected items
+            Object.values(itemsData).forEach(item => {
+                if (item.selected === 'true') {
+                    returnItems.push({
+                        productId: item.productId,
+                        quantity: parseInt(item.quantity)
+                    });
+                }
+            });
+            
+            const returnData = {
+                orderId: '<%= order._id %>',
+                items: returnItems,
+                reason: formData.get('returnReason')
+            };
+            
+            try {
+                const response = await fetch('/returnOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(returnData)
+                });
+                
+                if (response.ok) {
+                    Swal.fire(
+            'Return Request',
+            'Submitted successfully.',
+            'success'
+        ).then(() => {
+            // Redirect after user clicks OK
+            window.location.href = '/myOrders';
+        });
+                } else {
+                    Swal.fire(
+              'Return Request',
+              'Submittion.',
+              'Failed'
+            );
+                    throw new Error('Failed to submit return request');
+                }
+            } catch (error) {
+                alert('Error submitting return request: ' + error.message);
+            }
+        });
+
+
+
+    </script>
+</body>
+</html>
