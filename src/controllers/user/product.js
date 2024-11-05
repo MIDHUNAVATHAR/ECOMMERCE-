@@ -107,26 +107,29 @@ const products = async ( req , res ) =>{
 
 //GET  PRODUCT PAGE
 const product = async ( req , res ) =>{ 
-
+      const productId = req.params.id; // assuming product ID is passed as a URL parameter
+      const sizeId = req.query.id; // size ID passed as a query parameter
     try {
-        const productId = req.params.id; // assuming product ID is passed as a URL parameter
-        const sizeId = req.query.id; // size ID passed as a query parameter
+        
     
-      
+    
         
         const product = await Product.findById(productId)
         .populate('genderCategory')
         .populate('productCategory')
-        .populate('productSubCategory') 
+        .populate('productSubCategory') ;
+     
         
+        const relatedProducts = await Product.find({ productSubCategory : product.productSubCategory}) ; 
     
         const reviews = await Reviews.find({product : productId}).populate("user")
     
         // Convert sizeId to ObjectId
         const selectedSizeId = sizeId  || product.sizes[0]._id ;  
-    
+      
         // Find the object in the sizes array with the specific _id
-        const selectedObject = product.sizes.find(item => item._id.equals(selectedSizeId)) 
+        const selectedObject = await product.sizes.find(item => item._id.equals(selectedSizeId)) ;
+     
     
     
         const logo = await Logo.findOne().sort({ updatedAt: -1 }); 
@@ -167,7 +170,8 @@ const product = async ( req , res ) =>{
           selectedObject,
           cartTotal,
           selectedSizeId,
-          reviews
+          reviews,
+          relatedProducts 
           
         });
       } catch (error) {

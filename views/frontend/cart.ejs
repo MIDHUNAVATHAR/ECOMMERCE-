@@ -196,7 +196,7 @@
   <script>
   
    //alerts
-    const url = new URL (window.location.href);
+    const url = new URL (window.location.href); 
     
     if(url.searchParams.get("coupon") == 0){
       toastr.error('Invalid Coupon !')
@@ -209,6 +209,9 @@
     }
     if(url.searchParams.get("coupon-success") == 1){  
       toastr.success('Coupon Added '); 
+    }
+    if(url.searchParams.get("coupon-success") == 0){  
+      toastr.error(`Cart Should have minimum  : ${url.searchParams.get("couponBalance")}`); 
     }
 
 

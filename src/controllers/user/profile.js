@@ -1,12 +1,20 @@
 
 
+
+//import modules
+const bcrypt           =  require("bcrypt") ;
+
+
+
 //import schemas
 const Logo             =   require("../../models/logoSchema")  ; 
 const GenderCategory   =   require("../../models/genderCategory") ; 
 const User             =   require("../../models/userSchema") ;
 const Cart             =   require("../../models/cartSchema") ; 
 const Address          =   require("../../models/addressSchema") ;
-const { userLoginPost } = require("./authentication");
+
+
+//const { userLoginPost } = require("./authentication");
 
 
 
@@ -28,7 +36,7 @@ const showProfile = async ( req , res ) => {
           cartTotal = cart.items.reduce((total, item) => total + item.quantity, 0 ); 
          }
          }else{
-         cartTotal = 0;
+         cartTotal = 0 ;
          }
     
       res.render("frontend/userProfile" , { logo , genderCategory , user , cartTotal }) ; 
@@ -45,8 +53,8 @@ const showProfile = async ( req , res ) => {
 const  editProfilePost  =  async  ( req , res ) =>{
    try{
       let { firstName , lastName , mobile , gender , email } = req.body ;
-      firstName =firstName.trim();
-      lastName =  lastName.trim();
+      firstName =firstName.trim().toLowerCase();
+      lastName =  lastName.trim().toLowerCase();
       mobile =  mobile.trim();  
       
       const user = await User.findOne( { email } ) ;  
@@ -140,6 +148,8 @@ const saveAddress = async ( req,res ) =>{
 }
 
 
+
+
 //GET DELETE ADDRESS
 const deleteAddress = async ( req,res ) =>{
    try{
@@ -204,6 +214,7 @@ const deleteAddress = async ( req,res ) =>{
 
 
 
+
  //get change password page
  const  changePassword  =  async  ( req , res ) => { 
    try{
@@ -240,9 +251,9 @@ const deleteAddress = async ( req,res ) =>{
       let { oldPassword, newPassword , confirmPassword } = req.body ;
        
 
-      oldPassword.trim();      
-      newPassword.trim();
-      confirmPassword.trim();
+      // oldPassword.trim();      
+      // newPassword.trim();
+      // confirmPassword.trim();
       const userId = req.session.userId  ||  req.user._id ;
     
       if( newPassword != confirmPassword ){
@@ -250,7 +261,7 @@ const deleteAddress = async ( req,res ) =>{
        
       }
       else{
-         const user = await User.findById( userId  );
+         const user = await User.findById( userId ); 
          
          if(user.googleId){
             res.status(400).json({ message : "You are authenticated by google" }) ;
@@ -258,7 +269,7 @@ const deleteAddress = async ( req,res ) =>{
          }else{
             const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
             if (!isOldPasswordValid) {
-              return res.status(400).json({ message: 'Incorrect old password' });
+              return res.status(400).json({ message: 'Incorrect old password ', link :`/userForgotPassword` });
             }else{
                const hashedPassword = await bcrypt.hash(newPassword, 10);
                await User.findByIdAndUpdate(userId, { password: hashedPassword });

@@ -2,10 +2,11 @@
 
 
 <div class="p-4">
-      <form action="/admin/addGenderCategory" method="POST">
+      <form action="/admin/addGenderCategory" method="POST" id="genderForm">
         <div class="mb-4">
           <label for="genderCategory" class="block text-lg font-lg text-gray-900">Add Gender Category</label>
           <input type="text" name="name" id="genderCategory" class="mt-1 p-2 border border-gray-300 rounded w-full"> 
+          <lebel id="genderErr"></lebel>
           <button type="submit" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded"> Add </button> 
         </div>
       </form> 
@@ -37,10 +38,11 @@
     <hr class="mt-10 mb-5 ">  
       
       <!-- Add Product Category Form -->
-      <form action="/admin/addProductCategory" method="POST">    
+      <form action="/admin/addProductCategory" method="POST" id="productForm">    
         <div class="mb-4">
           <label for="productCategory" class="block text-lg font-lg text-gray-900">Add Product Category</label>
           <input type="text" name="name" id="productCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <label id="productErr"></label>
           <label for="genderCategory" class="block text-sm font-medium text-gray-700">Select Gender Category</label>   
           <select name="genderCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
             <option value=""></option>
@@ -68,7 +70,7 @@
         <ul>
             <% productCategories.forEach(product => { %>
                 <!-- Check if softDelete is false -->
-                <% if (!product.softDelete ) { %>
+                <% if (!product.softDelete && product.genderCategory && product.genderCategory.name )  { %>
                     <li class="relative p-2 border-b border-gray-300">
                         <span class="text-lg font-medium"><%= product.name %> - <%= product.genderCategory.name %></span>
                         <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600" onclick="deleteProductCategory('<%= product._id %>')">X</button>
@@ -83,31 +85,40 @@
 
       
       <!-- Add Product Sub Category Form -->
-      <form action="/admin/addProductSubCategory" method="POST">
+      <form action="/admin/addProductSubCategory" method="POST" id="productSubForm">
+
         <div class="mb-4">
           <label for="productSubCategory" class="block text-lg font-lg text-gray-900">Add Product Sub Category</label>
           <input type="text" name="name" id="productSubCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">  
+          <label id="productSubErr"></label>
           <label for="genderCategory" class="block text-sm font-medium text-gray-700">Select Gender Category</label>
-          <select name="genderCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <select name="genderCategory" id="genderCategory" onchange="filterProductCategories(this.value)"  class="mt-1 p-2 border border-gray-300 rounded w-full">
             <option value=""></option>
             <% genderCategories.forEach(gender => { %>
               <% if (!gender.softDelete){ %>
-              <option value="<%= gender._id %>"><%= gender.name %></option> 
+              <option value="<%= gender._id %>"  <%= selectedGender == gender._id ? 'selected' : '' %>  ><%= gender.name %></option> 
               <%} %>
             <% }) %>
           </select>
+      
           <label for="productCategory" class="block text-sm font-medium text-gray-700">Select Product Category</label> 
-          <select name="productCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
-            <option value=""></option>
+          <select name="productCategory" id="productCategory"  " class="mt-1 p-2 border border-gray-300 rounded w-full">
+            <option value="" ></option>
             <% productCategories.forEach(category => { %>
               
-              <% if (!category.softDelete){ %>
-              <option value="<%= category._id %>"><%= category.name %> - <%= category.genderCategory.name %></option>
+              <% if (!category.softDelete && category.genderCategory && category.genderCategory.name ){ %>
+                
+            
+              <% if (selectedGender == category.genderCategory._id ) { %>
+                <option value="<%= category._id %>"> <%= category.name %> - <%= category.genderCategory.name %> </option> 
               <% } %>
+
+              <% } %>
+             
 
           <% }) %>
           </select>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded">Add</button>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded">Add</button> 
         </div>
       </form>
 
@@ -125,7 +136,7 @@
         <ul>
             <% productSubCategories.forEach(category => { %>
                 <!-- Check if softDelete is false -->
-                <% if (!category.softDelete ) { %>
+                <% if (!category.softDelete && category.genderCategory && category.genderCategory.name ) { %>
                     <li class="relative p-2 border-b border-gray-300">
                         <span class="text-lg font-medium"><%= category.name %> - <%=category.productCategory.name %> - <%= category.genderCategory.name %></span>
                         <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600" onclick="deleteProductSubCategory('<%= category._id %>')">X</button>
@@ -136,9 +147,137 @@
       </div> 
 
       </div>
+      
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 
       <script>
+
+   //alerts
+
+   const url = new URL (window.location.href); 
+    
+    if(url.searchParams.get("alreadyExists") == 1){
+      toastr.error('This category already exists !') ;
+    }
+
+    if(url.searchParams.get("genderCategory")==0){
+      toastr.error('select gender category !') ;
+    }
+
+    if(url.searchParams.get("productCategory")==0){  
+      toastr.error('select product category !') ;
+    }
+
+    if(url.searchParams.get("added") == 1){
+      toastr.success('Category added ') ;
+    }
+
+    
          
+
+
+    function filterProductCategories(category){
+      window.location.href = `/admin/addCategory?genderCategory=${category}` ;
+    }
+
+
+
+   //validation
+   const genderCategoryInput = document.getElementById("genderCategory");
+   const productCategoryInput = document.getElementById("productCategory");
+   const productSubCategoryInput   = document.getElementById("productSubCategory");
+
+   const genderCategoryError = document.getElementById("genderErr") ;
+   const productCategoryError = document.getElementById("productErr") ;
+   const productSubCategoryError = document.getElementById("productSubErr");
+
+   function showMessage (element , message , isValid){
+    element.textContent = message ;
+    element.style.color = isValid ? 'green' : 'red' ;
+   }
+
+   function validateGender(){
+    const gender = genderCategoryInput.value.trim();
+          if (gender.length < 3 || !/^[a-zA-Z\s]+$/.test(gender)){
+          showMessage(genderCategoryError, "Gender Category Name must be at least 3 characters", false);
+          return false;
+          }
+          showMessage( genderCategoryError , "valid", true);
+          return true;
+   }
+
+   function validateProduct(){
+    const product = productCategoryInput.value.trim();
+          if (product.length < 3 || !/^[a-zA-Z\s]+$/.test(product)){
+          showMessage(productCategoryError, "Product Category Name must be at least 3 characters", false);
+          return false;
+          }
+          showMessage( productCategoryError , "valid", true);
+          return true;
+   }
+
+   function validateProductSub(){
+    const productSub =  productSubCategoryInput.value.trim();
+          if (productSub.length < 3 || !/^[a-zA-Z\s]+$/.test(productSub)){
+          showMessage(productSubCategoryError, "Product Sub Category Name must be at least 3 characters", false);
+          return false;
+          }
+          showMessage(productSubCategoryError, "valid", true);
+          return true;
+   }
+
+   genderCategoryInput.addEventListener("keyup" , validateGender);
+   productCategoryInput.addEventListener("keyup" , validateProduct);
+   productSubCategoryInput.addEventListener("keyup" ,validateProductSub) ;
+
+
+
+   document.getElementById("genderForm").addEventListener("submit", function(event){
+      let isValid = validateGender();
+      if(!isValid){
+        event.preventDefault(); // Prevent form submission
+        toastr.error("Please fix the validation errors before submitting.");
+    }
+   })
+
+   
+   document.getElementById("productForm").addEventListener("submit" , function(event){
+      let isValid = validateProduct();
+      if(!isValid){
+        event.preventDefault(); // Prevent form submission
+        toastr.error("Please fix the validation errors before submitting.");
+    }
+   })
+
+   
+   document.getElementById("productSubForm").addEventListener("submit", function(event){
+      let isValid = validateProductSub();
+      if(!isValid){
+        event.preventDefault(); // Prevent form submission
+        toastr.error("Please fix the validation errors before submitting.");
+    } 
+   })
+   
+
+
+
+
+  
+         
+  
+
+  
+
+
+    
+
+
+
+
+
+
         //softdelete gender category 
         function deleteGenderCategory(genderId){
           fetch("/admin/deleteGenderCategory" , {
@@ -154,7 +293,8 @@
                text: 'Gender category deleted successfully.',
                confirmButtonText: 'OK'
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+              // location.reload(); // Reload the page after the user clicks 'OK'
+              window.location.href="/admin/addCategory" ;
              });
            } else {
              Swal.fire({
@@ -185,7 +325,8 @@
                text: 'Gender category added successfully.',
                confirmButtonText: 'OK'
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+             //  location.reload(); // Reload the page after the user clicks 'OK'
+             window.location.href="/admin/addCategory" ;
              });
            } else {
              Swal.fire({
@@ -215,7 +356,8 @@
                text: 'Product Category deleted successfully.',
                confirmButtonText: 'OK'
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+               //location.reload(); // Reload the page after the user clicks 'OK'
+               window.location.href="/admin/addCategory" ;
              });
            } else {
              Swal.fire({
@@ -245,7 +387,8 @@
                text: 'Product category added successfully. ' ,
                confirmButtonText: 'OK'
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+              // location.reload(); // Reload the page after the user clicks 'OK'
+              window.location.href="/admin/addCategory" ;
              });
             } else {
              Swal.fire({
@@ -272,9 +415,10 @@
                icon: 'success',
                title: 'Deleted!',
                text: 'Product sub category deleted successfully.',
-               confirmButtonText: 'OK'
+               confirmButtonText: 'OK'   
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+               //location.reload(); // Reload the page after the user clicks 'OK'
+               window.location.href="/admin/addCategory" ;
              });
            } else {
              Swal.fire({
@@ -303,7 +447,8 @@
                text: 'Product Sub category added successfully.',
                confirmButtonText: 'OK'
              }).then(() => {
-               location.reload(); // Reload the page after the user clicks 'OK'
+               //location.reload(); // Reload the page after the user clicks 'OK'
+               window.location.href="/admin/addCategory" ;
              });
            } else {
              Swal.fire({

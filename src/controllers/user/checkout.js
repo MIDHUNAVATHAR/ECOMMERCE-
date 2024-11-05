@@ -70,11 +70,16 @@ const  getCheckout  =  async  ( req , res )  =>{
     const deliveryCharge = parseFloat(req.query.deliveryCharge) || 0 ;
 
     let totalAmount = (totalPrice + deliveryCharge)  - ( cart.couponBalance + cart.walletBalance ) ;   
-    totalAmount = totalAmount.toFixed(2)
+    totalAmount = totalAmount.toFixed(2) ; 
 
-    if(totalAmount == 0){
-      return res.redirect("/cart") ; 
+    if(totalAmount <= 0){
+      totalAmount = 0 ; 
     }
+    
+
+    // if(totalAmount == 0){
+    //   return res.redirect("/cart") ; 
+    // }
 
      res.render("frontend/checkout.ejs" , { logo , genderCategory , user , userAddresses , cart , totalItems, deliveryCharge , totalAmount , totalPrice , cartTotal} );   
   }catch(err){

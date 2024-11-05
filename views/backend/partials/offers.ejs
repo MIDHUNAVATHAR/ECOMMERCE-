@@ -62,7 +62,7 @@
         </td>
         <td class="px-4 py-3">
         <button 
-          onclick="categoryOffer('<%= category.id %>' , document.getElementById('genderOffer<%= category.id %>').value, document.getElementById('genderExpiry<%= category.id %>').value)"
+          onclick="categoryOffer(event ,'<%= category.id %>' , document.getElementById('genderOffer<%= category.id %>').value, document.getElementById('genderExpiry<%= category.id %>').value)"
           class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600"
         >
           Save
@@ -82,7 +82,17 @@
   <script>
    
 
-    function categoryOffer( id , offer , date ){
+    function categoryOffer( event ,id , offer , date ){
+      event.preventDefault();
+       // Validate offer percentage
+  if (offer < 0 || offer > 100) {
+    return toastr.error("Product offer must be between 0 and 100.");
+  }
+
+  // Validate that an expiry date is provided
+  if (!date) {
+    return toastr.error("Please select a valid expiry date.");
+  }
         const data = {
         id: id,
         offer: offer,

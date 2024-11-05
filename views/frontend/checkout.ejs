@@ -26,17 +26,18 @@
     <!-- Delivery Address -->
     <h2 class="text-2xl font-bold mb-4 border-b pb-2">Delivery Address</h2>   
 
-    <form id="addressForm" action="/saveAddress" method="POST">
+    <form id="addressForm" action="/saveAddress" method="POST" >
     <input type="hidden" name="userId"  value="<%= user._id %>">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">                
         <div>
             <label for="name" class="block text-gray-700 font-medium">Name</label>
-            <input type="text" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+            <input type="text" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+            <span id="nameError"></span>
         </div>
     <div>
         <label for="addressType" class="block text-gray-700 font-medium">Address Type</label>
-        <select name="addresstype" id="addressType" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+        <select name="addresstype" id="addressType" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
             <option value="home">Home</option>
             <option value="work">Work</option>
         </select>
@@ -46,26 +47,31 @@
     <div class="mb-6">
         <label class="block text-gray-700 font-medium mb-2" for="address">Full Address</label>
         <input id="address" type="text" name="address" placeholder="Enter your delivery address" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <span id="addressError"></span>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="city">City</label>
             <input id="city" type="text" name="city" placeholder="City" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="cityError"></span>
         </div>
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="postal-code">Postal Code</label>
-            <input id="postal-code" type="text" name="pincode" placeholder="Postal Code" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input id="pincode" type="text" name="pincode" placeholder="Postal Code" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="pincodeError"></span>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="city">Phone Number </label>
-            <input id="phone-number" type="text" name="phone" placeholder="phone Number" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input id="phone" type="text" name="phone" placeholder="phone Number" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="phoneError"></span>
         </div>
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="postal-code">Alternate Number</label>
-            <input id="alternate-number" type="text" name="alternatephone" placeholder="alternateNumber" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input id="alternatephone" type="text" name="alternatephone" placeholder="alternateNumber" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="alternatephoneError" ></span>
         </div>
     </div>
 
@@ -73,10 +79,12 @@
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="state">State</label>
             <input id="state" type="text" name="state" placeholder="State" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="stateError"></span>
         </div>
         <div>
             <label class="block text-gray-700 font-medium mb-2" for="country">Land Mark</label>
             <input id="landMark" type="text" name="landmark" placeholder="landMark" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="landMarkError"> </span>
         </div>
     </div>
 
@@ -116,7 +124,7 @@
 
         <!-- addressform -->
         <div class="userAddressForm hidden mt-5 border-2 border-grey-900 rounded-lg p-5"> 
-        <form  action="/saveEditAddress/<%=address.id %>" method="POST"> 
+        <form  action="/saveEditAddress/<%=address.id %>" method="POST" > 
             <!-- <input type="hidden" name="userId"  value="<%= user._id %>"> -->
             <input type="hidden" name="checkout"  value="1" >
          
@@ -165,7 +173,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="landMark">Land Mark</label>
-                    <input id="landMark" type="text" name="landmark" value="<%=address.landmark %>" placeholder="land Mark" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <input id="landMak" type="text" name="landmark" value="<%=address.landmark %>" placeholder="land Mark" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
                 </div>
             </div>
         
@@ -250,8 +258,14 @@
     <h2 class="text-2xl font-bold mb-4 border-b pb-2">Payment Options</h2>
     <div class="mb-6">
         <div class="flex items-center mb-4">
+            <% if (totalAmount > 0) { %>
             <input id="razor-pay" name="payment-method" onchange="paymentMethod('razor-pay')" type="radio" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-            <label for="razor-pay" class="ml-2 text-gray-700">RazorPay</label> 
+            <label for="razor-pay" class="ml-2 text-gray-700">RazorPay</label>  
+            <% } else { %>
+            <input type="radio" disabled class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+            <label for="razor-pay" class="ml-2 text-gray-700">RazorPay (Unavailable for orders 0 or below)</label> 
+            <% } %>
+                
         </div>
         <div class="flex items-center mb-4">
             <input id="paypal" name="payment-method" type="radio" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" disabled>
@@ -329,6 +343,159 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
+
+
+
+
+
+
+
+// // Validation add- address
+const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
+const alternatephoneInput = document.getElementById("alternatephone");
+const addressInput = document.getElementById("address");
+const landMarkInput = document.getElementById("landMark");
+const cityInput = document.getElementById("city");
+const stateInput = document.getElementById("state");
+const pincodeInput = document.getElementById("pincode");
+
+const nameError = document.getElementById("nameError");
+const phoneError = document.getElementById("phoneError");
+const alternatephoneError = document.getElementById("alternatephoneError");
+const addressError = document.getElementById("addressError");
+const landMarkError = document.getElementById("landMarkError");
+const cityError = document.getElementById("cityError");
+const stateError = document.getElementById("stateError");
+const pincodeError = document.getElementById("pincodeError");
+
+// Show validation messages
+function showMessage(element, message, isValid) {
+    element.textContent = message;
+    element.style.color = isValid ? 'green' : 'red';
+}
+
+// // Validation functions
+function validateName() {
+    const name = nameInput.value.trim();
+    if (name.length < 3 || !/^[a-zA-Z\s]+$/.test(name)){
+        showMessage(nameError, "Name must be at least 3 characters", false);
+        return false;
+    }
+    showMessage(nameError, "valid", true);
+    return true;
+}
+
+function validatePhone() {
+    const phone = phoneInput.value.trim();
+    const phonePattern = /^[6-9]\d{9}$/;;
+    if (!phonePattern.test(phone)) {
+        showMessage(phoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(phoneError, "valid", true);
+    return true;
+}
+
+function validateAlternatephone() {
+    const altPhone = alternatephoneInput.value.trim();
+    if (altPhone && !/^[6-9]\d{9}$/.test(altPhone)) {
+        showMessage(alternatephoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(alternatephoneError, "valid", true);
+    return true;
+}
+
+function validateAddress() {
+    const address = addressInput.value.trim();
+    if (address.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(address) ) {
+        showMessage(addressError, "Address must start with a letter and contain only letters, spaces, and commas", false);
+        return false;
+    }
+    showMessage(addressError, "valid", true);
+    return true;
+}
+
+function validateLandmark() {
+    const landmark  = landMarkInput.value.trim() ; 
+    if (landmark.length < 4 || !/^[a-zA-Z]+$/.test(landmark) ) {
+        showMessage(landMarkError, "Enter a valid landmark ", false);
+        return false;
+    }
+    showMessage(landMarkError, "valid", true);
+    return true;
+}
+
+function validateCity() {
+    const city = cityInput.value.trim();
+    if (city.length <4 || !/^[a-zA-Z]+$/.test(city) ) {
+        showMessage(cityError, "Enter a valid city name", false ) ; 
+        return false;
+    }
+    showMessage(cityError, "valid", true);
+    return true;
+}
+
+function validateState() {
+    const state = stateInput.value.trim();
+    if (state.length <4 || !/^[a-zA-Z]+$/.test(state) ) {
+        showMessage(stateError, "Enter a valid state name", false) ;
+        return false;
+    }
+    showMessage(stateError, "valid", true);
+    return true;
+}
+
+function validatePincode() {
+    const pincode = pincodeInput.value.trim();
+    if ( (!/^[0-9]{6}$/.test(pincode) || /^0{6}$/.test(pincode))) {
+        showMessage(pincodeError, "Enter a valid 6-digit pincode", false);
+        return false;
+    }
+    showMessage(pincodeError, "valid", true);
+    return true;
+}
+
+
+// Event listeners for real-time validation
+nameInput.addEventListener("keyup", validateName);
+ phoneInput.addEventListener("keyup", validatePhone); 
+ alternatephoneInput.addEventListener("keyup", validateAlternatephone) ; 
+addressInput.addEventListener("keyup", validateAddress);
+ landMarkInput.addEventListener("keyup", validateLandmark);
+cityInput.addEventListener("keyup", validateCity);
+stateInput.addEventListener("keyup", validateState);
+pincodeInput.addEventListener("keyup", validatePincode);
+
+
+
+// Form submission handler
+document.getElementById("addressForm").addEventListener("submit", (e) => {
+    // Prevent form submission if any validation fails
+    if (
+        !validateName() ||
+        !validatePhone() ||
+        !validateAlternatephone() ||
+        !validateAddress() ||
+        !validateLandmark() ||
+        !validateCity() || 
+        !validateState() ||
+        !validatePincode()
+    ) {
+        e.preventDefault() ; // Stop form submission
+    
+    }
+});
+ 
+
+
+
+
+
+
+
+
     // order success modal
      function showModal() {
       document.getElementById('successModal').classList.remove('hidden');
@@ -409,13 +576,14 @@
     const addressId = currentUrl.searchParams.get("address") ;
     const paymentMethod = currentUrl.searchParams.get("payment-mode"); 
     const deliveryCharge = '<%= deliveryCharge %>' ;
+    const amount = '<%= totalAmount %>' ;  // Amount in INR
 
     if(paymentMethod == "cash-on-delivery"){
 
     fetch("/placeorder" ,{ 
         method : "POST",
         headers : { 'Content-Type' : "application/json" },
-        body : JSON.stringify({ userId , cartId , addressId , paymentMethod , deliveryCharge })})       
+        body : JSON.stringify({ userId , cartId , addressId , paymentMethod , deliveryCharge , amount })})       
     .then(response=>response.json())
     .then(data =>{
         if(data.status){

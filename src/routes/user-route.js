@@ -53,24 +53,24 @@ router.get("/product/:id", implementOffers  , product.product) ;
 
 router.get("/userProfile" , checkAuthentication , profile.showProfile ) ;
 
-router.post("/userProfile" , profile.editProfilePost);
+router.post("/userProfile"  , checkAuthentication , profile.editProfilePost);
 
 //get user adress management
 router.get("/userAdressMang" ,  checkAuthentication  ,  profile.userAdressMng );
 
 //add addresses
-router.post("/saveAddress" , profile.saveAddress );
+router.post("/saveAddress"  , checkAuthentication , profile.saveAddress );
 
 //delete addresses
-router.get("/deleteAddress/:id" , profile.deleteAddress); 
+router.get("/deleteAddress/:id"  , checkAuthentication , profile.deleteAddress); 
 
 //post edit address
-router.post("/saveEditAddress/:id" , profile.editAddress);
+router.post("/saveEditAddress/:id"  , checkAuthentication , profile.editAddress);
 
 //change password
 router.get("/changePassword" , checkAuthentication , profile.changePassword ) ;
 
-router.post("/changePassword" , profile.postChangePassword )
+router.post("/changePassword"  , checkAuthentication , profile.postChangePassword )
  
 
 
@@ -82,30 +82,30 @@ router.post("/changePassword" , profile.postChangePassword )
 
 router.get("/userLogin" , checkAuthentication , authentication.userLogin)  ;
 
-router.post("/userlogin" , authentication.userLoginPost) ; 
+router.post("/userlogin"  , authentication.userLoginPost) ; 
 
-router.get("/userSignup" , authentication.userSignup ) ;
+router.get("/userSignup" , checkAuthentication , authentication.userSignup ) ;
 
-router.post("/userSignupPost" , authentication.userSignupPost ) ;
+router.post("/userSignupPost", checkAuthentication , authentication.userSignupPost ) ;
 
-router.post("/resendEmailOtp" , authentication.resendEmailOtp );
+router.post("/resendEmailOtp", authentication.resendEmailOtp );
 
-router.post("/userCheckOtp" , authentication.checkOtp );
+router.post("/userCheckOtp", authentication.checkOtp );
 
-router.get("/userForgotPassword" ,authentication.forgotPassword );
+router.get("/userForgotPassword",authentication.forgotPassword );
 
-router.post("/userForgotPassword" , authentication.forgotPasswordPost ); 
+router.post("/userForgotPassword", authentication.forgotPasswordPost ); 
 
 router.get("/userResetPassword/:token" , authentication.resetPassword );   
 
-router.post("/userResetPassword/:token" , authentication.resetPasswordPost );
+router.post("/userResetPassword/:token" , authentication.resetPasswordPost ); 
 
 router.get("/userLogout" , authentication.userLogout ); 
 
-router.get("/blocked" , authentication.blocked); 
+router.get("/blocked"  , authentication.blocked); 
 
 
-
+ 
 
 
 
@@ -137,7 +137,7 @@ router.get('/auth/google/callback', passport.authenticate( 'google-user', {
 //WISHLIST  
 router.get( "/wishlist" , checkAuthentication, wishlist.wishlist) ; 
 
-router.post("/wishlist/add"  , wishlist.addToWishlist) ; 
+router.post("/wishlist/add", checkAuthentication  , wishlist.addToWishlist) ; 
 
 router.delete("/removeWishlistItem/:id" ,checkAuthentication, wishlist.removeWishlistitem ); 
  
@@ -150,11 +150,11 @@ router.get("/cart" , checkAuthentication , cartAvailability  ,  cart.getCart ) ;
 
 router.post( "/addToCart", checkAuthentication , cart.addToCart); 
 
-router.post("/cartProductInc" , cart.increQuantity); 
+router.post("/cartProductInc", checkAuthentication , cart.increQuantity); 
 
-router.post("/cartProductDec" , cart.decreQuantity);
+router.post("/cartProductDec", checkAuthentication , cart.decreQuantity);
 
-router.post("/removeItem" , cart.removeItem );  
+router.post("/removeItem", checkAuthentication , cart.removeItem );  
 
 
 
@@ -169,25 +169,25 @@ router.get( "/checkout" , checkAuthentication , cartAvailability , checkout.getC
 router.post( '/placeorder' , checkAuthentication , cartAvailability , order.placeorder ) ;  
 router.get(  "/myOrders" , checkAuthentication , order.myOrders); 
 router.get(  "/myOrders/:orderId" , checkAuthentication , order.viewOrder );  
-router.get('/api/orders/download-pdf/:orderId', order.generateOrderPDF );
-router.post( "/cancelOrder" , order.cancelOrder ) ;
+router.get('/api/orders/download-pdf/:orderId', checkAuthentication , order.generateOrderPDF );
+router.post( "/cancelOrder" , checkAuthentication , order.cancelOrder ) ;
 
 
 
 
 //REVIEW 
-router.post( "/submitReview" , order.submitReview ) ; 
+router.post( "/submitReview", checkAuthentication , order.submitReview ) ; 
 
 
 
 //RAZORPAY
-router.post("/create-order" ,razorPay.createOrder );
+router.post("/create-order", checkAuthentication ,razorPay.createOrder );
 
 router.post("/verify-payment" , razorPay.verifyPayment ) ;
 
 router.post("/payment-failed" , razorPay.paymentFailed ) ;
 
-router.post('/continue-failed-payment', razorPay.continuePayment );
+router.post('/continue-failed-payment' , checkAuthentication , razorPay.continuePayment );
 
 router.post("/continue-verify-payment" , razorPay.continueVerifyPayment );
 
@@ -195,25 +195,25 @@ router.post("/continue-verify-payment" , razorPay.continueVerifyPayment );
 
 
 //WALLET
-router.post("/add-wallet-cart" , wallet.walletAddCart) ; 
+router.post("/add-wallet-cart", checkAuthentication , wallet.walletAddCart) ; 
 
-router.post("/remove-wallet-cart" , wallet.walletRemoveCart ) ;
+router.post("/remove-wallet-cart" , checkAuthentication , wallet.walletRemoveCart ) ;
 
-router.get('/walletHistory' , checkAuthentication , wallet.getWalletHistory );
+router.get('/walletHistory' , checkAuthentication , checkAuthentication , wallet.getWalletHistory );
 
 
 
 //REFERRAL
-router.post("/withDrawRefferalBalance" , refferal.withDrawBalance  ) ;
+router.post("/withDrawRefferalBalance" , checkAuthentication , refferal.withDrawBalance  ) ;
 
 
 
 //COUPON
 router.get("/getCoupons" , checkAuthentication , coupon.coupons )
 
-router.post("/add-coupon-code" , coupon.couponAddCart ) ;
+router.post("/add-coupon-code", checkAuthentication , coupon.couponAddCart ) ;
 
-router.post("/remove-coupon-code" , coupon.removeCoupon ) ; 
+router.post("/remove-coupon-code", checkAuthentication , coupon.removeCoupon ) ; 
 
 
 
@@ -221,7 +221,7 @@ router.post("/remove-coupon-code" , coupon.removeCoupon ) ;
 //RETURN ORDER
 router.get("/returnOrder/:id" , checkAuthentication ,  orderReturn.returnOrder ) ;
 
-router.post("/returnOrder" , orderReturn.postReturnOrder ) ;
+router.post("/returnOrder", checkAuthentication , orderReturn.postReturnOrder ) ;
 
 router.get("/orderReturns" , checkAuthentication , orderReturn.orderReturn  ) ;
 

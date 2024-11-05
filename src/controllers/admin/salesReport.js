@@ -146,7 +146,7 @@ const generatePDF = async (req, res) => {
         }).populate([
             { path: 'userId', select: 'firstName lastName email' },
             { path: 'shippingAddress' },
-            { path: 'items.product', select: 'title category price' }
+            { path: 'items.product', select: 'title category price' } 
         ]);
     
         // Calculate summary statistics
@@ -197,7 +197,7 @@ const generatePDF = async (req, res) => {
         // Date Range
         doc.fontSize(12)
            .font('Helvetica')
-           .text(`Period: ${moment(startDate).format('MMMM D, YYYY')} - ${moment(endDate).format('MMMM D, YYYY')}`, {
+           .text(`Period: ${moment(startDate).format('DD/MM/YYYY')} - ${moment(endDate).format('DD/MM/YYYY')}`, {
                align: 'center'
            })
            .moveDown(2);
@@ -266,7 +266,7 @@ const generatePDF = async (req, res) => {
             const orderId = order._id?.toString().substring(0, 8) || 'N/A';
             const customerName = order.userId ? 
                 `${order.userId.firstName || ''} ${order.userId.lastName || ''}`.trim() : 'N/A';
-            const orderDate = moment(order.createdAt).format('MM/DD/YY');
+            const orderDate = moment(order.createdAt).format('DD/MM/YYYY'); // Change to DD/MM/YYYY
             const status = order.orderStatus || 'N/A';
             const amount = order.totalPrice ? `₹${order.totalPrice.toFixed(2)}` : 'N/A';
 
@@ -308,7 +308,7 @@ const generatePDF = async (req, res) => {
 
         // Footer
         doc.fontSize(8)
-           .text(`Report generated on ${moment().format('MMMM D, YYYY, h:mm A')}`,
+           .text(`Report generated on ${moment().format('DD/MM/YYYY, h:mm A')}`, // Change to DD/MM/YYYY
                  margins.left,
                  doc.page.height - 30,
                  { align: 'center' });
@@ -320,8 +320,6 @@ const generatePDF = async (req, res) => {
         res.status(500).render("frontend/404");
     }
 };
-
-
 
 
 
@@ -499,7 +497,6 @@ const generatePDF = async (req, res) => {
 
 
 
-
 const generateExcel = async (req, res) => {
     try {
         const { dateRange, fromDate, toDate } = req.query;
@@ -564,7 +561,7 @@ const generateExcel = async (req, res) => {
 
         // Add date range
         worksheet.mergeCells('A2:G2');
-        worksheet.getCell('A2').value = `Period: ${moment(startDate).format('MMMM D, YYYY')} - ${moment(endDate).format('MMMM D, YYYY')}`;
+        worksheet.getCell('A2').value = `Period: ${moment(startDate).format('DD/MM/YYYY')} - ${moment(endDate).format('DD/MM/YYYY')}`;
         worksheet.getCell('A2').alignment = { horizontal: 'center' };
 
         // Add summary section
@@ -612,20 +609,18 @@ const generateExcel = async (req, res) => {
 
             // Main order information
             row.getCell(1).value = order._id.toString();
-            row.getCell(2).value = `${order.userId?.firstName || 'N/A'} ${order.userId?.lastName || ''}` ; 
-            row.getCell(3).value = moment(order.createdAt).format('DD/MM/YYYY'); 
+            row.getCell(2).value = `${order.userId?.firstName || 'N/A'} ${order.userId?.lastName || ''}`; 
+            row.getCell(3).value = moment(order.createdAt).format('DD/MM/YYYY'); // Format date in Indian format
             row.getCell(4).value = order.orderStatus;
 
             const amountCell = row.getCell(5);
             amountCell.value = order.totalPrice;
             amountCell.numFmt = '₹#,##0.00';
 
-        
-
             const itemsInfo = order.items.map(item => 
                 `${item.product?.title || 'Unknown Product'} (Qty: ${item.quantity}, Size: ${item.size}, Price: ₹${item.price})`
-              ).join('\n');
-              row.getCell(6).value = itemsInfo;
+            ).join('\n');
+            row.getCell(6).value = itemsInfo;
 
             // Adjust row height based on content
             row.height = 25 * Math.max(1, order.items.length);
@@ -665,8 +660,6 @@ const generateExcel = async (req, res) => {
         res.status(500).render("frontend/404");
     }
 };
-
-
 
 
 

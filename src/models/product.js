@@ -10,8 +10,8 @@ const productSchema = new Schema({
       size : { type : String , required: true },
       price : { type : Number , required : true },
       quantity : { type : Number , required : true },
-      discountedPrice : {type : Number , required : true },
-      discountedPercentage : {type : Number , required : true } 
+      discountedPrice : {type : Number  , default : 0 },
+      discountedPercentage : {type : Number , default : 0 } 
     }
   ], required: true }, 
   productDescription: { type: String, required: true },
@@ -23,7 +23,7 @@ const productSchema = new Schema({
   images: { type: [String] } ,  
   offer : { type : Number , default : 0  },
   offerExpiry : { type : Date  } , 
-  softDelete : {type : Boolean , default : false } ,
+  softDelete : {type : Boolean , default : false } , 
   reviews: [{
     type: Schema.Types.ObjectId,
     ref: 'Review'  // Referencing the Review model

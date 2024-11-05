@@ -94,7 +94,23 @@
                         <% if(order.orderStatus == "pending" || order.orderStatus == "shipped" ){ %>
                         <div class="border rounded-lg shadow-md p-4 bg-white w-full">
                           <h2 class="text-xl font-bold text-gray-700 mb-2">Order ID: <%= order._id %></h2>
-                          <p class="text-gray-600 text-sm">Date: <%= new Date(order.createdAt).toLocaleString() %></p>
+                        
+                          <% if (order.createdAt) { %>
+                            <p class="text-gray-600 text-sm">Date: <%= new Date(order.createdAt).toLocaleDateString('en-IN', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                year: 'numeric' 
+                            }) %> at <%= new Date(order.createdAt).toLocaleTimeString('en-IN', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                hour12: false 
+                            }) %></p>
+                        <% } else { %>
+                            <p class="text-gray-600 text-sm">Date: Not available</p>
+                        <% } %>
+                        
+                     
+                        
                   
                           <div class="flex items-center mt-4"> 
                             <!-- Add a placeholder for the product image -->
@@ -160,7 +176,15 @@
                         <% if(order.orderStatus == "delivered" || order.orderStatus == "cancelled" ){ %>
                         <div class="border rounded-lg shadow-md p-4 bg-white w-full">
                           <h2 class="text-xl font-bold text-gray-700 mb-2">Order ID: <%= order._id %></h2>
-                          <p class="text-gray-600 text-sm">Date: <%= new Date(order.createdAt).toLocaleString() %></p>
+                          <p class="text-gray-600 text-sm">Date: <%= new Date(order.createdAt).toLocaleDateString('en-IN', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric' 
+                        }) %> at <%= new Date(order.createdAt).toLocaleTimeString('en-IN', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: false 
+                        }) %></p>
                   
                           <div class="flex items-center mt-4">
                             <!-- Add a placeholder for the product image -->
@@ -209,6 +233,7 @@
   <button type="button" class="bg-yellow-500 mt-5 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded w-full" onclick="openReviewModal('<%= order.items[0].product._id %>')">
     Leave a Review
   </button>
+  
 <% } %>
 
 

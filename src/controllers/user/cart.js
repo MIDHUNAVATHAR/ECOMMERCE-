@@ -31,7 +31,7 @@ const getCart = async ( req,res ) => {
    }else{
    cartTotal = 0 ; 
    }
- 
+
 
    if(cart){
     let totalItems =0 ;
@@ -50,7 +50,7 @@ const getCart = async ( req,res ) => {
     }
 
    //
-   let totalP = totalPrice
+   let totalP = parseFloat(totalPrice.toFixed(2)) ;
 
 
     let couponDiscount =  cart.couponBalance || 0;   
@@ -62,7 +62,7 @@ const getCart = async ( req,res ) => {
       if (totalP <= couponDiscount) {
         // Coupon is larger than or equal to totalPrice, so totalPrice becomes 0
         couponDiscount = totalP;
-        cart.couponBalance = totalP; // Full coupon is used
+        //cart.couponBalance = totalP; // Full coupon is used
         totalP= 0;
       } else {
         // Apply part of the coupon 
@@ -83,7 +83,10 @@ const getCart = async ( req,res ) => {
       }
     }
 
-    let totalAmount = totalP ; // Final total after coupon and wallet discounts
+   
+
+    //let totalAmount = totalP// Final total after coupon and wallet discounts
+    let totalAmount = parseFloat(totalP.toFixed(2));
 
     // Save the updated balances
     await user.save();
@@ -93,12 +96,12 @@ const getCart = async ( req,res ) => {
   }
   else{
     
-    return res.render("frontend/cart.ejs" , { logo, user, genderCategory , cart : false , cartTotal}) ; 
+    return res.render("frontend/cart.ejs" , { logo, user, genderCategory , cart : false , cartTotal }) ; 
 
   }
 
 }catch(err){
-    console.log(error)
+    console.log(err); 
     res.status(500).render("frontend/404");  
 }
 
@@ -198,8 +201,8 @@ const increQuantity = async ( req,res ) =>{
     const {userId , itemId } = req.body ;
     const cart = await Cart.findOne({ user : userId },{ items : { $elemMatch : {  _id : itemId }}}) ;
     
-    const productId = cart.items[0].product; 
-    const size = cart.items[0].size ;
+    const productId = cart.items[0].product ;  
+    const size = cart.items[0].size ; 
   
      
     /////////////////////////

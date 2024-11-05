@@ -49,10 +49,21 @@ const  addProductPost  =  async  ( req , res )  => {
         
         try {
            
-             const {
+             let {
                  title, titleDescription, productDescription, highlights, details,
-                 genderCategory, productCategory, productSubCategory , size , quantity , price , discountedPrice , discountedPercentage 
+                 genderCategory, productCategory, productSubCategory , size , quantity , price ,
              } = req.body ;
+
+             title = title.trim();
+             titleDescription = titleDescription.trim();
+             productDescription = productDescription.trim();
+             highlights = highlights.trim();
+             details   = details.trim();
+
+
+             if(!size || !quantity || !price){
+               return  res.status(400).json({ size: 'Fill size fields' }) ; 
+             }
               
 
             const sizes = [] ;
@@ -61,8 +72,6 @@ const  addProductPost  =  async  ( req , res )  => {
                     size : size[i],
                     price : parseFloat(price[i]), 
                     quantity : parseInt(quantity[i]),
-                    discountedPrice : parseFloat(discountedPrice[i]),
-                    discountedPercentage : parseFloat(discountedPercentage[i])
                 }
                 sizes.push( productObject );
             }
@@ -164,10 +173,17 @@ const  editProductPost  = async  ( req , res )  =>{
         } 
           
 
-        const {
+        let  {
             title, titleDescription, productDescription, highlights, details,
-            genderCategory, productCategory, productSubCategory , size , quantity , price , discountedPrice , discountedPercentage 
+            genderCategory, productCategory, productSubCategory , size , quantity , price , 
         } = req.body ;
+      
+        title = title.trim();
+        titleDescription = titleDescription.trim();
+        productDescription = productDescription.trim();
+        highlights  =  highlights.trim();
+        details  = details.trim();
+        
          
 
         const sizes = [] ;
@@ -176,8 +192,8 @@ const  editProductPost  = async  ( req , res )  =>{
                size : size[i],
                price : parseFloat(price[i]),
                quantity : parseInt(quantity[i]),
-               discountedPrice : parseFloat(discountedPrice[i]),
-               discountedPercentage : parseFloat(discountedPercentage[i])
+           
+
            }
            sizes.push( productObject );
         }

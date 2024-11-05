@@ -10,20 +10,20 @@
   <div class="mb-4">
     <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
     <input type="text" name="title" value="<%=product.title %>" id="title" class="mt-1 p-2 border border-gray-300 rounded w-full" >
+    <span id="titleErr"></span>
   </div>
   <div class="mb-4">
     <label for="titleDescription" class="block text-sm font-medium text-gray-700">Title Description</label>
     <input type="text" name="titleDescription" value="<%=product.titleDescription %>" id="titleDescription" class="mt-1 p-2 border border-gray-300 rounded w-full" >
+    <span id="titleDescriptionErr"></span>
   </div>
-  <div class="container mx-auto p-4">
+  <div class="container mx-auto p-4"  id="productTable">
     <table class="table-auto w-full border-collapse border border-gray-200">
         <thead class="bg-gray-100">
             <tr>
                 <th class="border border-gray-300 p-2">Size</th>
                 <th class="border border-gray-300 p-2">Quantity</th>
                 <th class="border border-gray-300 p-2">Price</th>
-                <th class="border border-gray-300 p-2">Discounted Price</th>   
-                <th class="border border-gray-300 p-2">Discount Percentage</th>
                 <th class="border border-gray-300 p-2">Action</th>
             </tr>
         </thead>
@@ -31,19 +31,13 @@
             <% product.sizes.forEach(function(size, index) { %> 
             <tr>
                 <td class="border border-gray-300 p-2">
-                    <input type="text" name="size[]" value="<%= size.size %>" class="w-full p-1 border border-gray-300" >
+                    <input type="text" name="size[]" value="<%= size.size %>" required class="w-full p-1 border border-gray-300" >
                 </td>
                 <td class="border border-gray-300 p-2">
-                    <input type="number" name="quantity[]" value="<%= size.quantity %>" class="w-full p-1 border border-gray-300" min="0">
+                    <input type="number" name="quantity[]" value="<%= size.quantity %>" required class="w-full p-1 border border-gray-300" min="0">
                 </td>
                 <td class="border border-gray-300 p-2">
-                    <input type="number" name="price[]" value="<%= size.price %>" class="w-full p-1 border border-gray-300" min="0">
-                </td>
-                <td class="border border-gray-300 p-2">
-                    <input type="number" name="discountedPrice[]" value="<%= size.discountedPrice %>" class="w-full p-1 border border-gray-300" min="0">
-                </td>
-                <td class="border border-gray-300 p-2">
-                    <input type="number" name="discountedPercentage[]" value="<%= size.discountedPercentage %>" class="w-full p-1 border border-gray-300" min="0">
+                    <input type="number" name="price[]" value="<%= size.price %>" required class="w-full p-1 border border-gray-300" min="0">
                 </td>
                 <td class="border border-gray-300 p-2 text-red-500">
                     <button class="text-red-500 hover:underline" onclick="deleteRow('<%= size._id %> ')">Delete</button>
@@ -61,41 +55,51 @@
   <div class="mb-4">
     <label for="productDescription" class="block text-sm font-medium text-gray-700">Product Description</label>
     <textarea name="productDescription" id="productDescription"  class="mt-1 p-2 border border-gray-300 rounded w-full"> <%=product.productDescription %> </textarea>
+    <span id="productDescriptionErr"></span>
   </div>
   <div class="mb-4">
     <label for="highlights" class="block text-sm font-medium text-gray-700">Highlights</label>
     <textarea name="highlights" id="highlights"  class="mt-1 p-2 border border-gray-300 rounded w-full" > <%=product.highlights %> </textarea>
+    <span id="highlightsErr" ></span>
   </div>
   <div class="mb-4">
     <label for="details" class="block text-sm font-medium text-gray-700">Details</label>
     <textarea name="details" id="details"  class="mt-1 p-2 border border-gray-300 rounded w-full" > <%=product.details%> </textarea>
+    <span id="detailsErr"></span>
   </div>
   <div class="mb-4"> 
     <label for="genderCategory" class="block text-sm font-medium text-gray-700">Gender Category</label>
-    <select name="genderCategory" id="genderCategory"  class="mt-1 p-2 border border-gray-300 rounded w-full">
+    <select name="genderCategory" id="genderCategory"  class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="genderCategoryChange(this.value)">
     
       <% genderCategories.forEach(gender => { %>
         <option  value="<%= gender._id  %>" <%= gender._id.toString() === product.genderCategory._id.toString() ? 'selected' : '' %> ><%= gender.name %> </option>  
       <% }) %>
     </select>
+    <span id="genderCategoryErr"></span>
   </div>
   <div class="mb-4">
     <label for="productCategory" class="block text-sm font-medium text-gray-700">Product Category</label>
-    <select name="productCategory" id="productCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
+    <select name="productCategory" id="productCategory" class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="productCategoryChange()">
     
       <% productCategories.forEach(category => { %>
-        <option value="<%= category._id %>" <%= category._id.toString() === product.productCategory._id.toString() ? 'selected' : '' %> ><%= category.name %> - <%= category.genderCategory.name %></option>
+        <% if (!category.softDelete && category.genderCategory && category.genderCategory.name ) { %>
+        <option value="<%= category._id %>" data-gender-category-id="<%= category.genderCategory._id %>" <%= category._id.toString() === product.productCategory._id.toString() ? 'selected' : '' %> ><%= category.name %> - <%= category.genderCategory.name %></option>
+        <% } %>
       <% }) %>
     </select>
+    <span id="productCategoryErr"></span>
   </div> 
   <div class="mb-4">
     <label for="productSubCategory" class="block text-sm font-medium text-gray-700">Product Sub Category</label>
-    <select name="productSubCategory" id="productSubCategory" class="mt-1 p-2 border border-gray-300 rounded w-full">
+    <select name="productSubCategory" id="productSubCategory" class="mt-1 p-2 border border-gray-300 rounded w-full"  onchange="productSubCategoryChange()">
    
       <% productSubCategories.forEach(subCategory => { %>
-        <option value="<%= subCategory._id %>"  <%= product.productSubCategory.some(ps => ps._id.toString() === subCategory._id.toString()) ? 'selected' : ''%>  > <%= subCategory.name %></option>
+        <% if (!subCategory.softDelete && subCategory.genderCategory && subCategory.genderCategory.name ) { %>
+        <option value="<%= subCategory._id %>" data-product-category-id="<%= subCategory.productCategory._id %>" <%= product.productSubCategory.some(ps => ps._id.toString() === subCategory._id.toString()) ? 'selected' : ''%>  > <%= subCategory.name %> - <%= subCategory.productCategory.name %> - <%= subCategory.genderCategory.name %></option> 
+        <% } %>
       <% }) %>
     </select>
+    <span id="productSubCategoryErr"></span>
   </div>
 
   <h2 class="text-xl font-bold mb-4">Uploaded Images</h2>
@@ -140,12 +144,63 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   <!--field validation-->  
   <script  src="/public/scripts/validation-editProduct.js"></script>
 
 <script>
+ let genderCategoryId;
+ let productCategoryId; 
+ let productSubCategoryId ;
 
-let cropper;
+
+ function genderCategoryChange(id){
+     genderCategoryId = id ;
+ }
+
+ function productCategoryChange(){
+        const selectElement = document.getElementById('productCategory');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        const categoryId = selectedOption.value; // Category ID from value attribute
+
+        productCategoryId = categoryId ;
+
+        const selectedGenderCategoryId = selectedOption.getAttribute('data-gender-category-id'); // Gender category ID from data attribute
+        
+        if (genderCategoryId !== selectedGenderCategoryId) {
+           toastr.error("Select the product category related to gender! if doesn't exist please be add - go to add category !")
+            selectElement.value = null; // Revert to last valid selection
+        } else {
+            selectElement.value  = categoryId; // Update last valid selection
+        }
+
+ }
+
+ function productSubCategoryChange(){
+        const selectElement  =  document.getElementById("productSubCategory");
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const subCategoryId = selectedOption.value; // Category ID from value attribute
+
+        productSubCategoryId = subCategoryId ;
+
+        const selectedProductCategoryId = selectedOption.getAttribute('data-product-category-id'); 
+
+        if (productCategoryId !== selectedProductCategoryId) {
+            toastr.error("Select the sub category releated to product category ! if doesn't exist please be add - go to add category !") ;
+            selectElement.value = null; // Revert to last valid selection
+        } else {
+            selectElement.value  = subCategoryId; // Update last valid selection
+        }
+ }
+
+
+
+
+
+  let cropper;
   const inputImage = document.getElementById('productImages');
   const image = document.getElementById('image');  
   const cropButton = document.getElementById('cropButton');
@@ -204,33 +259,7 @@ let cropper;
 
   
 
- //delete the size objects in sizes array
- //function deleteRow(s_id) {
-//   event.preventDefault();
-//   const p_id = '<%= product._id %>' ; 
 
-//   fetch(`/admin/products/${p_id}/sizes/${s_id}`,{method :'DELETE' })
-//   .then(response => response.json())
-//   .then(data => {
-//   //  alert( data.message ) ; 
-//   Swal.fire({
-//       title: 'Size deleted',
-//      // text: 'Thank you for your order. You will receive a confirmation email soon.',
-//       icon: 'success',
-//       confirmButtonText: 'Okay',
-//       confirmButtonColor: '#3085d6',
-//       background: '#f7f7f7',
-//       backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
-//     });
-//   }.then(()=>{
-//     window.location.reload();
-//   })
-   
-//   })
-//   .catch(error => {
-//     console.error('Error:', error);
-//   });
-// }
 function deleteRow(s_id) {
   event.preventDefault();
   const p_id = '<%= product._id %>';
@@ -253,7 +282,7 @@ function deleteRow(s_id) {
       console.error('Error:', error);
     });
 }
-
+  
  
 //delete image 
 function deleteImage(imgsrc){
@@ -264,7 +293,7 @@ function deleteImage(imgsrc){
     headers : { 'Content-Type' : 'application/json' },
     body : JSON.stringify( { imgSrc : imgsrc , productId : p_id }) ,  
    })
-   .then(response => response.json())
+   .then(response => response.json()) 
    .then(data =>{
     Swal.fire({
         title: 'Image deleted',
@@ -283,7 +312,7 @@ function deleteImage(imgsrc){
    })
 }
 
-
+ 
 
 //add rows ;
 document.getElementById('addRowButton').addEventListener( 'click' , function() {
@@ -301,19 +330,203 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
         <td class="border border-gray-300 p-2">
             <input type="number" name="price[]" class="w-full p-1 border border-gray-300" placeholder="Price" required min='0' >
         </td>
-        <td class="border border-gray-300 p-2">
-            <input type="number" name="discountedPrice[]" class="w-full p-1 border border-gray-300" placeholder="Discounted Price" required  min='0' >
-        </td>
-        <td class="border border-gray-300 p-2">
-            <input type="number" name="discountedPercentage[]" class="w-full p-1 border border-gray-300" placeholder="Discount Percentage" required  min='0' >
-        </td>
         <td class="border border-gray-300 p-2 text-red-500">
             <button class="text-red-500 hover:underline" onclick="this.closest('tr').remove()">Delete</button>
         </td>
     `;
 
     tableBody.appendChild(newRow) ; 
+
+ 
+        const sizeInput = newRow.querySelector('input[name="size[]"]');
+        const quantityInput = newRow.querySelector('input[name="quantity[]"]');
+        const priceInput = newRow.querySelector('input[name="price[]"]');
+
+        sizeInput.addEventListener('keyup', () => validateSize(sizeInput));
+        quantityInput.addEventListener('keyup', () => validateQuantity(quantityInput));
+        priceInput.addEventListener('keyup', () => validatePrice(priceInput));
+
 });
+
+ 
+
+
+
+//validation
+        const titleInput  =  document.getElementById("title") ;
+        const titleDescr  =  document.getElementById("titleDescription");
+        const productDes  =  document.getElementById("productDescription") ;
+        const highlights  =  document.getElementById("highlights") ;
+        const details     =  document.getElementById("details");
+        const genderCategory = document.getElementById("genderCategory");
+        const productCategory = document.getElementById("productCategory");
+        const productSubCategory = document.getElementById("productSubCategory");
+
+
+        const titleError  =  document.getElementById("titleErr") ;
+        const titleDescrError  =  document.getElementById("titleDescriptionErr");
+        const productDesError  =  document.getElementById("productDescriptionErr") ;
+        const highlightsError  =  document.getElementById("highlightsErr") ;
+        const detailsError     =  document.getElementById("detailsErr");
+        const genderCategoryError = document.getElementById("genderCategoryErr");
+        const productCategoryError = document.getElementById("productCategoryErr");
+        const productSubCategoryError = document.getElementById("productSubCategoryErr");  
+
+
+   // Show validation messages
+   function showMessage(element, message, isValid) {
+          element.textContent = message;
+          element.style.color = isValid ? 'green' : 'red';
+        }
+
+
+
+        function validateTitle() {
+          const title = titleInput.value.trim();
+          if (title.length < 3 || !/^[a-zA-Z\s]+$/.test(title)){
+          showMessage(titleError, "Name must be at least 3 characters", false);
+          return false;
+          }
+          showMessage(titleError, "valid", true);
+          return true;
+       }
+
+
+       
+       function validateTitleDescr() {
+       
+       const titleDescrValue = titleDescr.value.trim() ;
+       if ( titleDescrValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(titleDescrValue) ) {
+         showMessage(  titleDescrError  , "Title description must start with a letter and contain only letters, spaces, and commas", false);
+         return false;
+       }
+     
+       showMessage( titleDescrError , "valid", true);
+       return true;
+     }
+
+
+
+
+     function validateProductDes() {
+         const productDesValue = productDes.value.trim();
+         if ( productDesValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(productDesValue) ) {
+           showMessage( productDesError , "Product description must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( productDesError , "valid", true);
+         return true;
+       }
+
+
+
+       function validateHighlights() {
+         const highlightsValue = highlights.value.trim();
+         if (highlightsValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(highlightsValue) ) {
+           showMessage( highlightsError , "Highlights must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( highlightsError , "valid", true);
+         return true;
+       }
+
+
+
+       function validateDetails() {
+         const detailsValue = details.value.trim();
+         if ( detailsValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(detailsValue) ) {
+           showMessage( detailsError  , "Details must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( detailsError  , "valid", true);
+         return true;
+       }
+
+
+              //size validation
+    function validateSize(sizeInput) {
+         const size = sizeInput.value.trim();
+         if (size.length < 1 || !/^[a-zA-Z0-9\s]+$/.test(size)) {
+             sizeInput.style.borderColor = 'red';
+             sizeInput.style.outline = '2px solid red';
+             return false;
+         }
+        sizeInput.style.borderColor = 'green';
+        sizeInput.style.outline = '2px solid green';
+        return true;
+       }
+
+
+     function validateQuantity(quantityInput) {
+          const quantity = parseInt(quantityInput.value);
+          if (isNaN(quantity) || quantity < 0) {
+                    quantityInput.style.borderColor = 'red';
+                    quantityInput.style.outline = '2px solid red';
+
+              return false;
+          }
+          quantityInput.style.borderColor = 'green';
+          quantityInput.style.outline = '2px solid green';
+
+          return true;
+      }
+
+
+     function validatePrice(priceInput) {
+         const price = parseFloat(priceInput.value);
+         if (isNaN(price) || price < 0) {
+             priceInput.style.borderColor = 'red';
+             priceInput.style.outline = '2px solid red';
+
+             return false;
+         }
+         priceInput.style.borderColor = 'green';
+         priceInput.style.outline = '2px solid green';
+         return true;
+     }
+
+
+     function validateGenderCategory() {
+       if (genderCategory.value === "") {
+         showMessage(genderCategoryError, "Please select a gender category.", false);
+         return false;
+       }
+       showMessage(genderCategoryError, "Valid", true);
+       return true;
+     }
+
+
+     function validateProductCategory() {
+       if (productCategory.value === "") {
+         showMessage(productCategoryError, "Please select a product category.", false);
+         return false;
+       }
+       showMessage(productCategoryError, "Valid", true);
+       return true;
+     }
+
+
+     function validateProductSubCategory() {
+       if (productSubCategory.value === "") {
+         showMessage(productSubCategoryError, "Please select a product sub-category." , false );
+         return false;
+       }
+       showMessage(productSubCategoryError, "Valid", true);
+       return true;
+     }
+
+
+
+     
+       titleInput.addEventListener("keyup", validateTitle );
+       titleDescr.addEventListener("keyup", validateTitleDescr ) ; 
+       productDes.addEventListener("keyup" ,validateProductDes ) ;
+       highlights.addEventListener("keyup" , validateHighlights  ) ;
+       details.addEventListener("keyup" ,  validateDetails ) ; 
+
+
+
+
 
 
 
@@ -324,6 +537,38 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
 
   document.getElementById('form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission behavior 
+
+
+       // Check all validation functions and minimum image count
+       if (
+        validateTitle() &&
+        validateTitleDescr() &&
+        validateProductDes() &&
+        validateHighlights() &&
+        validateDetails() &&
+        validateGenderCategory() &&
+        validateProductCategory() &&
+        validateProductSubCategory() 
+     
+    ){
+      const allRowsValid = Array.from(document.querySelectorAll('#productTable tbody tr')).every(row => {
+        const sizeInput = row.querySelector('input[name="size[]"]');
+        const quantityInput = row.querySelector('input[name="quantity[]"]');
+        const priceInput = row.querySelector('input[name="price[]"]');
+
+        return validateSize(sizeInput) && validateQuantity(quantityInput) && validatePrice(priceInput);
+    });
+
+    if (!allRowsValid) {
+      Swal.fire({
+                icon: 'WARNING',
+                title: 'Please fix errors in the size, quantity, or price fields before submitting.',
+                text:' Please try again.',
+                confirmButtonText: 'OK'
+            });
+
+        return;
+    }
 
     const formData = new FormData(this) ; 
     formData.delete('productImages'); // Remove the default file input field data
@@ -358,7 +603,20 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
         console.error('Error:', error);
         alert('Failed to update product. Please try again later.');
     });
-});
+
+
+    }else{
+      Swal.fire({
+                icon: 'warning',
+                text:'correct all the errors before submitting',
+                confirmButtonText: 'OK' 
+                  })
+      }
+    })
+
+
+
+    
 
 
 

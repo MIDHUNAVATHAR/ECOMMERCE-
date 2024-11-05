@@ -24,6 +24,27 @@ const couponAddCart = async (req,res) => {
 
        const couponCode = await  req.body.couponCode.trim();
        const coupon = await Coupon.findOne({ code : couponCode });
+
+
+       //check coupon should have min cart value 
+       if(coupon){
+
+       let cartValue = 0;
+   
+       for(let i=0 ; i< cart.items.length ; i++){  
+         if(cart.items[i].status == "Available"){
+           for(let m =0 ; m < cart.items[i].quantity ; m++ ){
+               cartValue += cart.items[i].discountedPrice ;
+           }
+         }
+       }
+      
+       if(coupon.couponBalance > (cartValue - cart.walletBalance)){
+       
+        return res.redirect(`/cart?coupon-success=0&couponBalance=${coupon.couponBalance}`) ;
+       }; 
+       }
+       
        
        const userCoupon = user.appliedCoupons.find(coupon => coupon.couponCode === couponCode ) ; 
        
@@ -104,14 +125,28 @@ const removeCoupon = async ( req,res ) =>{
 //GET COUPONS
 const  coupons  =  async  ( req , res ) => {
     try{
-        const userId = req.user._id || req.session.userId ; // Assuming you have user ID in the request
+        const userId = req.user._id || req.session.userId ;        // Assuming you have user ID in the request
         const logo = await Logo.findOne().sort({ updatedAt: -1 });
-        const genderCategory = await GenderCategory.find({softDelete : false}); 
+        const genderCategory = await GenderCategory.find({ softDelete : false }) ;   
         const user = await User.findById( userId ) ; 
+
+
+        let cartTotal ; 
+        if( userId ){
+        const cart = await Cart.findOne({user : userId}) ; 
+        if( cart && cart.items > 0 ){
+           console.log(cart.items);
+           cartTotal = cart.items.reduce( ( total , item ) => {
+           return item.status === "Available" ? total + item.quantity : total ;
+         }, 0); 
+        }
+        }else{
+        cartTotal = 0 ; 
+        }   
 
       
 
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 8 } = req.query ;
 
         const coupons = await Coupon.find()
             .sort({ expiryDate: -1 })
@@ -121,13 +156,13 @@ const  coupons  =  async  ( req , res ) => {
          
          const appliedCoupons = user.appliedCoupons ;
         
-    // Restructure coupons based on user's applied coupons
-    const couponsWithAdjustedUsage = coupons.map(coupon => {
+         // Restructure coupons based on user's applied coupons
+         const couponsWithAdjustedUsage = coupons.map(coupon => {
          // Find if user has applied this coupon
          const appliedCoupon = appliedCoupons.find(ac => ac.couponCode === coupon.code);
     
          // Get applied count - if coupon is found in applied coupons, use its totalApply, otherwise 0
-         const appliedCount = appliedCoupon ? appliedCoupon.totalApply : 0;
+         const appliedCount = appliedCoupon ? appliedCoupon.totalApply : 0 ;
     
          // Calculate remaining user limit
          const usageLimit = appliedCoupon ? coupon.usageLimit - appliedCount : coupon.usageLimit;
@@ -140,11 +175,11 @@ const  coupons  =  async  ( req , res ) => {
     })
 
     const totalCoupons = await Coupon.countDocuments();
-    const totalPages = Math.ceil(totalCoupons / limit);
+    const totalPages = Math.ceil( totalCoupons / limit );
    
 
-        res.render('frontend/coupons', { coupons : couponsWithAdjustedUsage  ,totalPages, currentPage: page ,
-         limit ,    logo , genderCategory , user }) ; 
+        res.render( 'frontend/coupons', { coupons : couponsWithAdjustedUsage  ,totalPages , currentPage : page , 
+         limit ,    logo , genderCategory , user , cartTotal } ) ; 
     }catch(err){
         console.log(err);
         res.status(500).render("frontend/404") ;        
@@ -156,4 +191,4 @@ const  coupons  =  async  ( req , res ) => {
 
 
 
-module.exports = { couponAddCart , removeCoupon  , coupons } ;
+module.exports = { couponAddCart , removeCoupon  , coupons } ; 

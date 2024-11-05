@@ -26,6 +26,7 @@ const landingPage   =  async  ( req , res )  => {
     const genderCategory = await GenderCategory.find({softDelete : false}) ;  
     let userId = (req.session && req.session.userId) || (req.user && req.user._id);
     let user ;
+    let cartTotal ;
  
     if(userId){
       const cart = await Cart.findOne({user : userId}) ;   
@@ -56,11 +57,11 @@ const landingPage   =  async  ( req , res )  => {
              }; 
          })) ;   
         
-    res.render("frontend/landing-page" , { logo , banners , user , subCategoryProducts , genderCategory  } ) 
+    res.render("frontend/landing-page" , { logo , banners , user , subCategoryProducts , genderCategory , cartTotal } ) 
 
   }catch(err){
     console.log(err)
-    res.status(500).render("frontend/404");  
+    res.status(500).render("frontend/404") ;   
   }
 }
  

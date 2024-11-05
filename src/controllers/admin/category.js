@@ -14,10 +14,14 @@ const   ProductSubCategory  =   require("../../models/productSubCategory") ;
 //GET ADD CATEGORY
 const  category  =  async  ( req , res )  =>{
     try{
+
+        const selectedGender = req.query.genderCategory || '';
+       
+
         const genderCategories = await GenderCategory.find();
         const productCategories = await ProductCategory.find().populate('genderCategory');
         const productSubCategories = await ProductSubCategory.find().populate('genderCategory').populate('productCategory');
-        res.render("backend/admin-dashboard.ejs" ,{ partial : "partials/add-category", admin : req.session.adminEmail , genderCategories , productCategories , productSubCategories}) ; 
+        res.render("backend/admin-dashboard.ejs" ,{ partial : "partials/add-category", admin : req.session.adminEmail , genderCategories , productCategories , productSubCategories , selectedGender}) ; 
     }catch(err){
         console.log(err);
         res.status(500).render("frontend/404") ;  
@@ -29,9 +33,16 @@ const  category  =  async  ( req , res )  =>{
 const addGenderCategory = async (req,res) =>{ 
     
     let {name} = req.body;
-    name = name.trim().toUpperCase();       
+    name = name.trim().toUpperCase(); 
+    
+    const isExists = await GenderCategory.findOne({name}) ;
+    if(isExists){
+      return  res.redirect("/admin/addCategory?alreadyExists=1") ;
+    }else{
+    
     await GenderCategory.create({name}); 
-    res.redirect("/admin/addCategory") ;
+    res.redirect("/admin/addCategory?added=1") ;
+    }
 } 
 
 
@@ -39,17 +50,41 @@ const addGenderCategory = async (req,res) =>{
 const addProductCategory = async (req,res) =>{
     let {name , genderCategory} = req.body ;  
     name = name.trim().toUpperCase(); 
+    if(!genderCategory){
+        return  res.redirect("/admin/addCategory?genderCategory=0") ;
+    }
+    const isExists = await ProductCategory.findOne({name , genderCategory}) ;
+    console.log(isExists)
+    if(isExists){
+      return  res.redirect("/admin/addCategory?alreadyExists=1") ;
+    }else{
+    
     await ProductCategory.create({name , genderCategory});  
-    res.redirect("/admin/addCategory");  
+    res.redirect("/admin/addCategory?added=1"); 
+    } 
 }
 
 
 const addProductSubCategory = async (req,res) =>{
     let {name , genderCategory , productCategory } = req.body ; 
     name = name.trim().toUpperCase(); 
+    if(!genderCategory){
+        return  res.redirect("/admin/addCategory?genderCategory=0") ;
+    }
+    if(!productCategory){
+        return  res.redirect("/admin/addCategory?productCategory=0") ;
+    }
+
+    const isExists = await ProductSubCategory.findOne({name , genderCategory , productCategory }) ;
+    if(isExists){
+      return  res.redirect("/admin/addCategory?alreadyExists=1") ;
+    }else{
+
     await ProductSubCategory.create({name ,genderCategory , productCategory});
-    res.redirect("/admin/addCategory");
+    res.redirect("/admin/addCategory?added=1");
+    }
 } 
+
 
 
 const softDeleteGenderCat =  async(req,res) =>{

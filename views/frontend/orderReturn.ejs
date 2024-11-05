@@ -50,10 +50,13 @@
                 <% order.items.forEach((item, index) => { %>
                     <div class="flex items-start space-x-4 p-4 border rounded-lg">
                         <!-- Product Image -->
-                        <div class="w-24 h-24 flex-shrink-0">
-                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
-                                 class="w-full h-full object-cover rounded-md">
-                        </div>
+                        <% if (item.product.images && item.product.images.length > 0) { %>
+                            <div class="w-24 h-24 flex-shrink-0">
+                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
+                                     class="w-full h-full object-cover rounded-md">
+                            </div>
+                        <% } %>
+                        
                         
                         <!-- Product Details -->
                         <div class="flex-grow">

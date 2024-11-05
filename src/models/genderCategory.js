@@ -8,4 +8,4 @@ const genderCategorySchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('GenderCategory', genderCategorySchema ) ;  
+module.exports = mongoose.model( 'GenderCategory' , genderCategorySchema ) ;  

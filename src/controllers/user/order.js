@@ -21,7 +21,7 @@ const WalletTransaction  =  require("../../models/walletTransaction") ;
 //POST PLACE-ORDER - CASH-ON-DELIVERY
 const  placeorder  =  async  ( req , res )  =>{
     try{
-        const {userId , cartId , addressId ,paymentMethod ,deliveryCharge } = req.body ;
+        const {userId , cartId , addressId ,paymentMethod ,deliveryCharge , amount  } = req.body ; 
         const cart = await Cart.findById(cartId);
         
         const cartItems = cart.items 
@@ -37,6 +37,7 @@ const  placeorder  =  async  ( req , res )  =>{
           quantity : item.quantity ,
           totalPrice : item.discountedPrice * item.quantity ,
           discount :itemDiscount , }
+          
         })
       
         
@@ -60,7 +61,8 @@ const  placeorder  =  async  ( req , res )  =>{
           shippingAddress : addressId,
           items : cartItems , 
           paymentMethod,
-          totalPrice : (productsPrice + parseFloat(deliveryCharge) ) - (cart.walletBalance + cart.couponBalance ) , 
+         // totalPrice : (productsPrice + parseFloat(deliveryCharge) ) - (cart.walletBalance + cart.couponBalance ) , 
+          totalPrice : parseInt(amount) ,
           appliedWallet : cart.walletBalance ,
           appliedCoupon : cart.couponBalance , 
           totalDiscount ,
@@ -154,10 +156,10 @@ const  myOrders  =  async  ( req , res ) => {
           cartTotal = cart.items.reduce((total, item) => total + item.quantity, 0 ) ; 
          }
          }else{ 
-         cartTotal = 0;
+         cartTotal = 0 ; 
          }
 
-    const orderStatus = req.query.orderStatus || "" ; 
+    //const orderStatus = req.query.orderStatus || "" ;  
 
  
     const currentYear = new Date().getFullYear();
@@ -165,12 +167,51 @@ const  myOrders  =  async  ( req , res ) => {
      for (let i = 0; i <= 3; i++) {
          years.push(currentYear - i);
      } 
- 
-    let orders;
+
+
+  
+
+    const orderTime = req.query.orderTime || "";
+    const orderStatus = req.query.orderStatus || "";
+        
+    const currentDate = new Date();
+    let startDate;
+    let endDate;
+
+    // Determine the start and end dates based on orderTime parameter
+    if (orderTime === "30day") {
+        startDate = new Date(currentDate.setDate(currentDate.getDate() - 30));
+        endDate = new Date();
+    } else if (orderTime === "older") {
+        startDate = new Date(0); // Beginning of time
+        endDate = currentDate; // Current date
+    } else if (!isNaN(orderTime) && Number(orderTime) > 1900) { // Check if orderTime is a valid year
+        const year = Number(orderTime);
+        startDate = new Date(`${year}-01-01`); // Start of the year
+        endDate = new Date(`${year + 1}-01-01`); // Start of the next year (exclusive)
+    }
+
+
+     // Fetch orders based on orderTime filtering
+     let orders ;
+     let query = { userId : user._id } ;
+
+     // Apply order status filter if provided
+     if (orderStatus) {
+         query.orderStatus = orderStatus;
+     }
+
+     // Apply date filtering if startDate and endDate are set
+     if (startDate && endDate) {
+         query.createdAt = { $gte: startDate, $lt: endDate }; // MongoDB query for date range
+     }
+
+
+
     if (!orderStatus) {
-     orders = await Order.find({ userId: user._id }).populate("items.product");
+     orders = await Order.find(query).sort({ createdAt: -1 }).populate("items.product");
     } else {
-     orders = await Order.find({ userId: user._id, orderStatus }).populate("items.product");
+     orders = await Order.find(query).sort({ createdAt: -1 }).populate("items.product");
     } 
 
  
@@ -331,7 +372,7 @@ const submitReview  =  async  ( req , res ) =>{
 
 
 
-//invoice pdf download 
+//INVOICE
 const generateOrderPDF = async (req, res) => {
   try {
       const orderId = req.params.orderId;
@@ -436,11 +477,31 @@ const generateOrderPDF = async (req, res) => {
           yPosition += 25;
       });
 
-      // Total amount
+      // Coupon and Wallet Deductions
+      if (order.appliedCoupon > 0) {
+          doc
+              .fontSize(14)
+              .fillColor('black')
+              .text(`Coupon Deduction: ₹${order.appliedCoupon}`, 50, yPosition + 10)
+              .moveDown(0.5);
+          yPosition += 20; // Adjust for next item
+      }
+
+      if (order.appliedWallet > 0) {
+          doc
+              .fontSize(14)
+              .fillColor('black')
+              .text(`Wallet Deduction: ₹${order.appliedWallet}`, 50, yPosition + 10)
+              .moveDown(0.5);
+          yPosition += 20; // Adjust for next item
+      }
+
+      // Total amount after deductions
+      const finalAmount = order.totalPrice ;
       doc
           .fontSize(16)
           .fillColor('black')
-          .text(`Total Amount: ₹${order.totalPrice}`, 50, yPosition + 30, { align: 'right' })
+          .text(`Total Amount: ₹${finalAmount}`, 50, yPosition + 30, { align: 'right' })
           .moveDown(2);
 
       // Footer
@@ -457,8 +518,8 @@ const generateOrderPDF = async (req, res) => {
   } catch (error) {
       console.error('Error generating PDF:', error);
   }
-
 }
+
 
 
 

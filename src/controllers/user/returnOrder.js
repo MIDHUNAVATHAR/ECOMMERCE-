@@ -6,6 +6,7 @@ const  ReturnOrder    =  require("../../models/returnOrder")  ;
 const  Logo           =  require("../../models/logoSchema") ;
 const  GenderCategory =  require("../../models/genderCategory") ;
 const  User           =  require("../../models/userSchema") ;
+const  Cart           =  require("../../models/cartSchema" ) ;
 
 
 
@@ -15,15 +16,31 @@ const  User           =  require("../../models/userSchema") ;
 //GET RETURN ORDER PAGE
 const  returnOrder  =  async  ( req ,res ) => {
     try{
+       
         const userId = req.user._id || req.session.userId ; // Assuming you have the userId in req.user after authentication
       
         const logo = await Logo.findOne().sort({ updatedAt: -1 }); 
         const genderCategory = await GenderCategory.find({ softDelete : false }) ; 
 
+
+        
+         let cartTotal ; 
+         if(userId){
+         const cart = await Cart.findOne({user : userId});
+         if(cart && cart.items > 0){
+            console.log(cart.items);
+          cartTotal = cart.items.reduce((total, item) => {
+            return item.status === "Available" ? total + item.quantity : total ;
+          }, 0); 
+         }
+         }else{
+         cartTotal = 0 ; 
+         } 
+
         const order = await Order.findById(req.params.id)
         .populate('items.product');
     
-        res.render('frontend/orderReturn', { order  , logo , genderCategory , user : userId });
+        res.render('frontend/orderReturn', { order  , logo , genderCategory , user : userId , cartTotal  });
      
     }catch(err){
         console.log(err.message); 
@@ -147,6 +164,19 @@ const  orderReturn  =  async  ( req , res ) => {
         const logo = await Logo.findOne().sort({ updatedAt: -1 }); 
         const genderCategory = await GenderCategory.find({ softDelete : false }) ; 
 
+        let cartTotal ; 
+        if(userId){
+        const cart = await Cart.findOne({user : userId});
+        if(cart && cart.items > 0){
+           console.log(cart.items);
+         cartTotal = cart.items.reduce((total, item) => {
+           return item.status === "Available" ? total + item.quantity : total ;
+         }, 0); 
+        }
+        }else{
+        cartTotal = 0 ; 
+        } 
+
 
         const currentPage = parseInt(req.query.page) || 1 ;
         const limit = 2 ; 
@@ -166,7 +196,7 @@ const  orderReturn  =  async  ( req , res ) => {
         
         // Render the return orders page with the fetched return orders
         res.render('frontend/returnOrders', { returnOrders , logo , genderCategory , user , currentPage ,
-            totalPages , searchKeyword :""
+            totalPages , searchKeyword :"" , cartTotal
          });       
 
     }catch(err){

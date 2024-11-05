@@ -29,6 +29,28 @@
     <h1 class="text-4xl font-bold text-gray-800">Product Offers</h1>
   </div>
 
+
+  <!-- Product Search Field with Button -->
+  <form action="/admin/offers-product" method="GET" class="max-w-md mx-auto mb-8 flex">
+    <input
+      type="text"
+      name="search"
+      id="productSearch"
+      placeholder="Search Products..."
+      class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      value="<%= searchQuery || '' %>"
+    />
+    <button 
+      type="submit" 
+      class="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600"
+    >
+      Search
+    </button>
+  </form>
+
+
+
+
   <!-- Product Offers Table Section -->
   <div class="max-w-4xl mx-auto mb-20">
     <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -70,7 +92,7 @@
           </td>
           <td class="px-4 py-3">
             <button 
-              onclick="productOffer('<%= product.id %>' , document.getElementById('productOffer<%= product.id %>').value, document.getElementById('productExpiry<%= product.id %>').value)"
+              onclick="productOffer(event , '<%= product.id %>' , document.getElementById('productOffer<%= product.id %>').value, document.getElementById('productExpiry<%= product.id %>').value)"
               class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600"
             >
               Save
@@ -82,37 +104,49 @@
     </table>
   </div>
 
-    <!-- Pagination --> 
-    <div class="mt-2 mb-20">
-        <div class="flex justify-center mt-4">
-            <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) : '#' %>" 
-                class="px-4 py-2 mx-1 rounded 
-                       <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
-                 &laquo; Prev
-            </a>
 
-            <% for (let i = 1; i <= totalPages; i++) { %>
-                <a href="?page=<%= i %>"  
-                   class="px-4 py-2 mx-1 rounded 
-                          <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
-                    <%= i %>
-                </a>
-            <% } %>
-          
-            <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) : '#' %>" 
-                class="px-4 py-2 mx-1 rounded 
-                       <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
-                 &raquo; Next
-            </a>
-        </div>
-     </div>
+
+<!-- Pagination -->
+<div class="mt-2 mb-20">
+  <div class="flex justify-center mt-4">
+    <a href="?page=<%= currentPage > 1 ? currentPage - 1 : 1 %>&search=<%= searchQuery %>"
+       class="px-4 py-2 mx-1 rounded <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+      &laquo; Prev
+    </a>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a href="?page=<%= i %>&search=<%= searchQuery %>"
+         class="px-4 py-2 mx-1 rounded <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
+        <%= i %>
+      </a>
+    <% } %>
+
+    <a href="?page=<%= currentPage < totalPages ? currentPage + 1 : totalPages %>&search=<%= searchQuery %>"
+       class="px-4 py-2 mx-1 rounded <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+      &raquo; Next
+    </a>
+  </div>
+</div>
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   <script>
    
 
-    function categoryOffer( id , offer , date ){
+    function categoryOffer(event , id , offer , date ){
+       event.preventDefault();
+       // Validate offer percentage
+  if (offer < 0 || offer > 100) {
+    return toastr.error("Product offer must be between 0 and 100.");
+  }
+
+  // Validate that an expiry date is provided
+  if (!date) {
+    return toastr.error("Please select a valid expiry date.");
+  }
+  
+
         const data = {
         id: id,
         offer: offer,
@@ -141,13 +175,26 @@
 
 
   
-    function productOffer( id , offer , date ){
+    function productOffer(event, id , offer , date ){
+
+      event.preventDefault()
+
+      if (offer < 0 || offer > 100) {
+    return toastr.error("Product offer must be between 0 and 100.");
+  }
+
+  // Validate that an expiry date is provided
+  if (!date) {
+    return toastr.error("Please select a valid expiry date.");
+  }
+  
+
         const data = {
         id: id,
         offer: offer,
         expiryDate: date
       };
-      console.log(data)
+     
       fetch( "/admin/save-product-offer", { 
         method: 'POST',
         headers: {

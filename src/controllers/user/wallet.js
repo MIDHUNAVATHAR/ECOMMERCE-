@@ -70,6 +70,21 @@ const getWalletHistory = async (req, res) => {
         const genderCategory = await GenderCategory.find({softDelete : false}); 
         const user = await User.findById( userId ) ; 
 
+
+        let cartTotal ; 
+        if(userId){
+        const cart = await Cart.findOne({user : userId});
+        if(cart && cart.items > 0){
+           console.log(cart.items);
+         cartTotal = cart.items.reduce((total, item) => {
+           return item.status === "Available" ? total + item.quantity : total ;
+         }, 0); 
+        }
+        }else{
+        cartTotal = 0 ; 
+        } 
+
+
         const { page = 1, limit = 10 } = req.query;
       
         const walletTransactions = await WalletTransaction.find({ userId }).sort({ createdAt: -1 }).skip((page - 1) * limit)
@@ -81,7 +96,7 @@ const getWalletHistory = async (req, res) => {
 
 
         res.render('frontend/walletHistory', { walletTransactions , logo ,genderCategory , user ,
-            currentPage : page , totalPages
+            currentPage : page , totalPages , cartTotal
          });
     } catch (error) {
         console.error('Error fetching wallet history:', error);

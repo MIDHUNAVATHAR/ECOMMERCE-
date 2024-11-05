@@ -122,11 +122,16 @@
             <div class="space-y-4">
               <% order.items.forEach(item => { %>
                 <div class="flex items-center space-x-4 border-b pb-4"> 
+                  <% if (item.product){ %>
                   <!-- Product Image -->
-                  <div class="w-20 h-20">
-                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover rounded-md">
-                  </div>
-
+                  <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                    <div class="w-20 h-20">
+                        <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
+                             class="w-full h-full object-cover rounded-md">
+                    </div>
+                <% } %>
+                 
+                   
                   <!-- Product Details -->
                   <div class="flex-1">
                     <h3 class="text-lg font-semibold"><%= item.product.name %></h3>
@@ -134,7 +139,9 @@
                     <p class="text-gray-500">Quantity: <%= item.quantity %></p>
                     <p class="text-gray-500">Price: ₹<%= item.price.toFixed(2) %></p>
                   </div>
+                  <% } %>
                 </div>
+
               <% }) %>
             </div>
 
@@ -148,7 +155,7 @@
               <% } %>
             </div>
 
-            <!-- Pickup Address -->
+            <!-- Pickup Address -->              
             <div class="mt-4">
                 <p class="text-gray-700">
                     Pickup Address: 
@@ -198,11 +205,11 @@
                 </a>
             <% } %>
           
-            <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) + '&search=' + searchKeyword : '#' %>" 
-                class="px-4 py-2 mx-1 rounded 
-                       <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
-                 &raquo; Next
-            </a>
+            <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) : '#' %>" 
+              class="px-4 py-2 mx-1 rounded 
+                     <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
+               &raquo; Next
+          </a>
 
           </div>
       </div>
@@ -276,6 +283,60 @@ const ref = document.querySelectorAll(".refLink") ;
 ref[0].textContent = referalLink ;
 ref[1].value = referalLink ;
 
+
+
+
+//WITHDRAW REFERAL BALANCE
+
+document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
+    if('<%= user.rewardsBalance %>' == 0 ){
+        Swal.fire({
+            icon: 'error',
+            title: 'No balance',
+            text: 'You have no balance to withdraw.'
+        });
+        return;
+    }
+    fetch("/withDrawRefferalBalance", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+           
+            amount:  '<%= user.rewardsBalance %>' , 
+            userId : '<%= user._id %>'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok'); 
+        }
+        return response.json();
+    })
+    .then(data => {
+        if(data.status){
+            Swal.fire({
+                icon: 'success',
+                title: 'Withdrawal Successful',
+                text: 'Your referral balance has been withdrawn to wallet account.'
+            }).then(() => {
+                window.location.reload();
+            });
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Withdrawal Failed',
+                text: 'Failed to withdraw referral balance.'
+            });
+
+        }
+    }) 
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+} )
 
 
 </script>

@@ -40,6 +40,7 @@ connectDB() ;
 
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
+
 app.use(session({
     secret: process.env.secretKey,
     resave: false, 
@@ -48,6 +49,10 @@ app.use(session({
       maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds 
   }
 })); 
+
+
+
+
 
 
 
@@ -71,6 +76,9 @@ app.set("views" , path.join(__dirname , "views") )  ;
 //import routes
 const userRoute   =  require("./src/routes/user-route")  ; 
 const adminRoute  =  require("./src/routes/admin-route") ;
+
+
+
 
 
 app.use( "/" , userRoute ) ;

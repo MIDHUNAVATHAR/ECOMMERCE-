@@ -37,7 +37,7 @@ const uploadProduct = multer({
     storage :  multer.diskStorage ({  
         destination : "uploads/product",   
         filename    : (req , file , cb ) =>{ 
-            cb(null , Date.now() + file.originalname)   
+            cb( null , Date.now() + file.originalname )     
         }
      })
 }).array( 'productImages' , 10 ) ;   

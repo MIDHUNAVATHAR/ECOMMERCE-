@@ -25,7 +25,7 @@ const adminLogin   = async ( req , res )  =>{
     try{
         if(  req.session.adminId ){
           
-          //  res.render("backend/admin-dashboard" , {admin : req.session.adminEmail , partial : "../views/partials/dashboard.ejs"}); 
+         
             return res.redirect("/admin/dashboard") ;
          }else{
             res.render( "backend/admin-login.ejs" ,{message : ""} ); 

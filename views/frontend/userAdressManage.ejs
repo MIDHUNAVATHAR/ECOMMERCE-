@@ -130,47 +130,55 @@
                              
                             <div>
                                 <label for="name" class="block text-gray-700 font-medium"> Name </label>
-                                <input type="text" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <input type="text" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                <span id="nameError"></span>
                             </div>
 
                             <div>
                                 <label for="phone" class="block text-gray-700 font-medium"> Phone </label>
-                                <input type="text" name="phone" id="phone" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <input type="text" name="phone" id="phone" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                <span id="phoneError"></span>
                             </div>
 
                             <div>
                                 <label for="alternatephone" class="block text-gray-700 font-medium">Alternate Phone</label>
                                 <input type="text" name="alternatephone" id="alternatephone" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <span id="alternatephoneError"></span>
                             </div>
 
                             <div>
                                 <label for="address" class="block text-gray-700 font-medium">Address</label>
-                                <textarea name="address" id="address" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required></textarea>
+                                <textarea name="address" id="address" class="mt-1 block w-full border border-gray-300 rounded-md p-2" ></textarea>
+                                <span id="addressError"></span>
                             </div>
 
                             <div>
                                 <label for="landmark" class="block text-gray-700 font-medium">Landmark</label>
                                 <input type="text" name="landmark" id="landmark" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                <span id="landmarkError"></span> 
                             </div>
 
                             <div>
                                 <label for="city" class="block text-gray-700 font-medium">City</label>
-                                <input type="text" name="city" id="city" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <input type="text" name="city" id="city" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                <span id="cityError"></span>
                             </div>
 
                             <div>
                                 <label for="state" class="block text-gray-700 font-medium">State</label>
-                                <input type="text" name="state" id="state" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <input type="text" name="state" id="state" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                <span id="stateError"></span>
                             </div>
 
                             <div>
                                 <label for="pincode" class="block text-gray-700 font-medium">Pincode</label>
-                                <input type="text" name="pincode" id="pincode" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <input type="text" name="pincode" id="pincode" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                <span id="pincodeError"></span>
                             </div>
 
                             <div>
                                 <label for="addressType" class="block text-gray-700 font-medium">Address Type</label>
-                                <select name="addresstype" id="addressType" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                <select name="addresstype" id="addressType" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
                                     <option value="home">Home</option>
                                     <option value="work">Work</option>
                                 </select>
@@ -182,7 +190,7 @@
                         </form>
                         <!---..........--> 
                     
-                        <% addresses.forEach((address) => { %>
+                        <% addresses.forEach((address , index ) => { %>
                             <div class="border border-gray-200 rounded-lg mb-4 p-4">
                                
                                 <div class="flex justify-between items-start">
@@ -201,30 +209,14 @@
                                     </div>
                     
                                     <div class="relative">
-                                        <button class="editDeleteBtn text-gray-600 hover:text-gray-800 focus:outline-none" > 
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"> 
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h12m-6-6v12"></path>
-                                            </svg>
-                                        </button>
-                    
-                                        <div class=" togglerEditDelete absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden  group-hover:block">
-                                            <ul>
-                                                <li>
-                                                    <a class="addressEditBtn block px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                                        Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#" onclick="showDeleteConfirmation('<%= address.id %>')"  class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                                        Delete
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                    
+                                        
+                                        <div absolute right-0 mt-2>
+                                            <button class="addressEditBtn bg-blue-500 text-white rounded p-2">Edit</button>
+                                            <a onclick="showDeleteConfirmation('<%= address.id %>')"><button class="bg-red-500 text-white rounded p-2">Delete</button></a>
                                         </div>
-                                   
-                                        
-                                        
-                                     
+                    
+                                    
                                     </div>
                                 </div>
                     
@@ -235,49 +227,59 @@
                             
                             <!--Edit Form-->
                            
-                                <form id="" action="/saveEditAddress/<%=address.id %>" method="POST" class="editAddressForm space-y-4 hidden">
+                                <form id="" action="/saveEditAddress/<%=address.id %>" method="POST" class="editAddressForm space-y-4 hidden" data-index="<%= index %>" >
+                                    
                             
                                     <!-- <input type="hidden" name=""  value="<%= user._id %>"> -->
                                      
                                     <div>
                                         <label for="name" class="block text-gray-700 font-medium">Name</label>
-                                        <input type="text" value="<%= address.name %>" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                        <input type="text" value="<%= address.name %>" name="name" id="" class=" e-name mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                        <span class="e-nameError"></span>
                                     </div>
         
                                     <div>
                                         <label for="phone" class="block text-gray-700 font-medium">Phone</label>
-                                        <input type="text" value='<%=address.phone %>' name="phone" id="phone" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                        <input type="text" value='<%=address.phone %>' name="phone" id="" class="e-phone mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                        <span class="e-phoneError"></span>
+                                        
                                     </div>
         
                                     <div>
                                         <label for="alternatephone" class="block text-gray-700 font-medium">Alternate Phone</label>
-                                        <input type="text" value="<%= address.alternatePhone %>" name="alternatephone" id="alternatephone" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                        <input type="text" value="<%= address.alternatePhone %>" name="alternatephone" id="" class="e-alternatephone mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                        <span class="e-alternatephoneError"></span>
                                     </div>
         
                                     <div>
                                         <label for="address" class="block text-gray-700 font-medium">Address</label>
-                                        <textarea name="address"  id="address" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required> <%= address.address %> </textarea>
+                                        <textarea name="address"  id="" class="e-address mt-1 block w-full border border-gray-300 rounded-md p-2" > <%= address.address %> </textarea>
+                                        <span class="e-addressError"></span>
                                     </div>
         
                                     <div>
                                         <label for="landmark" class="block text-gray-700 font-medium">Landmark</label>
-                                        <input type="text" value="<%= address.landmark %>" name="landmark" id="landmark" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                        <input type="text" value="<%= address.landmark %>" name="landmark" id="" class="e-landmark mt-1 block w-full border border-gray-300 rounded-md p-2">
+                                        <span class="e-landmarkError"></span> 
                                     </div>
         
                                     <div>
                                         <label for="city" class="block text-gray-700 font-medium">City</label>
-                                        <input type="text" value="<%= address.city %>" name="city" id="city" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                        <input type="text" value="<%= address.city %>" name="city" id="" class=" e-city mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                        <span class="e-cityError"></span>
                                     </div>
         
                                     <div>
                                         <label for="state" class="block text-gray-700 font-medium">State</label>
-                                        <input type="text" value="<%= address.state %>" name="state" id="state" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                        <input type="text" value="<%= address.state %>" name="state" id="" class="e-state mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                        <span class="e-stateError"></span>
                                     </div>
         
                                     <div>
                                         <label for="pincode" class="block text-gray-700 font-medium">Pincode</label>
                                         <input type="text" value="<%= address.pincode %>
-                                        " name="pincode" id="pincode" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                                        " name="pincode" id="" class="e-pincode mt-1 block w-full border border-gray-300 rounded-md p-2" >
+                                        <span class="e-pincodeError"></span>
                                     </div>
 
                                     <input type="hidden" name="checkout" value='0' >  
@@ -333,22 +335,311 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>  
 
     <script>
-       
-      
-  //toggle the form input 
-        document.getElementById("toggleFormBtn").addEventListener("click" , function(){
-              document.getElementById("addressForm").classList.toggle("hidden") ;
-        })
-      
 
 
-        for( let i = 0 ; i < '<%=addresses.length %>'  ; i++ ){
-           document.getElementsByClassName("editDeleteBtn")[i].addEventListener("click" , function(){
-               document.getElementsByClassName("togglerEditDelete")[i].classList.toggle("hidden") ;
+// // Validation add- address
+const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
+const alternatephoneInput = document.getElementById("alternatephone");
+const addressInput = document.getElementById("address");
+const landMarkInput = document.getElementById("landmark");
+const cityInput = document.getElementById("city");
+const stateInput = document.getElementById("state");
+const pincodeInput = document.getElementById("pincode");
 
-           })
-        }
+const nameError = document.getElementById("nameError");
+const phoneError = document.getElementById("phoneError");
+const alternatephoneError = document.getElementById("alternatephoneError");
+const addressError = document.getElementById("addressError");
+const landMarkError = document.getElementById("landmarkError");
+const cityError = document.getElementById("cityError");
+const stateError = document.getElementById("stateError");
+const pincodeError = document.getElementById("pincodeError");
+
+// Show validation messages
+function showMessage(element, message, isValid) {
+    element.textContent = message;
+    element.style.color = isValid ? 'green' : 'red';
+}
+
+// Validation functions
+function validateName() {
+    const name = nameInput.value.trim();
+    if (name.length < 3 || !/^[a-zA-Z\s]+$/.test(name)){
+        showMessage(nameError, "Name must be at least 3 characters", false);
+        return false;
+    }
+    showMessage(nameError, "valid", true);
+    return true;
+}
+
+function validatePhone() {
+    const phone = phoneInput.value.trim();
+    const phonePattern = /^[6-9]\d{9}$/;;
+    if (!phonePattern.test(phone)) {
+        showMessage(phoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(phoneError, "valid", true);
+    return true;
+}
+
+function validateAlternatephone() {
+    const altPhone = alternatephoneInput.value.trim();
+    if (altPhone && !/^[6-9]\d{9}$/.test(altPhone)) {
+        showMessage(alternatephoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(alternatephoneError, "valid", true);
+    return true;
+}
+
+function validateAddress() {
+    const address = addressInput.value.trim();
+    if (address.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(address) ) {
+        showMessage(addressError, "Address must start with a letter and contain only letters, spaces, and commas", false);
+        return false;
+    }
+    showMessage(addressError, "valid", true);
+    return true;
+}
+
+function validateLandmark() {
+    const landmark  = landMarkInput.value.trim() ; 
+    if (landmark.length < 4 || !/^[a-zA-Z]+$/.test(landmark) ) {
+        showMessage(landMarkError, "Enter a valid landmark ", false);
+        return false;
+    }
+    showMessage(landMarkError, "valid", true);
+    return true;
+}
+
+function validateCity() {
+    const city = cityInput.value.trim();
+    if (city.length <4 || !/^[a-zA-Z]+$/.test(city) ) {
+        showMessage(cityError, "Enter a valid city name", false ) ; 
+        return false;
+    }
+    showMessage(cityError, "valid", true);
+    return true;
+}
+
+function validateState() {
+    const state = stateInput.value.trim();
+    if (state.length <4 || !/^[a-zA-Z]+$/.test(state) ) {
+        showMessage(stateError, "Enter a valid state name", false) ;
+        return false;
+    }
+    showMessage(stateError, "valid", true);
+    return true;
+}
+
+function validatePincode() {
+    const pincode = pincodeInput.value.trim();
+    if ( (!/^[0-9]{6}$/.test(pincode) || /^0{6}$/.test(pincode))) {
+        showMessage(pincodeError, "Enter a valid 6-digit pincode", false);
+        return false;
+    }
+    showMessage(pincodeError, "valid", true);
+    return true;
+}
+
+
+// Event listeners for real-time validation
+nameInput.addEventListener("keyup", validateName);
+phoneInput.addEventListener("keyup", validatePhone); 
+alternatephoneInput.addEventListener("keyup", validateAlternatephone) ; 
+addressInput.addEventListener("keyup", validateAddress);
+landMarkInput.addEventListener("keyup", validateLandmark);
+cityInput.addEventListener("keyup", validateCity);
+stateInput.addEventListener("keyup", validateState);
+pincodeInput.addEventListener("keyup", validatePincode);
+
+
+
+// Form submission handler
+document.getElementById("addressForm").addEventListener("submit", (e) => {
+    // Prevent form submission if any validation fails
+    if (
+        !validateName() ||
+        !validatePhone() ||
+        !validateAlternatephone() ||
+        !validateAddress() ||
+        !validateLandmark() ||
+        !validateCity() || 
+        !validateState() ||
+        !validatePincode()
+    ) {
+        e.preventDefault() ; // Stop form submission
     
+    }
+});
+ 
+
+
+
+  
+     //toggle the form input 
+     document.getElementById("toggleFormBtn").addEventListener("click" , function(){
+        
+        document.getElementById("addressForm").classList.toggle("hidden") ;
+  })
+
+
+
+//toggle edit form    
+for( let i = 0 ; i < '<%=addresses.length %>'  ; i++ ){
+ 
+ document.getElementsByClassName("addressEditBtn")[i].addEventListener("click" , function(){
+ document.getElementsByClassName("editAddressForm")[i].classList.toggle("hidden");
+
+
+ })
+}
+
+
+
+
+//Validation edit- address
+const e_nameInput = document.getElementsByClassName("e-name");
+const e_phoneInput = document.getElementsByClassName("e-phone");
+const e_alternatephoneInput = document.getElementsByClassName("e-alternatephone");
+const e_addressInput = document.getElementsByClassName("e-address");
+const e_landMarkInput = document.getElementsByClassName("e-landmark");
+const e_cityInput = document.getElementsByClassName("e-city");
+const e_stateInput = document.getElementsByClassName("e-state");
+const e_pincodeInput = document.getElementsByClassName("e-pincode");
+
+const e_nameError = document.getElementsByClassName("e-nameError");
+const e_phoneError = document.getElementsByClassName("e-phoneError");
+const e_alternatephoneError = document.getElementsByClassName("e-alternatephoneError");
+const e_addressError = document.getElementsByClassName("e-addressError");
+const e_landMarkError = document.getElementsByClassName("e-landmarkError");
+const e_cityError = document.getElementsByClassName("e-cityError");
+const e_stateError = document.getElementsByClassName("e-stateError");
+const e_pincodeError = document.getElementsByClassName("e-pincodeError");
+
+
+
+//Validation functions
+function e_validateName(i) {
+    const name = e_nameInput[i].value.trim();
+    if (name.length < 3 || !/^[a-zA-Z\s]+$/.test(name)){
+        showMessage(e_nameError[i], "Name must be at least 3 characters", false);
+        return false;
+    }
+    showMessage(e_nameError[i], "valid", true);
+    return true;
+}
+
+function e_validatePhone(i) {
+    const phone = e_phoneInput[i].value.trim();
+    const phonePattern = /^[6-9]\d{9}$/;;
+    if (!phonePattern.test(phone)) {
+        showMessage(e_phoneError[i], "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(e_phoneError[i], "valid", true);
+    return true;
+}
+
+function e_validateAlternatephone(i) {
+    const altPhone = e_alternatephoneInput[i].value.trim();
+    
+    if (altPhone && !/^[6-9]\d{9}$/.test(altPhone)) {
+        showMessage(e_alternatephoneError[i], "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(e_alternatephoneError[i], "valid", true);
+    return true;
+}
+
+function e_validateAddress(i) {
+    const address = e_addressInput[i].value.trim();
+    if (address.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(address) ) {
+        showMessage(e_addressError[i], "Address must start with a letter and contain only letters, spaces, and commas", false);
+        return false;
+    }
+    showMessage(e_addressError[i], "valid", true);
+    return true;
+}
+
+function e_validateLandmark(i) {
+    const landmark  = e_landMarkInput[i].value.trim() ; 
+    if (landmark.length < 4 || !/^[a-zA-Z]+$/.test(landmark) ) {
+        showMessage(e_landMarkError[i], "Enter a valid landmark ", false);
+        return false;
+    }
+    showMessage(e_landMarkError[i], "valid", true);
+    return true;
+}
+
+function e_validateCity(i) {
+    const city = e_cityInput[i].value.trim();
+    if (city.length <4 || !/^[a-zA-Z]+$/.test(city) ) {
+        showMessage(e_cityError[i], "Enter a valid city name", false ) ; 
+        return false;
+    }
+    showMessage(e_cityError[i], "valid", true);
+    return true;
+}
+
+function e_validateState(i) {
+    const state = e_stateInput[i].value.trim();
+    if (state.length <4 || !/^[a-zA-Z]+$/.test(state) ) {
+        showMessage(e_stateError[i], "Enter a valid state name", false) ;
+        return false;
+    }
+    showMessage(e_stateError[i], "valid", true);
+    return true;
+}
+
+function e_validatePincode(i) {
+    const pincode = e_pincodeInput[i].value.trim();
+    if ( (!/^[0-9]{6}$/.test(pincode) || /^0{6}$/.test(pincode))) {
+        showMessage(e_pincodeError[i], "Enter a valid 6-digit pincode", false);
+        return false;
+    }
+    showMessage(e_pincodeError[i], "valid", true);
+    return true;
+}
+
+
+
+
+    document.querySelectorAll('.editAddressForm').forEach( (form , i) =>{
+        form.addEventListener("submit" , (e) =>{
+            if (
+        !e_validateName(i) ||
+        !e_validatePhone(i) ||
+        !e_validateAlternatephone(i) ||
+        !e_validateAddress(i) ||
+        !e_validateLandmark(i) ||
+        !e_validateCity(i) || 
+        !e_validateState(i) ||
+        !e_validatePincode(i)
+    ) {
+        e.preventDefault() ; // Stop form submission
+    
+    }       
+        } )
+    })
+
+    
+
+    
+ 
+
+
+
+    
+
+ 
+    
+    
+      
+
+
     //delete modal
     function showDeleteConfirmation(addressId) {
         const deleteModal = document.getElementById('deleteModal');
@@ -361,15 +652,7 @@
         deleteModal.classList.add('hidden');
     }
 
-    //toggle edit form    
-    for( let i = 0 ; i < '<%=addresses.length %>'  ; i++ ){
-       
-       document.getElementsByClassName("addressEditBtn")[i].addEventListener("click" , function(){
-       document.getElementsByClassName("editAddressForm")[i].classList.toggle("hidden");
-        document.getElementsByClassName("togglerEditDelete")[i].classList.toggle("hidden") ;
 
-       })
-    }
 
 
 
@@ -420,6 +703,58 @@ ref[0].textContent = referalLink ;
 ref[1].value = referalLink ;
 
 
+
+//WITHDRAW REFERAL BALANCE
+
+document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
+    if('<%= user.rewardsBalance %>' == 0 ){
+        Swal.fire({
+            icon: 'error',
+            title: 'No balance',
+            text: 'You have no balance to withdraw.'
+        });
+        return;
+    }
+    fetch("/withDrawRefferalBalance", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+           
+            amount :  '<%= user.rewardsBalance %>'  ,
+            userId : '<%= user._id %>'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json() ; 
+    })
+    .then(data => {
+        if(data.status){
+            Swal.fire({
+                icon: 'success',
+                title: 'Withdrawal Successful',
+                text: 'Your referral balance has been withdrawn to wallet account.' 
+            }).then(() => {
+                window.location.reload();
+            });
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Withdrawal Failed',
+                text: 'Failed to withdraw referral balance.' 
+            });
+
+        }
+    }) 
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+} )
    
     
     </script>

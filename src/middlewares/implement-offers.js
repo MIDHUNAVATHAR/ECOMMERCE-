@@ -55,7 +55,7 @@ const implementOffers = async ( req , res , next ) =>{
         product.sizes.forEach(size => {
             if (totalDiscount > 0) {
                 const discountAmount = size.price * (totalDiscount / 100);
-                size.discountedPrice = size.price - discountAmount;
+                size.discountedPrice = (size.price - discountAmount).toFixed(2);
                 size.discountedPercentage = totalDiscount; // Set to total discount
             } else {
                 size.discountedPrice = size.price; // No discount

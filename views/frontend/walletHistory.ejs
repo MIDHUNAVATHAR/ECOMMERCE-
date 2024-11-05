@@ -235,6 +235,61 @@ ref[0].textContent = referalLink ;
 ref[1].value = referalLink ;
 
 
+
+
+
+//WITHDRAW REFERAL BALANCE
+
+document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
+    if('<%= user.rewardsBalance %>' == 0 ){
+        Swal.fire({
+            icon: 'error',
+            title: 'No balance',
+            text: 'You have no balance to withdraw.'
+        });
+        return;
+    }
+    fetch("/withDrawRefferalBalance", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+           
+            amount:  '<%= user.rewardsBalance %>'  ,
+            userId : '<%= user._id %>'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if(data.status){
+            Swal.fire({
+                icon: 'success',
+                title: 'Withdrawal Successful',
+                text: 'Your referral balance has been withdrawn to wallet account.'
+            }).then(() => {
+                window.location.reload();
+            });
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Withdrawal Failed',
+                text: 'Failed to withdraw referral balance.'
+            });
+
+        }
+    }) 
+    .catch(error => {
+        console.error('Error:', error);
+        
+    });
+} )
+
     </script>
 
 </body>

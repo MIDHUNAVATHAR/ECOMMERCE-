@@ -31,7 +31,7 @@
             <!-- Order Status -->
       <td class="p-4 border">
         <select 
-        <%= order.orderStatus == 'delivered' ? 'disabled' : '' %>  
+        <%=( order.orderStatus == 'delivered' || order.orderStatus == 'cancelled' ) ? 'disabled' : '' %>  
           class="order-status-select"
           data-order-id="<%= order._id %>"
           onchange="updateOrderStatus(this)"> 

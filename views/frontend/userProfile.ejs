@@ -116,15 +116,17 @@
                                 <label for="firstName" class="block font-medium text-gray-700 ">First Name</label>
                                 <input type="text" value="<%= user.firstName %>" id="firstName" name="firstName" disabled
                                        class="mt-1 p-2 w-full border border-gray-300 rounded-md input">
+                                <span id="firstNameError"></span>
                             </div>
                             <div>
                                 <label for="lastName" class="block font-medium text-gray-700">Last Name</label>
                                 <input type="text"  value="<%= user.lastName %>" id="lastName" name="lastName" disabled
                                        class="mt-1 p-2 w-full border border-gray-300 rounded-md input">
+                                <span id="lastNameError"></span>
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <!-- <div class="mb-4">
                             <label class="block font-medium text-gray-700">Your Gender</label>
                             <div class="mt-2">
                                 <label class="inline-flex items-center">
@@ -138,7 +140,7 @@
                                     <span class="ml-2">Female</span>
                                 </label>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="mb-4">
                             <label for="email" class="block font-medium text-gray-700">Email Address</label>
@@ -149,7 +151,8 @@
                         <div class="mb-4">
                             <label for="mobile" class="block font-medium text-gray-700">Mobile Number</label>
                             <input type="text"  class="input" id="mobile" name="mobile" value=" <%= user.mobile %> " disabled
-                                  onkeyup="numberVal(this.value)" class="mt-1 p-2 w-full border border-gray-300 rounded-md input"> 
+                                 class="mt-1 p-2 w-full border border-gray-300 rounded-md input"> 
+                            <span id="mobileError"></span>
                         </div>
 
 
@@ -173,10 +176,6 @@
 
                 </main>
 
-
-
-
-
             </div>
         </div>
     </div>
@@ -189,6 +188,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>  
 
     <script>
+
+
         //disable and enable input fields
         const editBtn = document.getElementById('edit-btn');
         const inputs = document.querySelectorAll('.input');
@@ -208,21 +209,103 @@
         });
 
 
-        //prevent save without edit
-        document.getElementById("saveChng").addEventListener( "click" , function(){  
-             if(editBtn.innerText === 'Edit'){
-                event.preventDefault();
-             }
-        } )
+   
 
 
-        //validate number input
-        function numberVal(val){
-            if(isNaN(val)){
-            document.getElementById("mobile").value = "" ;  
+
+         
+ // Validation
+
+        const mobileInput = document.getElementById("mobile");
+        const firstNameInput = document.getElementById("firstName");
+        const lastNameInput = document.getElementById("lastName");
+
+        const mobileError = document.getElementById("mobileError"); 
+        const firstNameError = document.getElementById("firstNameError");
+        const lastNameError = document.getElementById("lastNameError");      
+
+        function showMessage(element, message, isValid) {
+            element.textContent = message;
+            element.style.color = isValid ? 'green' : 'red';
+        }
+
+        function validateFirstName() {
+            const firstName = firstNameInput.value.trim().toLowerCase();
+            const nameRegex = /^[a-zA-Z]+$/; // Allows only letters
+            if (nameRegex.test(firstName)) {
+                showMessage(firstNameError, 'Valid first name', true);
+            } else {
+                showMessage(firstNameError, 'Enter a valid first name', false);
             }
         }
 
+        function validateLastName() {
+            const lastName = lastNameInput.value.trim().toLowerCase();
+            const nameRegex = /^[a-zA-Z]+$/; // Allows only letters
+            if (nameRegex.test(lastName)) {
+                showMessage(lastNameError, 'Valid last name', true);
+            } else {
+                showMessage(lastNameError, 'Enter a valid last name', false);
+            }
+        }
+
+        function validateMobile() {
+            const mobile = mobileInput.value.trim();
+            const mobileRegex = /^[6-9]\d{9}$/; // Allows Indian mobile numbers starting from 6-9 with 10 digits
+            if (mobileRegex.test(mobile)) {
+                showMessage(mobileError, 'Valid mobile number', true);
+            } else {
+                showMessage(mobileError, 'Enter a valid mobile number', false);
+            }
+        }
+
+        // Add keyup event listeners for validation
+        firstNameInput.addEventListener('keyup', validateFirstName);
+        lastNameInput.addEventListener('keyup', validateLastName);
+        mobileInput.addEventListener("keyup", validateMobile);
+
+
+
+        // Check all validations are green before submitting
+        document.getElementById("saveChng").addEventListener("click", function(event) {
+          
+            if(editBtn.innerText === 'Edit'){
+                event.preventDefault();
+                return
+             }
+
+            validateFirstName();
+            validateLastName();
+            validateMobile();
+            
+            const isFormValid = (
+                firstNameError.style.color === 'green' &&
+                lastNameError.style.color === 'green' &&
+                mobileError.style.color === 'green'
+            );
+            
+            if (editBtn.innerText === 'Edit' || !isFormValid) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Validation Error',
+                    text: 'Please correct the errors before submitting.',
+                    icon: 'error',
+                });
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+        //side bar 
 
         function copyText(text) {
     // Copy the text
@@ -275,8 +358,7 @@ ref[1].value = referalLink ;
 
 
 
-
-
+//WITHDRAW REFERAL BALANCE
 
 document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
     if('<%= user.rewardsBalance %>' == 0 ){
@@ -327,6 +409,9 @@ document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
         
     });
 } )
+
+
+
 
 
     </script>

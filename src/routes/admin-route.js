@@ -7,7 +7,7 @@ const  router           =  express.Router()   ;
 
 
 //import multer funtions 
-const { uploadProduct } =   require("../configs/multer") ; 
+const { uploadProduct } =  require("../configs/multer") ; 
 
 
 
@@ -71,7 +71,7 @@ router.post("/uploadLogo"   , landingPage.uploadLogo) ;
 
 router.post("/uploadBanner" , landingPage.uploadBanner ) ;
 
-router.delete("/deleteImage/:type/:id" ,landingPage.deleteImages ) ;  
+router.delete("/deleteImage/:type/:id" , landingPage.deleteImages ) ;  
 
 
 

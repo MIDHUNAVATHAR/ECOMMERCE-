@@ -307,68 +307,67 @@ const  dashboard  =  async ( req , res )  =>{
 
 
 
-
 const generateLedger = async (req, res) => {
     try {
-      const startDate = moment().startOf('year').toDate();
-      const endDate = moment().endOf('year').toDate();
-  
-      // Fetch orders from the start of the year to the current date
-      const orders = await Order.find({
-        createdAt: { $gte: startDate, $lte: endDate },
-        paymentStatus: 'completed'
-      }).populate('items.product'); // Populate product details
-  
-      // Create the ledger
-      let ledgerData = "Product Name, Quantity Sold, Total Revenue, Order Date\n";
-      let totalRevenue = 0;
-      let totalQuantity = 0;
-  
-      orders.forEach((order) => {
-        order.items.forEach((item) => {
-          // Check if item.product and item.product.title are not null
-          if (item.product && item.product.title) {
-            const orderDate = `"${moment(order.createdAt).format('YYYY-MM-DD')}"`;
-            const quantity = item.quantity;
-            const revenue = item.totalPrice;
-  
-            ledgerData += `${item.product.title},${quantity},${revenue},${orderDate}\n`;
-            totalRevenue += revenue;
-            totalQuantity += quantity;
-          }
+        const startDate = moment().startOf('year').toDate();
+        const endDate = moment().endOf('year').toDate();
+
+        // Fetch orders from the start of the year to the current date
+        const orders = await Order.find({
+            createdAt: { $gte: startDate, $lte: endDate },
+            paymentStatus: 'completed'
+        }).populate('items.product'); // Populate product details
+
+        // Create the ledger
+        let ledgerData = "Product Name, Quantity Sold, Total Revenue, Order Date\n";
+        let totalRevenue = 0;
+        let totalQuantity = 0;
+
+        orders.forEach((order) => {
+            order.items.forEach((item) => {
+                // Check if item.product and item.product.title are not null
+                if (item.product && item.product.title) {
+                    const orderDate = `"${moment(order.createdAt).format('DD/MM/YYYY')}"`; // Indian date format
+                    const quantity = item.quantity;
+                    const revenue = item.totalPrice;
+
+                    ledgerData += `${item.product.title},${quantity},${revenue},${orderDate}\n`;
+                    totalRevenue += revenue;
+                    totalQuantity += quantity;
+                }
+            });
         });
-      });
-  
-      // Add total revenue and total quantity sold
-      ledgerData += `\nTotal,${totalQuantity},${totalRevenue.toFixed(2)},\n`;
-  
-      // Directory to store the ledger file
-      const ledgerDir = path.join(__dirname, '../../../public/ledger');
-  
-      // Ensure the directory exists
-      ensureDirectoryExistence(ledgerDir);
-  
-      // Generate file path for the ledger file
-      const filePath = path.join(ledgerDir, `ledger_${moment().format('YYYYMMDD_HHmmss')}.csv`);
-  
-      // Save the ledger data to the file
-      fs.writeFileSync(filePath, ledgerData);
-  
-      // Provide a download link to the generated ledger
-      res.download(filePath, (err) => {
-        if (err) {
-          console.error('Error downloading file:', err);
-          res.status(500).send('Error generating ledger');
-        }
-  
-        // Optionally, delete the ledger file after sending it to the user
-        fs.unlinkSync(filePath);
-      });
+
+        // Add total revenue and total quantity sold
+        ledgerData += `\nTotal,${totalQuantity},${totalRevenue.toFixed(2)},\n`;
+
+        // Directory to store the ledger file
+        const ledgerDir = path.join(__dirname, '../../../public/ledger');
+
+        // Ensure the directory exists
+        ensureDirectoryExistence(ledgerDir);
+
+        // Generate file path for the ledger file
+        const filePath = path.join(ledgerDir, `ledger_${moment().format('YYYYMMDD_HHmmss')}.csv`);
+
+        // Save the ledger data to the file
+        fs.writeFileSync(filePath, ledgerData);
+
+        // Provide a download link to the generated ledger
+        res.download(filePath, (err) => {
+            if (err) {
+                console.error('Error downloading file:', err);
+                res.status(500).send('Error generating ledger');
+            }
+
+            // Optionally, delete the ledger file after sending it to the user
+            fs.unlinkSync(filePath);
+        });
     } catch (err) {
-      console.log(err);
-      res.status(500).render("frontend/404");
+        console.log(err);
+        res.status(500).render("frontend/404");
     }
-  };
+};
 
 
 

@@ -11,7 +11,7 @@ const User            =   require("../../models/userSchema") ;
 
 
 //import services
-const { sendOTPEmail, sendPasswordResetEmail } = require("../../services/emailService");
+const { sendOTPEmail , sendPasswordResetEmail } = require("../../services/emailService") ; 
 
 
 
@@ -27,6 +27,8 @@ const  userLogin  = async ( req,res ) =>{
 }
 
 
+
+
 //POST  LOGIN
 const  userLoginPost = async ( req , res ) => {
 
@@ -35,34 +37,49 @@ const  userLoginPost = async ( req , res ) => {
     let {email , password , remember_me } = req.body ;
     email  = email.trim();
     password = password.trim(); 
-    
+     
     const user = await User.findOne({email });
  
     if(user){ 
        if(user.status == "block"){
           return res.render("frontend/blocked-page");
        }
- 
-       if(user.verified == false){
-          return   res.render("frontend/user-otp-verify" , { timer : 0, email : email ,  message : ` Please click Resend Otp for verify .An OTP will sent to your registered email : ${email} `});
 
-       }
 
        const passwordCompare = await Bcrypt.compare( password , user.password ) ;   
+
        if(user.googleId){ 
           res.render( "frontend/user-login" ,{message : "Please continue with gooogle"} );
           return;
-       }else if(!passwordCompare){ 
+       }
+       
+       if(!passwordCompare){ 
           res.render( "frontend/user-login" ,{message : "Incorrect Password" } );  
           return
-       }else{
-          if(remember_me){
-             req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-          } 
-          req.session.userId = user._id ;
-          res.redirect("/"); 
-          return;
        }
+
+       if(user.verified == false){
+        const otp = Crypto.randomBytes(3).toString('hex');
+        const otpExpiry = Date.now() + 300000 ; // OTP valid for 5 minutes  
+
+        await User.findByIdAndUpdate(user._id , {otpExpiry }) 
+        await User.findByIdAndUpdate(user._id , {otp }) 
+
+        sendOTPEmail(email , otp) ; 
+ 
+        return res.render("frontend/user-otp-verify" , { timer : 1 , email : email ,  message : `You are not verified ! .  An OTP is sent to your registered email : ${email} . Plese enter Otp for verify.`});
+
+       }
+
+       if(remember_me){
+           req.session.userId = user._id ;
+           req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+       }else{
+           req.session.userId = user._id ;
+       }
+       
+       return res.redirect("/"); 
+         
        
     }else{
        res.render( "frontend/user-login" ,{ message : "Email can't exists. Please signup with Register"} );
@@ -314,13 +331,20 @@ const checkOtp = async (req,res) =>{
                 return res.status(500).send('Failed to log out.');
             }
             res.redirect('/userlogin'); // Redirect to login
-        }); 
+        });
+  
+
+
     }catch(err){
         console.log(err);
-        res.status(500).render("frontend/404");  
+        res.status(500).render("frontend/404") ;  
     }
  }
-   
+
+
+
+
+
       
 
 
@@ -330,7 +354,7 @@ const blocked = ( req,res )  => {
         res.render("frontend/blocked-page.ejs");
     }catch(err){
         console.log(err);
-        res.status(500).render("frontend/404");  
+        res.status(500).render("frontend/404") ;   
     }
 }
  
