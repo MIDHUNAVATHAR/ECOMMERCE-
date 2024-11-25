@@ -10,7 +10,7 @@ const Crypto       =   require("crypto");
 
 
 //import services
-const { sendOTPEmail, sendPasswordResetEmail } = require("../../services/emailService");
+const { sendOTPEmail,  sendPasswordResetEmailAdmin } = require("../../services/emailService");
 
 
 
@@ -23,17 +23,11 @@ const  Admin       =   require("../../models/adminSchema" ) ;
 //GET ADMIN LOGIN PAGE
 const adminLogin   = async ( req , res )  =>{
     try{
-        if(  req.session.adminId ){
-          
-         
-            return res.redirect("/admin/dashboard") ;
-         }else{
-            res.render( "backend/admin-login.ejs" ,{message : ""} ); 
-            return;
-         }
-    }catch( err ){
-        console.log(err) ;
-        res.status(500).render("frontend/404");  
+       return res.redirect("/admin/dashboard") ;
+    }
+    catch( err ){
+       console.log(err) ;
+       res.status(500).render("frontend/404");  
     }
 }
 
@@ -48,7 +42,7 @@ const loginPost  =  async ( req, res )  =>{
         password = password.trim();
         
         const admin = await Admin.findOne({email }) ; 
-        
+       
         if(admin){
     
             const passwordCompare = await Bcrypt.compare( password , admin.password ) ; 
@@ -68,14 +62,24 @@ const loginPost  =  async ( req, res )  =>{
                 res.render("backend/admin-otp-verify" , {email : email ,  message : `An OTP is sent to your registered email : ${email} . Plese enter Otp for verify.`});
                 return ;
               }
+
+              req.session.admin = {
+                id: admin._id,
+                email: admin.email,
+                role: "admin",
+              };
+        
              
               if(remember_me){
-                 req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000 ; // 30 days
+                 req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000 ; // 7 days
+              }else {
+                req.session.cookie.expires = false; // Session expires on browser close
               }
-              req.session.adminId = admin._id ;
-              req.session.adminEmail = admin.email ;
-              res.redirect("/admin/dashboard") ;  
-              return;
+           
+               // Save session a
+              req.session.save(() => {
+                return res.redirect("/admin/dashboard"); // Redirect after saving session
+              });
            }
            
         }else{
@@ -251,7 +255,7 @@ const  forgotPasswordPost   =  async  ( req , res ) =>{
          admin.resetPasswordExpires = Date.now() + 600000; // 1 min
          await admin.save();
      
-         await sendPasswordResetEmail(admin.email , token , req.headers.host);  
+         await sendPasswordResetEmailAdmin(admin.email , token , req.headers.host);  
      
          res.render('backend/admin-forgot-password', { message: 'An email has been sent to ' + admin.email + ' with further instructions.' });
     }catch(err){
@@ -286,17 +290,21 @@ const  resetPassword   =  async  ( req , res ) =>{
 
 //RESET PASSWORD
 const  resetPasswordPost  =  async  ( req , res ) =>{
+   
     try{
+         
         const admin = await Admin.findOne({
             resetPasswordToken: req.params.token,
             resetPasswordExpires: { $gt: Date.now() } 
           });
 
+
           if (!admin) {
-            return res.render('backend/admin-reset-password', { message : 'Password reset token is invalid or has expired.' }) ;
+            return res.render('backend/admin-reset-password', { message : 'Password reset token is invalid or has expired.' , token : null }) ;
           }
       
           if (req.body.password === req.body.confirm) { 
+
             admin.password = await Bcrypt.hash(req.body.password, 10);
             admin.resetPasswordToken = undefined;
             admin.resetPasswordExpires = undefined; 
@@ -318,15 +326,27 @@ const  resetPasswordPost  =  async  ( req , res ) =>{
 
 
 //ADMIN LOGOUT
-const adminLogout  = async ( req , res )  =>{
+const adminLogout  = async ( req , res )  => {
     try{
-        req.session.adminId = null ;
-        res.redirect("/admin") ;
-    }catch( err ){
+      
+    delete req.session.admin ;
+    // Save the session changes and redirect to user login
+    req.session.save((err) => {
+    if (err) {
+      console.error("Error logging out admin:", err);
+      return res.status(500).send("Failed to log out.");
+    }
+    return res.redirect("/admin"); // Redirect to login page after logout
+   })
+
+ } catch( err ){
         console.log(err) ;
         res.status(500).render("frontend/404") ;        
     }
 }
+
+
+
 
  
 

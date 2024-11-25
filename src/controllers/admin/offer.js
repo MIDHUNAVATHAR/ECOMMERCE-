@@ -12,14 +12,14 @@ const  Product         =   require("../../models/product") ;
 
 
 //GET OFFERS
-const  offers  =  async  ( req , res ) =>{
+const  offers  =  async  ( req , res ) => {
     try{
-        const genderCategories = await GenderCategory.find();
+        const genderCategories = await GenderCategory.find() ; 
         const products = await Product.find(); 
-        res.render("backend/admin-dashboard" , { admin : req.session.adminEmail , partial : "partials/offers" , genderCategories , products }) ;
+        res.render("backend/admin-dashboard" , { admin : req.session.admin.email , partial : "partials/offers" , genderCategories , products }) ;
     }catch(err){
         console.log(err) ;
-        res.status(500).render("frontend/404")  ;        
+        res.status(500).render("frontend/404") ;         
     }
 }
 
@@ -30,6 +30,7 @@ const  offers  =  async  ( req , res ) =>{
 //GET PRODUCT OFFERS
 const  productOffers  =  async  ( req , res ) =>{
     try{
+      
         const genderCategories = await GenderCategory.find();
 
         const searchQuery = req.query.search || '';
@@ -60,7 +61,7 @@ const  productOffers  =  async  ( req , res ) =>{
         const totalPages = Math.ceil( totalOrders/limit ) ; 
 
        
-        res.render("backend/admin-dashboard" , { admin : req.session.adminEmail , partial : "partials/offers-product" , genderCategories , products ,
+        res.render("backend/admin-dashboard" , { admin : req.session.admin.email , partial : "partials/offers-product" , genderCategories , products ,
              currentPage : page , totalPages , searchQuery
     }) ;
     }catch(err){
@@ -99,7 +100,8 @@ const  saveProductOffer   =  async  ( req , res ) =>{
         const offer = req.body.offer ;
         const expiryDate = req.body.expiryDate || new Date(Date.now() + 24 * 60 * 60 * 1000) ;
 
-        await Product.findByIdAndUpdate(productId , { offer : offer , offerExpiry : expiryDate  });        res.status(200).json({ 
+        await Product.findByIdAndUpdate(productId , { offer : offer , offerExpiry : expiryDate  });    
+            res.status(200).json({ 
             message: 'Product offer updated successfully' ,  
         });
     }catch(err){

@@ -1,0 +1,592 @@
+  <!--field validation-->  
+  <script defer src="/public/scripts/validation-editProduct.js"></script>
+
+<div class="p-4">
+<h1>  Edit PRODUCT...</h1>
+<hr>
+
+<!-- Edit Product Form -->
+<form action="/admin/editProductPost/<%= product._id %>" method="POST"  enctype="multipart/form-data" id="form">    
+  <div class="mb-4">
+    <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+    <input type="text" name="title" value="<%=product.title %>" id="title" class="mt-1 p-2 border border-gray-300 rounded w-full" > 
+    <span id="titleErr"></span>
+  </div>
+  <div class="mb-4">
+    <label for="titleDescription" class="block text-sm font-medium text-gray-700">Title Description</label>
+    <input type="text" name="titleDescription" value="<%=product.titleDescription %>" id="titleDescription" class="mt-1 p-2 border border-gray-300 rounded w-full" >
+    <span id="titleDescriptionErr"></span>
+  </div>
+  <div class="container mx-auto p-4"  id="productTable">
+    <table class="table-auto w-full border-collapse border border-gray-200">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="border border-gray-300 p-2">Size</th>
+                <th class="border border-gray-300 p-2">Quantity</th>
+                <th class="border border-gray-300 p-2">Price</th>
+                <th class="border border-gray-300 p-2">Action</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"> 
+            <% product.sizes.forEach(function(size, index) { %> 
+            <tr>
+                <td class="border border-gray-300 p-2">
+                    <input type="text" name="size[]" value="<%= size.size %>" required read class="w-full p-1 border border-gray-300" >
+                </td>
+                <td class="border border-gray-300 p-2">
+                    <input type="number" name="quantity[]" value="<%= size.quantity %>" required class="w-full p-1 border border-gray-300" min="0">
+                </td>
+                <td class="border border-gray-300 p-2">
+                    <input type="number" name="price[]" value="<%= size.price %>" required class="w-full p-1 border border-gray-300" min="0">
+                </td>
+                <td class="border border-gray-300 p-2 text-red-500">
+                    <button class="text-red-500 hover:underline" onclick="deleteRow('<%= size._id %> ')">Delete</button>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <button id="addRowButton" class="mt-4 p-2 bg-blue-500 text-white rounded">Add Row</button>
+
+
+</div>
+
+  <div class="mb-4">
+    <label for="productDescription" class="block text-sm font-medium text-gray-700">Product Description</label>
+    <textarea name="productDescription" id="productDescription"  class="mt-1 p-2 border border-gray-300 rounded w-full"> <%=product.productDescription %> </textarea>
+    <span id="productDescriptionErr"></span>
+  </div>
+  <div class="mb-4">
+    <label for="highlights" class="block text-sm font-medium text-gray-700">Highlights</label>
+    <textarea name="highlights" id="highlights"  class="mt-1 p-2 border border-gray-300 rounded w-full" > <%=product.highlights %> </textarea>
+    <span id="highlightsErr" ></span>
+  </div>
+  <div class="mb-4">
+    <label for="details" class="block text-sm font-medium text-gray-700">Details</label>
+    <textarea name="details" id="details"  class="mt-1 p-2 border border-gray-300 rounded w-full" > <%=product.details%> </textarea>
+    <span id="detailsErr"></span>
+  </div>
+  <div class="mb-4"> 
+    <label for="genderCategory" class="block text-sm font-medium text-gray-700">Gender Category</label>
+    <select name="genderCategory" id="genderCategory"  class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="genderCategoryChange(this.value)">
+    
+      <% genderCategories.forEach(gender => { %>
+        <% if(gender.softDelete == false || gender._id.toString() === product.genderCategory._id.toString() ) { %>
+        <option  value="<%= gender._id  %>" <%= gender._id.toString() === product.genderCategory._id.toString() ? 'selected' : '' %> ><%= gender.name %> </option>  
+        <% } %>
+      <% }) %>
+    </select>
+    <span id="genderCategoryErr"></span>
+  </div>
+  <div class="mb-4">
+    <label for="productCategory" class="block text-sm font-medium text-gray-700">Product Category</label>
+    <select name="productCategory" id="productCategory" class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="productCategoryChange()">
+    
+      <% productCategories.forEach(category => { %>
+        <% if (!category.softDelete || category._id.toString() === product.productCategory._id.toString() ) { %>
+        <option value="<%= category._id %>" data-gender-category-id="<%= category.genderCategory._id %>" <%= category._id.toString() === product.productCategory._id.toString() ? 'selected' : '' %> ><%= category.name %> - <%= category.genderCategory.name %></option>
+        <% } %>
+      <% }) %>
+    </select>
+    <span id="productCategoryErr"></span>
+  </div> 
+
+
+  <h2 class="text-xl font-bold mb-4">Uploaded Images</h2>
+  <div class="grid grid-cols-10 gap-4"> 
+    <% if (product.images.length > 0) { %>  
+       
+      <% product.images.forEach(l => { %>
+      
+        <div class="relative">
+          <img src="<%= l %>" alt="image" >     
+          <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600" onclick="deleteImage('<%= l %>')">X</button>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No images available</p>
+    <% } %> 
+  </div>
+
+  <div class="mb-4">  
+    <label for="images" class="block text-sm font-medium text-gray-700">Product Images</label>
+    <input type="file" name="productImages" id="productImages" class="mt-1 p-2 border border-gray-300 rounded w-full"> 
+    <label class="productImgErr text-red-500"></label>
+  </div> 
+  <!-- cropping contiainer -->
+<div id="cropperContainer" style="display: none; max-width: 500px; margin-bottom: 20px;"> 
+  <img id="image" src="" alt="Image for cropping" style="max-width: 100%;">  
+</div>
+<!--cropping container--> 
+
+ <!-- Cropped images preview container -->
+ <div id="croppedImagesContainer" class="mb-4">
+ <h3 class="text-sm font-medium text-gray-700">Cropped Images</h3>
+ <div id="croppedImages" class="flex flex-wrap"></div>
+ </div>
+
+  <button type="button" id="cropButton" style="display: none;" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Crop & Upload</button>
+  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button> 
+</form>
+</div> 
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <!--field validation-->  
+  <script  src="/public/scripts/validation-editProduct.js"></script>
+
+<script>
+ let genderCategoryId = '<% product.genderCategory._id %>';
+ let productCategoryId; 
+
+
+
+ function genderCategoryChange(id){
+     genderCategoryId = id ;
+ }
+
+ function productCategoryChange(){
+        const selectElement = document.getElementById('productCategory');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        const categoryId = selectedOption.value; // Category ID from value attribute
+
+        productCategoryId = categoryId ;
+
+        const selectedGenderCategoryId = selectedOption.getAttribute('data-gender-category-id'); // Gender category ID from data attribute
+        
+        if (genderCategoryId !== selectedGenderCategoryId) {
+           toastr.error("Select the product category related to gender! if doesn't exist please be add - go to add category !")
+            selectElement.value = null; // Revert to last valid selection
+        } else {
+            selectElement.value  = categoryId; // Update last valid selection
+        }
+
+ }
+
+
+
+
+
+  let cropper;
+  const inputImage = document.getElementById('productImages');
+  const image = document.getElementById('image');  
+  const cropButton = document.getElementById('cropButton');
+  const cropperContainer = document.getElementById('cropperContainer');
+  const croppedImagesContainer = document.getElementById('croppedImages');
+  let croppedImagesData = [] ;  
+
+  inputImage.addEventListener('change', (event) => {
+      const files = event.target.files;
+      if (files && files.length > 0) {
+          const file = files[0];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              image.src = e.target.result;
+              cropperContainer.style.display = 'block';
+              cropButton.style.display = 'inline-block';
+              if (cropper) {
+                  cropper.destroy();
+              }
+              cropper = new Cropper(image, {
+                  aspectRatio: NaN,
+                  viewMode: 1,
+                  dragMode: 'move',
+                  cropBoxMovable: true,
+                  cropBoxResizable: true,
+                  minCropBoxWidth: 50,
+                  minCropBoxHeight: 50,
+              });
+          };
+          reader.readAsDataURL(file);
+      }
+  });
+
+  cropButton.addEventListener('click', () => {
+      if (!cropper) {
+          alert('Please select an image first.');
+          return;
+      }
+
+      cropper.getCroppedCanvas().toBlob((blob) => {
+          croppedImagesData.push(blob);
+
+          const url = URL.createObjectURL(blob);
+          const imgElement = document.createElement('img');
+          imgElement.src = url;
+          imgElement.style.maxWidth = '100px';
+          imgElement.style.margin = '10px';
+          croppedImagesContainer.appendChild(imgElement) ;
+
+          cropperContainer.style.display = 'none';
+          cropButton.style.display = 'none'; 
+          inputImage.value = '';
+          inputImage.disabled = false;
+      }, 'image/png');
+  });
+
+  
+
+
+function deleteRow(s_id) {
+  event.preventDefault();
+  const p_id = '<%= product._id %>';
+
+  fetch(`/admin/products/${p_id}/sizes/${s_id}`, { method: 'DELETE' })
+    .then(response => response.json())
+    .then(data => {
+      Swal.fire({
+        title: 'Size deleted',
+        icon: 'success',
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#3085d6',
+        background: '#f7f7f7',
+        backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
+      }).then(() => {
+        window.location.reload(); // Reload the page after the alert is closed
+      });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+  
+ 
+//delete image 
+function deleteImage(imgsrc){
+   event.preventDefault(); 
+   const p_id = '<%= product._id %>' ; 
+   fetch("/admin/delete-product-image",{
+    method : "DELETE",
+    headers : { 'Content-Type' : 'application/json' },
+    body : JSON.stringify( { imgSrc : imgsrc , productId : p_id }) ,  
+   })
+   .then(response => response.json()) 
+   .then(data =>{
+    Swal.fire({
+        title: 'Image deleted',
+        icon: 'success',
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#3085d6',
+        background: '#f7f7f7',
+        backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
+      }).then(()=>{
+        window.location.reload();
+      })
+      
+   })
+   .catch(err=>{
+    console.error("Error : " ,err );
+   })
+}
+
+ 
+
+//add rows ;
+document.getElementById('addRowButton').addEventListener( 'click' , function() {
+    event.preventDefault() ; 
+    const tableBody = document.getElementById('table-body') ; 
+    const newRow = document.createElement('tr') ; 
+
+    newRow.innerHTML = `
+        <td class="border border-gray-300 p-2">
+            <input type="text" name="size[]" class="w-full p-1 border border-gray-300" placeholder="Size" required  >
+        </td>
+        <td class="border border-gray-300 p-2">
+            <input type="number" name="quantity[]" class="w-full p-1 border border-gray-300" placeholder="Quantity" required min='0'>
+        </td>
+        <td class="border border-gray-300 p-2">
+            <input type="number" name="price[]" class="w-full p-1 border border-gray-300" placeholder="Price" required min='0' >
+        </td>
+        <td class="border border-gray-300 p-2 text-red-500">
+            <button class="text-red-500 hover:underline" onclick="this.closest('tr').remove()">Delete</button>
+        </td>
+    `;
+
+    tableBody.appendChild(newRow) ; 
+
+ 
+        const sizeInput = newRow.querySelector('input[name="size[]"]');
+        const quantityInput = newRow.querySelector('input[name="quantity[]"]');
+        const priceInput = newRow.querySelector('input[name="price[]"]');
+
+        sizeInput.addEventListener('keyup', () => validateSize(sizeInput));
+        quantityInput.addEventListener('keyup', () => validateQuantity(quantityInput)) ;
+        priceInput.addEventListener('keyup', () => validatePrice(priceInput));
+
+});
+
+ 
+
+
+
+//validation
+        const titleInput  =  document.getElementById("title") ;
+        const titleDescr  =  document.getElementById("titleDescription");
+        const productDes  =  document.getElementById("productDescription") ;
+        const highlights  =  document.getElementById("highlights") ;
+        const details     =  document.getElementById("details");
+        const genderCategory = document.getElementById("genderCategory");
+        const productCategory = document.getElementById("productCategory");
+       
+
+
+        const titleError  =  document.getElementById("titleErr") ;
+        const titleDescrError  =  document.getElementById("titleDescriptionErr");
+        const productDesError  =  document.getElementById("productDescriptionErr") ;
+        const highlightsError  =  document.getElementById("highlightsErr") ;
+        const detailsError     =  document.getElementById("detailsErr");
+        const genderCategoryError = document.getElementById("genderCategoryErr");
+        const productCategoryError = document.getElementById("productCategoryErr");
+      
+
+
+   // Show validation messages
+   function showMessage(element, message, isValid) {
+          element.textContent = message;
+          element.style.color = isValid ? 'green' : 'red';
+        }
+
+
+
+        function validateTitle() {
+          const title = titleInput.value.trim();
+          if (title.length < 3 || !/^[a-zA-Z\s]+$/.test(title)){
+          showMessage(titleError, "Name must be at least 3 characters", false);
+          return false;
+          }
+          showMessage(titleError, "valid", true);
+          return true;
+       }
+
+
+       
+       function validateTitleDescr() {
+       
+       const titleDescrValue = titleDescr.value.trim() ;
+       if ( titleDescrValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(titleDescrValue) ) {
+         showMessage(  titleDescrError  , "Title description must start with a letter and contain only letters, spaces, and commas", false);
+         return false;
+       }
+     
+       showMessage( titleDescrError , "valid", true);
+       return true;
+     }
+
+
+
+
+     function validateProductDes() {
+         const productDesValue = productDes.value.trim();
+         if ( productDesValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(productDesValue) ) {
+           showMessage( productDesError , "Product description must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( productDesError , "valid", true);
+         return true;
+       }
+
+
+
+       function validateHighlights() {
+         const highlightsValue = highlights.value.trim();
+         if (highlightsValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(highlightsValue) ) {
+           showMessage( highlightsError , "Highlights must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( highlightsError , "valid", true);
+         return true;
+       }
+
+
+
+       function validateDetails() {
+         const detailsValue = details.value.trim();
+         if ( detailsValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(detailsValue) ) {
+           showMessage( detailsError  , "Details must start with a letter and contain only letters, spaces, and commas", false);
+           return false;
+         }
+         showMessage( detailsError  , "valid", true);
+         return true;
+       }
+
+
+              //size validation
+    function validateSize(sizeInput) {
+         const size = sizeInput.value.trim();
+         if (size.length < 1 || !/^[a-zA-Z0-9\s]+$/.test(size)) {
+             sizeInput.style.borderColor = 'red';
+             sizeInput.style.outline = '2px solid red';
+             return false;
+         }
+        sizeInput.style.borderColor = 'green';
+        sizeInput.style.outline = '2px solid green';
+        return true;
+       }
+
+
+     function validateQuantity(quantityInput) {
+          const quantity = parseInt(quantityInput.value);
+          if (isNaN(quantity) || quantity < 0) {
+                    quantityInput.style.borderColor = 'red';
+                    quantityInput.style.outline = '2px solid red';
+
+              return false;
+          }
+          quantityInput.style.borderColor = 'green';
+          quantityInput.style.outline = '2px solid green';
+
+          return true;
+      }
+
+
+     function validatePrice(priceInput) {
+         const price = parseFloat(priceInput.value);
+         if (isNaN(price) || price < 0) {
+             priceInput.style.borderColor = 'red';
+             priceInput.style.outline = '2px solid red';
+
+             return false;
+         }
+         priceInput.style.borderColor = 'green';
+         priceInput.style.outline = '2px solid green';
+         return true;
+     }
+
+
+     function validateGenderCategory() {
+       if (genderCategory.value === "") {
+         showMessage(genderCategoryError, "Please select a gender category.", false);
+         return false;
+       }
+       showMessage(genderCategoryError, "Valid", true);
+       return true;
+     }
+
+
+     function validateProductCategory() {
+       if (productCategory.value === "") {
+         showMessage(productCategoryError, "Please select a product category.", false);
+         return false;
+       }
+       showMessage(productCategoryError, "Valid", true);
+       return true;
+     }
+
+
+     
+
+
+
+     
+       titleInput.addEventListener("keyup", validateTitle );
+       titleDescr.addEventListener("keyup", validateTitleDescr ) ; 
+       productDes.addEventListener("keyup" ,validateProductDes ) ;
+       highlights.addEventListener("keyup" , validateHighlights  ) ;
+       details.addEventListener("keyup" ,  validateDetails ) ; 
+
+
+
+
+
+
+
+
+
+
+//submit the form
+
+  document.getElementById('form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission behavior 
+
+
+       // Check all validation functions and minimum image count
+       if (
+        validateTitle() &&
+        validateTitleDescr() &&
+        validateProductDes() &&
+        validateHighlights() &&
+        validateDetails() &&
+        validateGenderCategory() &&
+        validateProductCategory() 
+     
+    ){
+      const allRowsValid = Array.from(document.querySelectorAll('#productTable tbody tr')).every(row => {
+        const sizeInput = row.querySelector('input[name="size[]"]');
+        const quantityInput = row.querySelector('input[name="quantity[]"]');
+        const priceInput = row.querySelector('input[name="price[]"]');
+
+        return validateSize(sizeInput) && validateQuantity(quantityInput) && validatePrice(priceInput);
+    });
+
+    if (!allRowsValid) {
+      Swal.fire({
+                icon: 'WARNING',
+                title: 'Please fix errors in the size, quantity, or price fields before submitting.',
+                text:' Please try again.',
+                confirmButtonText: 'OK'
+            });
+
+        return;
+    }
+
+    const formData = new FormData(this) ; 
+    formData.delete('productImages'); // Remove the default file input field data
+
+    // Append the cropped images to the form data
+    croppedImagesData.forEach((blob, index) => {
+        formData.append(`productImages`, blob, `cropped_${index}.png`) ; 
+    });
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData, 
+    }).then(response => response.json())
+    .then(data => {
+        if (data.message) {
+          Swal.fire({
+        title: 'Product updated',
+        icon: 'success',
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#3085d6',
+        background: '#f7f7f7',
+        backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
+      }).then(()=>{
+        window.location.reload() ;  
+            // Optionally, you can redirect or refresh the page here
+      })
+         
+        } else if (data.error) {
+            alert(`Error: ${data.error}`);
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update product. Please try again later.');
+    });
+
+
+    }else{
+      Swal.fire({
+                icon: 'warning',
+                text:'correct all the errors before submitting',
+                confirmButtonText: 'OK' 
+                  })
+      }
+    })
+
+
+
+    
+
+
+
+
+  
+
+</script> 

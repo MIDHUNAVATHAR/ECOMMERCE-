@@ -9,6 +9,11 @@ const implementOffers = async ( req , res , next ) =>{
 
     try {
         const productId = req.params.id; 
+
+           // Check if the ID is a valid ObjectId format
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        throw new Error(`Invalid product ID: ${productId}`);
+      }
         
         //  Find the product by ID 
         const product = await Product.findById(productId).populate('genderCategory') ; 
@@ -61,6 +66,7 @@ const implementOffers = async ( req , res , next ) =>{
                 size.discountedPrice = size.price; // No discount
                 size.discountedPercentage = 0; // No discount
             }
+            
         }); 
 
 
@@ -71,7 +77,7 @@ const implementOffers = async ( req , res , next ) =>{
 
     } catch (error) {
         console.error('Error updating discounts:', error);
-        return ; 
+        res.status(500).render("frontend/404") ;        
     }
 }
 

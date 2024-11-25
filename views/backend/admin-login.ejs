@@ -92,10 +92,12 @@
 
             function validatePassword() {
                 const password = passwordInput.value.trim();
-                if (password.length >= 6) {
+                const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+
+                if (passwordPattern.test(password)) {
                     showMessage(passwordError, 'Valid password', true);
                 } else {
-                    showMessage(passwordError, 'Password must be at least 6 characters', false);
+                    showMessage(passwordError, 'Password must be at least 6 characters and include one uppercase letter, one lowercase letter, one digit, and one special character', false);
                 }
             }
 

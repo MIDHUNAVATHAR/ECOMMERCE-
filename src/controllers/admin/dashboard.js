@@ -8,12 +8,8 @@ const  multer  = require("multer") ;
 const  path    =  require("path") ;
 
 
-
-
 //import schemas
-const  Order   = require("../../models/orderSchema") ;
-
-
+const  Order   = require("../../models/orderSchema") ; 
 
 
 
@@ -57,6 +53,7 @@ const ensureDirectoryExistence = (dirPath) => {
 //GET DASHBOARD  
 const  dashboard  =  async ( req , res )  =>{           
     try{
+       
         const filter = req.query.filter || 'month';
         const { start, end } = getDateRange(filter);
 
@@ -287,7 +284,7 @@ const  dashboard  =  async ( req , res )  =>{
         
 
         res.render('backend/admin-dashboard', {
-            admin : "" ,
+            admin : req.session.admin.email ,
             partial : "partials/dashboard" ,
             salesData: JSON.stringify(salesData) ,
             totalOrders,
@@ -317,7 +314,11 @@ const generateLedger = async (req, res) => {
             createdAt: { $gte: startDate, $lte: endDate },
             paymentStatus: 'completed'
         }).populate('items.product'); // Populate product details
-
+           
+        if(orders.length == 0){
+            return res.redirect("/admin/dashboard") ;
+        }
+    
         // Create the ledger
         let ledgerData = "Product Name, Quantity Sold, Total Revenue, Order Date\n";
         let totalRevenue = 0;

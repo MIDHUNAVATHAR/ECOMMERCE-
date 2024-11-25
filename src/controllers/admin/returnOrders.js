@@ -17,6 +17,7 @@ const  Address            =    require('../../models/addressSchema');
 //GET  RETURN ORDERS
 const  returnOrders  =  async  ( req , res )  => {
     try{
+    
 
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
@@ -33,7 +34,7 @@ const  returnOrders  =  async  ( req , res )  => {
             .skip(skip)
             .limit(limit) ;
 
-        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.adminEmail , partial : "partials/returnOrders" ,
+        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.admin.email  , partial : "partials/returnOrders" ,
             returnOrders, currentPage: page , totalPages ,  totalOrders
         })
     }catch(err){
@@ -136,7 +137,7 @@ const  getReturnOrderDetails  =  async  ( req , res ) => {
             return res.status(404).json({ message: 'Return order not found' }) ; 
         }
 
-        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.adminEmail , 
+        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.admin.email , 
             partial : "partials/returnOrderView" , returnOrder } );
 
     }catch(err){

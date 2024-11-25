@@ -11,6 +11,7 @@ const  User     =     require("../../models/userSchema") ;
 //GET USERS
 const  users   =   async  ( req , res )  =>{
     try{
+      
     //pagination 
      const page = parseInt(req.query.page) || 1 ;   
      const limit = 7;
@@ -33,7 +34,7 @@ const  users   =   async  ( req , res )  =>{
      const totalUsers =users.length; // Get the total number of users
 
      const resultUsers = users.slice( startIndex , endIndex );
-     res.render("backend/admin-dashboard.ejs" , {partial : "partials/users" ,admin : req.session.adminEmail , users : resultUsers,currentpage :page,totalUsers:totalUsers,limit:limit,sort:sort});
+     res.render("backend/admin-dashboard.ejs" , {partial : "partials/users" ,admin : req.session.admin.email , users : resultUsers,currentpage :page,totalUsers:totalUsers,limit:limit,sort:sort});
 
     }catch(err){
         console.log(err) ;

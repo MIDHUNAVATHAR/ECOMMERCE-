@@ -318,9 +318,19 @@ if (selectedLogoId) {
     }).then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Logo date updated successfully!');  
+          Swal.fire({
+               icon: 'success',
+               title: 'Updated !',
+               text: 'Logo Updated Successfull .' ,
+               confirmButtonText: 'OK'
+             })
         } else {
-            alert('Failed to update logo date.');
+          Swal.fire({
+               icon: 'error',
+               title: 'Failed !',
+               text: 'Logo Update Failed .' ,
+               confirmButtonText: 'OK'
+             })
         }
     }).catch(error => {
         console.error('Error:', error);
@@ -330,13 +340,13 @@ if (selectedLogoId) {
 }
  })
 
-
+ 
 // change the Banner date to date.now ; 
 
 document.getElementById("selectBanner").addEventListener("change" , function(){
   
   var selectedBannerId = this.value ;
-  console.log(selectedBannerId) ;
+  
 
    if(selectedBannerId) {
     
@@ -351,9 +361,19 @@ document.getElementById("selectBanner").addEventListener("change" , function(){
     }).then(response => response.json())
     .then(data => {
         if (data.success) { 
-            alert('Banner date updated successfully!');  
+          Swal.fire({
+               icon: 'success',
+               title: 'Updated !',
+               text: 'Banner Updated Successfull .' ,
+               confirmButtonText: 'OK'
+             })
         } else {
-            alert('Failed to update Banner date.');
+          Swal.fire({
+               icon: 'error',
+               title: 'Failed !',
+               text: 'Banner Update Failed .' ,
+               confirmButtonText: 'OK'
+             })
         }
     }).catch(error => {
         console.error('Error:', error);

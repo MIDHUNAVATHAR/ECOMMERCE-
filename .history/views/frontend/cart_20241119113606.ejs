@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - YourStore</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="">
+
+  <!-- Header --> 
+  <%- include("partials/header") %> 
+  <!--Header-->
+
+<!--breadcrumb-->
+<nav class="text-sm mb-4 pl-10 pt-5" aria-label="Breadcrumb">
+  <ol class="list-reset inline-flex items-center space-x-2 bg-black text-white p-2 rounded">
+    <li>
+      <a href="/" class="hover:text-gray-400">Home</a>
+    </li>
+    <li>
+      <span>/</span> 
+    </li>
+    <li>
+      My Cart
+    </li>
+  </ol>
+</nav>
+<!--breadcrumb-->
+
+
+
+  <div class="container mx-auto px-4 py-8 mb-80">
+    <% if ( cart ) { %>
+    <div class="flex flex-col lg:flex-row gap-8"> 
+
+       <!-- Product List -->
+<div class="w-full lg:w-2/3">
+  <% cart.items.forEach(item => { %>
+      <div class="bg-white rounded-lg shadow-md p-6 mb-4 lg:ml-5">
+          <div class="flex items-center">
+              <!-- Product Image -->
+              <img src="<%= item.product && item.product.images && item.product.images[0] ? item.product.images[0] : 'path/to/default-image.jpg' %>"
+                   alt="<%= item.product && item.product.title ? item.product.title : 'Product' %>"
+                   class="w-20 h-20 object-cover rounded-md mr-4 ml-4">
+              <div class="flex-1 ml-5 relative">
+                  <!-- Product Title -->
+                  <h2 class="text-lg font-semibold">
+                      <%= item.product && item.product.title ? item.product.title : 'Product Title' %>
+                      <!-- Product Status -->
+                      <span class="status absolute right-1 text-sm font-semibold text-red-500">
+                          <%= item.status ? item.status : 'Status not available' %>
+                      </span> 
+                  </h2>
+                  <!-- Product Size -->
+                  <p class="text-sm text-gray-600">Size: <%= item.size ? item.size : 'N/A' %></p>
+                  <!-- Product Description -->
+                  <p class="text-sm text-gray-600">Description: <%= item.product && item.product.titleDescription ? item.product.titleDescription : 'No description available' %></p>
+                  <!-- Product Specifications -->
+                  <p class="text-sm text-gray-600">Spec: <%= item.product && item.product.productDescription ? item.product.productDescription : 'No specifications available' %></p>
+                  <!-- Price and Discount Info -->
+                  <div class="flex items-center mt-2">
+                      <span class="text-lg font-bold">₹<%= item.discountedPrice %></span>
+                      <span class="text-sm text-gray-500 line-through ml-2">₹<%= item.price %></span>
+                      <span class="text-sm text-green-500 ml-2"><%= item.discountPercentage ? item.discountPercentage : '0' %>% OFF</span>
+                  </div>
+              </div>
+          </div>
+          <!-- Quantity Controls -->
+          <div class="flex items-center justify-between mt-4">
+              <div class="flex items-center border rounded ml-4">
+                  <button class="decrement-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">-</button>
+                  <span class="quantity px-3 py-1"><%= item.quantity %></span> 
+                  <button class="increment-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">+</button>
+              </div>
+              <span class="message text-red-900"></span>
+              <button class="removeBtn text-pink-500 hover:text-pink-600" data-id="<%= item._id %>">REMOVE</button>
+          </div>
+      </div>
+  <% }); %>
+</div>
+
+
+        <!-- Checkout Section -->
+        <div class="w-full lg:w-1/3">
+          <div class="bg-gradient-to-r from-green-400 to-blue-500 shadow-lg  flex justify-between mb-2 p-4 ">
+            <h2 class="text-lg font-semibold text-gray-800">Your Wallet</h2>
+            <p class="text-2xl font-bold text-white" id="wallet-balance"> ₹ <%= user.walletBalance %></p>
+            
+          </div>
+            <div class="bg-white rounded-lg shadow-md p-6 lg:sticky lg:top-8">
+           
+                <h2 class="text-lg font-semibold mb-4">PRICE DETAILS</h2>
+                <div class="flex justify-between mb-2">
+                  <span id="totalItems">Price (<%= totalItems %> items)</span>
+                  <span id="totalPrice">₹<%= totalPrice %></span>
+                  
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span>Coupon Discount</span>
+                    <span>₹<%= cart.couponBalance %></span>
+                </div>
+                <div class="flex justify-between mb-2">
+                  <span>Wallet Discount</span>
+                  <span id="cartWalletBalance">₹<%= cart.walletBalance %></span>
+              </div>
+            
+                <div class="border-t pt-2 mt-2">
+        
+                    <div class="flex justify-between font-semibold">
+                        <span>Total Amount</span>
+                        <span id="totalAmount" class="text-green-500">₹<%= totalAmount %></span>
+
+                    </div>
+                </div>
+                <a href="/checkout"><button class="w-full bg-blue-500 text-white py-2 rounded mt-10 mb-10 hover:bg-blue-600">CHECKOUT</button></a>
+                
+                <div class="mt-4"> 
+                <% if(user.coupon ){ %>
+                  <form action="/remove-coupon-code" method="POST" > 
+                    <div class="flex gap-2">
+                        <input type="hidden" id="appliedCoupon" name="coupon" value="<%= user.coupon %>" >
+                        <button id="removeCoupon" class="bg-pink-500 text-white px-4 py-1 rounded hover:bg-pink-600 w-full">REMOVE COUPON</button>
+                    </div>
+                  </form>
+                <% }else{ %>
+
+                  <form action="/add-coupon-code" method="POST"> 
+                    <div class="flex gap-2">
+                        <input type="text" id="couponCode" name="couponCode" placeholder="COUPON CODE" class="flex-1 border rounded px-2 py-1">
+                        <button id="applyCoupon" type="submit" class="bg-pink-500 text-white px-4 py-1 rounded hover:bg-pink-600">APPLY COUPON</button>
+                    </div>
+                  </form>
+                <% } %>
+
+
+                  
+                <% if(cart.walletBalance > 0){ %>
+                  <form>
+                    <!-- Apply Wallet Button -->
+                  <div class="flex gap-2 mt-6">
+                    <input type="hidden" name="walletAmount" value="<%= cart.walletBalance %>">
+                    <button type="button" id="removeWalletButton" class="w-full bg-rose-500 text-white py-2 rounded hover:bg-green-600">REMOVE WALLET</button>
+                  </div>
+              </form>
+              <% }else{ %>
+                <form action="/add-wallet-cart" method="POST">
+                          <!-- Apply Wallet Button --> 
+                    <div class="flex gap-2 mt-6"> 
+                       <button type="button" id="applyWalletButton" class="w-full bg-rose-500 text-white py-2 rounded hover:bg-green-600">APPLY WALLET</button> 
+                    </div>
+                </form>
+              <% } %>
+
+                </div>
+            </div>  
+        </div>
+    </div>
+    <% } else { %>
+      <div class="flex justify-end items-center w-full "> <!-- Flexbox to center the wallet -->
+        <div class="bg-gradient-to-r from-green-400 to-blue-500 shadow-lg px-6 rounded-lg mb-2 max-w-xs"> <!-- Gradient background and styling -->
+          <h2 class="text-lg font-semibold text-white">Your Wallet</h2> <!-- Changed text color to white for better contrast -->
+          <p class="text-2xl font-bold text-white" id="wallet-balance"> ₹<%= user.walletBalance %></p> <!-- Updated text color -->
+        </div>
+      </div>
+
+      <div class="w-full text-center py-10 mt-24">
+        <h2 class="text-2xl font-semibold text-gray-700">Your cart is empty</h2>
+        <p class="text-gray-500 mt-2">No items have been added to your cart yet.</p>
+        <a href="/" class="inline-block mt-4 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          Continue Shopping
+        </a>
+      </div>
+      
+    
+      <% } %>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Confirmation</h3> 
+          <div class="mt-2 px-7 py-3">
+              <p class="text-sm text-gray-500">
+                  Are you sure you want to remove this item from your cart?
+              </p>
+          </div>
+          <div class="items-center px-4 py-3">
+              <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                  Delete
+              </button>
+              <button id="cancelDelete" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                  Cancel
+              </button>
+          </div>
+      </div>
+  </div>
+</div>
+    
+  <!-- Footer -->
+  <%- include("partials/footer") %>
+  <!-- Footer-->
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script>
+    
+  
+   //alerts
+    // const url = new URL (window.location.href); 
+    
+    // if(url.searchParams.get("coupon") == 0){
+    //   toastr.error('Invalid Coupon !')
+    // }
+    // if(url.searchParams.get("coupon-expiry") == 0){
+    //   toastr.error('Coupon expired !')
+    // }
+    // if(url.searchParams.get("coupon-limit")==0){
+    //   toastr.error('Coupon Limit Exceeded !'); 
+    // }
+    // if(url.searchParams.get("coupon-success") == 1){  
+    //   toastr.success('Coupon Added '); 
+    // }
+    // if(url.searchParams.get("coupon-success") == 0){  
+    //   toastr.error(`Cart Should have minimum  : ${url.searchParams.get("couponBalance")}`); 
+    // }
+
+
+
+
+   
+    const removeBtn = document.getElementsByClassName("removeBtn");
+
+    const modal = document.getElementById("deleteConfirmModal");
+    const confirmDeleteBtn = document.getElementById("confirmDelete");
+    const cancelDeleteBtn = document.getElementById("cancelDelete");
+ 
+    let userId ; 
+    let itemId ;
+
+    // Function to show modal
+    function showModal(User , Item) {
+      userId = User ;
+      itemId = Item ; 
+      modal.classList.remove("hidden");
+    }
+
+    // Function to hide modal
+    function hideModal() {
+      modal.classList.add("hidden");
+    }
+
+    cancelDeleteBtn.addEventListener("click" , function(){
+      hideModal();
+    })
+
+    confirmDeleteBtn.addEventListener("click" , function(){ 
+      fetch("/removeItem" , {
+        method : "POST",
+        headers : { 'Content-Type' : "application/json" } ,   
+        body : JSON.stringify({ userId , itemId }) 
+       })
+       .then(response => {
+         return response.json();
+       })
+       .then(data => {
+         window.location.reload();
+       })
+       .catch( err =>{
+          console.error("Error : ", err.message);
+        } )
+    })  
+ 
+
+  
+
+    
+
+    // Helper function to update UI elements
+const updateUIElements = (data, index) => {
+
+  const elements = {
+    message: document.getElementsByClassName("message")[index],
+    status: document.getElementsByClassName("status")[index],
+    quantity: document.getElementsByClassName("quantity")[index],
+    totalItems: document.getElementById('totalItems'),
+    totalPrice: document.getElementById("totalPrice"),
+    totalAmount: document.getElementById('totalAmount') ,
+ 
+  };
+   
+
+  // Update UI elements if corresponding data exists 
+  if (data.message) elements.message.innerHTML = data.message;
+  if (data.status) elements.status.innerHTML = data.status;
+  if (data.quantity) elements.quantity.innerHTML = data.quantity;
+  if (data.totalItems) elements.totalItems.innerText = `Price (${data.totalItems} items)`;      
+  if (data.totalPrice) elements.totalPrice.innerHTML = data.totalPrice;
+  if (data.totalAmount) elements.totalAmount.innerHTML = `₹${data.totalAmount}`; 
+
+  
+};
+ 
+
+
+// Initialize quantity increment functionality
+const initQuantityIncrement = () => { 
+
+  const incrementButtons = document.querySelectorAll('.increment-btn');  // Assuming you add this class to your buttons
+
+  incrementButtons.forEach((button, index) => {
+    button.addEventListener('click', async function() {
+      try {
+        const itemId = this.dataset.id;
+        const userId = "<%= user ? user._id : '' %>";
+
+        // Check if user is logged in
+        if (!userId) {
+          window.location.href = "http://localhost:8001/userlogin";
+          return;
+        }
+
+        // Make API request
+        const response = await fetch("/cartProductInc", {
+          method: "POST",
+          headers: { 
+            'Content-Type': "application/json",
+            // Add CSRF token if needed
+            // 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+          },
+          body: JSON.stringify({ userId, itemId })
+        });
+        
+        
+        
+        const data = await response.json();
+        console.log(data)
+        updateUIElements(data, index);
+
+        console.log("Success:", data);
+
+      } catch (error) {
+        console.error("Error:", error.message);
+        // Show user-friendly error message
+        document.getElementsByClassName("message")[index].innerHTML = 
+          "Sorry, there was an error updating your cart. Please try again.";
+      }
+    });
+
+  })}
+
+
+
+
+const initQuantityDecrement = () => {
+
+  const decrementButtons = document.querySelectorAll('.decrement-btn');  // Assuming you add this class to your buttons
+   
+  decrementButtons.forEach((button, index) => {
+
+    button.addEventListener('click', async function() {
+      
+          const userId = "<%= user ? user._id : '' %>";
+          const itemId = this.dataset.id ;
+          if(userId == ""){
+            window.location.href = "http://localhost:8001/userlogin" ;
+            return;  // prevent further code execution 
+          }
+          
+          fetch("/cartProductDec" , { 
+            method : "POST",
+            headers : { 'Content-Type' : "application/json" },
+            body : JSON.stringify({ userId , itemId }) 
+          })
+          .then(response =>{
+            return response.json();
+          })
+          .then( data => {
+          
+        alert(data.)
+
+          updateUIElements(data, index);
+
+          console.log("Success : " ,  data)
+      
+        } )
+        .catch( err =>{
+          console.error("Error : ", err.message);
+        
+        } ) 
+
+
+        })
+    })
+  }
+
+
+
+
+  // Ensure all elements are available before attaching event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const removeWalletButton = document.getElementById("removeWalletButton"); 
+  const applyWalletButton = document.getElementById("applyWalletButton");
+
+  // Remove Wallet Button Event Listener
+  if (removeWalletButton) {
+    removeWalletButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const walletAmount = '<%= cart.walletBalance %>';
+      const response = await fetch("/remove-wallet-cart", {
+        method: "POST",
+        headers: {
+          'Content-Type': "application/json",
+        },
+        body: JSON.stringify({ walletAmount })
+      });
+
+      const data = await response.json();
+
+      if (data.user === false) {
+        window.location.href = "http://localhost:8001/userlogin";
+      }
+
+      if (data.success) {
+        Swal.fire({
+          title: "Success!",
+          text: "Wallet removed from cart.",
+          icon: "success",
+          confirmButtonText: "OK"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            location.reload();  // Reload the page after clicking OK
+          }
+        });
+      }
+
+
+    });
+  }
+
+
+
+  // Apply Wallet Button Event Listener
+  if (applyWalletButton) {
+    applyWalletButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const response = await fetch("/add-wallet-cart", {
+        method: "POST",
+        headers: {
+          'Content-Type': "application/json",
+        }
+      });
+
+      const data1 = await response.json();
+
+      if (data1.user === false) {
+        window.location.href = "http://localhost:8001/userlogin";
+      }
+
+      if (data1.success) {
+        Swal.fire({
+          title: "Success!",
+          text: "Wallet successfully added.",
+          icon: "success",
+          confirmButtonText: "OK"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            location.reload();  // Reload the page after clicking OK
+          }
+        });
+      } 
+      
+      if(!data1.success){
+        Swal.fire({
+          title: "Not Added!",
+          text: `${data1.message}` ,
+          icon: "fail",
+        })
+      }
+    });
+  }
+
+});
+
+
+
+
+//apply coupon , remove coupon 
+document.addEventListener('DOMContentLoaded',  () => {
+
+    const removeCouponButton = document.getElementById("removeCoupon");
+    const applyCouponButton = document.getElementById("applyCoupon");
+  
+    if(applyCouponButton){
+     
+      applyCouponButton.addEventListener("click" ,async (e) => {
+       
+        e.preventDefault();
+       
+        
+    const couponCode = document.getElementById("couponCode").value ;  
+    const response = await fetch("/add-coupon-code", {
+      method: "POST",
+      headers: {
+        'Content-Type': "application/json",
+      },
+      body : JSON.stringify({ couponCode }) 
+      
+    });
+
+    const data1 = await response.json(); 
+
+    if (data1.user === false) {
+      window.location.href = "http://localhost:8001/userlogin";
+    }    
+
+    if (data1.success) {
+      Swal.fire({
+        title: "Success!",
+        text: "Coupon successfully added.",
+        icon: "success",
+        confirmButtonText: "OK"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.reload();  // Reload the page after clicking OK
+        }
+      });
+    }else{
+      Swal.fire({
+        title: "Invalid!",
+        text: `${data1.message}`,
+        icon: "fail",
+        confirmButtonText: "OK"
+      })
+    }
+      })
+    }
+
+
+ 
+
+   if(removeCouponButton){
+    removeCouponButton.addEventListener("click" ,async (e) => {
+       
+       e.preventDefault();
+      
+       
+   const couponId = document.getElementById("appliedCoupon").value ;  
+  
+   const response = await fetch("/remove-coupon-code", {
+     method: "POST",
+     headers: {
+       'Content-Type': "application/json",
+     },
+     body : JSON.stringify({ couponId }) 
+     
+   });
+
+   const data1 = await response.json(); 
+
+   if (data1.user == false) { 
+     window.location.href = "http://localhost:8001/userlogin" ;  
+   }    
+
+   if (data1.success) { 
+     Swal.fire({
+       title: "Success!",
+       text: "Coupon successfully removed.",
+       icon: "success",
+       confirmButtonText: "OK"
+     }).then((result) => {
+       if (result.isConfirmed) {
+         location.reload();  // Reload the page after clicking OK
+       }
+     });
+   }else{
+     Swal.fire({
+       title: "Invalid!",
+       text: `${data1.message}`,
+       icon: "fail",
+       confirmButtonText: "OK"
+     })
+   }
+     })
+   }
+    
+}) 
+
+
+
+
+
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+
+  initQuantityIncrement();
+  initQuantityDecrement();
+ 
+});
+    
+
+
+
+
+
+
+  
+    
+
+    //remove cart item
+    for(let i=0 ; i<removeBtn.length ; i++){
+      removeBtn[i].addEventListener("click" , function(){
+
+      const userId = "<%= user ? user._id : '' %>";
+      const itemId = this.dataset.id ;
+       if(userId == ""){
+         window.location.href = "http://localhost:8001/userlogin" ;
+         return;  // prevent further code execution  
+       }
+       
+       showModal( userId ,itemId) ; 
+      })
+    }
+ 
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+   
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+  
+</head>
+
+<body class="">
+ 
+  <!-- Header --> 
+  <%- include("partials/header") %> 
+  <!--Header-->
+
+  <div class="mb-6 max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md my-10 ">
+    <button id="toggleFormBtn" class="text-blue-600 font-semibold hover:underline">
+        + ADD A NEW ADDRESS 
+    </button> 
+  </div>
+  
+ 
+  <div id="addressForm" class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md my-10 hidden">
+    <!-- Delivery Address -->
+    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Delivery Address</h2>   
+
+    <form id="addressForm" action="/saveAddress" method="POST" >
+    <input type="hidden" name="userId"  value="<%= user._id %>">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">                
+        <div>
+            <label for="name" class="block text-gray-700 font-medium">Name</label>
+            <input type="text" name="name" id="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+            <span id="nameError"></span>
+        </div>
+    <div>
+        <label for="addressType" class="block text-gray-700 font-medium">Address Type</label>
+        <select name="addresstype" id="addressType" class="mt-1 block w-full border border-gray-300 rounded-md p-2" >
+            <option value="home">Home</option>
+            <option value="work">Work</option>
+        </select>
+    </div>
+    </div>
+                            
+    <div class="mb-6">
+        <label class="block text-gray-700 font-medium mb-2" for="address">Full Address</label>
+        <input id="address" type="text" name="address" placeholder="Enter your delivery address" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <span id="addressError"></span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="city">City</label>
+            <input id="city" type="text" name="city" placeholder="City" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="cityError"></span>
+        </div>
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="postal-code">Postal Code</label>
+            <input id="pincode" type="text" name="pincode" placeholder="Postal Code" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="pincodeError"></span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="city">Phone Number </label>
+            <input id="phone" type="text" name="phone" placeholder="phone Number" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="phoneError"></span>
+        </div>
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="postal-code">Alternate Number</label>
+            <input id="alternatephone" type="text" name="alternatephone" placeholder="alternateNumber" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="alternatephoneError" ></span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="state">State</label>
+            <input id="state" type="text" name="state" placeholder="State" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="stateError"></span>
+        </div>
+        <div>
+            <label class="block text-gray-700 font-medium mb-2" for="country">Land Mark</label>
+            <input id="landMark" type="text" name="landmark" placeholder="landMark" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <span id="landMarkError"> </span>
+        </div>
+    </div>
+
+    <div class="text-right">
+        <button type="submit" class="px-4 py-2 mt-10 mb-10 bg-violet-600 text-white font-semibold rounded hover:bg-violet-700">Save</button>
+    </div>
+
+    </form>
+    </div>
+   
+<!-- user Addresses -->
+ <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md my-10">
+    <h1 class="font-extrabold text-xl">Select Your Address</h1>
+    <% userAddresses.forEach(function( address , index) { %>
+        <div class="address-card" style="border: 1px solid #ccc; padding: 15px; margin: 35px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <!-- Address Details Section -->
+            <div class="address-details" style="flex-grow: 1 ;"> 
+              <p><strong>Name:</strong> <%= address.name %></p>
+              <p><strong>Phone:</strong> <%= address.phone %></p>
+              <p><strong>Alternate Phone:</strong> <%= address.alternatePhone %></p>
+              <p><strong>Address:</strong> <%= address.address %> , <%= address.city %>, <%= address.state %>, <%= address.pincode %></p>
+              <p><strong>Landmark:</strong> <%= address.landmark %></p>
+              <p><strong>Address Type:</strong> <%= address.addresstype %></p>
+            </div>
+            
+            <!-- Action Buttons Section -->
+            <div class="address-actions" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+              <a  class="editbtn btn btn-primary" style="background-color: #007bff; color: white; padding: 8px 28px; border-radius: 5px; border: none; text-decoration: none;">Edit</a>
+              <a href="/deleteAddress/<%= address._id %>?checkout=1" class="btn btn-primary" style="background-color: #dc3545; color: white; padding: 8px 20px; border-radius: 5px; border: none; text-decoration: none;">Delete</a>
+              <input type="checkbox"  style="transform: scale(2); " class="addCheck mt-5 mr-2" onchange="addressCheck(this )"  data-pincode="<%= address.pincode %>" data-address="<%= address._id%>" data-index = '<%= index %>' >
+            </div>
+          </div>
+        </div>
+
+        <!-- addressform -->
+        <div class="userAddressForm hidden mt-5 border-2 border-grey-900 rounded-lg p-5"> 
+        <form  action="/saveEditAddress/<%=address.id %>" method="POST" class="addressForm"> 
+            <!-- <input type="hidden" name="userId"  value="<%= user._id %>"> -->
+            <input type="hidden" name="checkout"  value="1" >
+         
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">                
+                <div>
+                    <label for="name" class="block text-gray-700 font-medium">Name</label>
+                    <input type="text" value="<%=address.name %>" name="name" id="" class="name mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <span class="nameError"></span>
+                </div>
+            <div>
+                <label for="addressType" class="block text-gray-700 font-medium">Address Type</label>
+                <select name="addresstype" id="" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <option value="home" <%= address.addresstype === 'home' ? 'selected' : '' %> >Home</option>
+                    <option value="work" <%= address.addresstype === 'work' ? 'selected' : '' %> >Work</option>
+                </select>
+            </div>
+            </div>
+        
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2" for="address">Full Address</label>
+                <input id="" type="text" name="address" value="<%=address.address %>" placeholder="Enter your delivery address" class="address w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <span class="addressError"></span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="city">City</label>
+                    <input id="" type="text" name="city" value="<%=address.city %>" placeholder="City" class="city w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="cityError"></span>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="postal-code">Postal Code</label>
+                    <input id="" type="text" name="pincode" value="<%=address.pincode %>" placeholder="Postal Code" class="pincode w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="pincodeError"></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="phone">Phone Number</label>
+                    <input id="" type="text" name="phone" value="<%=address.phone %>" placeholder="phoneNumber" class="phone w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="phoneError"></span> 
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="alternatePhone">Alternate Number</label>
+                    <input id="" type="text" name="alternatephone" value="<%=address.alternatePhone %>" placeholder="alternatephone" class="alternatephone w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="alternatephoneError" ></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="state">State</label>
+                    <input id="" type="text" name="state" value="<%=address.state %>" placeholder="State" class="state w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="stateError"></span>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="landMark">Land Mark</label>
+                    <input id="" type="text" name="landmark" value="<%=address.landmark %>" placeholder="land Mark" class="landMark w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <span class="landMarkError"> </span>
+                </div>
+            </div>
+        
+            <div class="text-right">
+                <button type="submit" class="px-4 py-2 mt-10 mb-10 bg-violet-600 text-white font-semibold rounded hover:bg-violet-700">Save</button>
+            </div>
+        
+            </form>
+        </div>
+
+      <% }) %>
+      
+ </div> 
+
+
+  
+ 
+
+
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md my-10" id="order">
+    <!-- Order Summary -->
+    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Order Summary</h2>
+ <!-- Product List -->
+ <div class="w-full ">
+     <% cart.items.forEach(item => { %>  
+        <div class="bg-white rounded-lg  p-6  lg:ml-5">
+            <div class="flex items-center">
+                <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-20 h-20 object-cover rounded-md mr-4 ml-4">
+                <div class="flex-1 ml-5">
+                    <h2 class="text-lg font-semibold"><%= item.product.title %></h2>
+                    <p class="text-sm text-gray-600">Size : <%= item.size %>  </p>
+                    <p class="text-sm text-gray-600">Description  : <%= item.product.titleDescription %> </p>
+                    <p class="text-sm text-gray-600">Spec : <%= item.product.productDescription %> </p>
+
+                    <div class="flex items-center mt-2">
+                        <span class="text-lg font-bold">₹<%= item.discountedPrice %></span>  
+                        <span class="text-sm text-gray-500 line-through ml-2">₹<%= item.price %></span>
+                        <span class="text-sm text-green-500 ml-2"><%= item.discountPercentage %>% OFF</span>
+                    </div>
+                </div>
+            </div>
+          
+        </div>
+    <% }); %> 
+
+    <div class="w-full mt-5" > 
+        <div class="bg-white rounded-lg shadow-md p-6 lg:sticky lg:top-8">
+            <h2 class="text-lg font-semibold mb-4">PRICE DETAILS</h2>
+            <div class="flex justify-between mb-2">
+                <span>Price (<%= totalItems %> items)</span>
+                <span >₹<%= totalPrice %></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Delivery Charges </span>
+                <span >+ ₹<%= deliveryCharge %></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Coupon Discount</span>
+                <span>- ₹<%= cart.couponBalance %></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Wallet Discount</span>
+                <span>- ₹<%= cart.walletBalance %></span>
+            </div>
+            <div class="border-t pt-2 mt-2">
+                <div class="flex justify-between font-semibold">
+                    <span>Payable Amount</span>
+                    <span class="text-green-500">₹<%= totalAmount %></span>
+                </div>
+            </div>
+        </div>  
+    </div>
+ </div>
+ </div>
+
+ 
+
+
+
+
+    <!-- Payment Options -->
+    <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md my-10" >
+    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Payment Options</h2>
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <% if (totalAmount > 0) { %>
+            <input id="razor-pay" name="payment-method" onchange="paymentMethod('razor-pay')" type="radio" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+            <label for="razor-pay" class="ml-2 text-gray-700">RazorPay</label>  
+            <% } else { %>
+            <input type="radio" disabled class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+            <label for="razor-pay" class="ml-2 text-gray-700">RazorPay (Unavailable for orders 0 or below)</label> 
+            <% } %>
+                
+        </div>
+        <div class="flex items-center mb-4"> 
+            <% if (totalAmount <= 1000) { %>
+                <input id="cash-on-delivery" 
+                       name="payment-method" 
+                       onchange="paymentMethod('cash-on-delivery')" 
+                       type="radio" 
+                       class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                <label for="cash-on-delivery" class="ml-2 text-gray-700">
+                    Cash on Delivery
+                </label>
+            <% } else { %>
+                <input id="cash-on-delivery" 
+                       type="radio" 
+                       disabled 
+                       class="h-4 w-4 text-gray-400 border-gray-300 cursor-not-allowed">
+                <label for="cash-on-delivery" class="ml-2 text-gray-400">
+                    Cash on Delivery (Unavailable for orders over ₹1000)
+                </label>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-right">
+        <button id="placeOrder" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">Place Order</button>
+    </div>
+</div>
+
+
+<!-- Modal Background -->
+<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 hidden">  
+    <!-- Modal Content -->
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
+      <!-- Modal Header -->
+      <h2 class="text-xl font-semibold text-green-600">Order Placed Successfully!</h2>   
+  
+      <!-- Modal Body -->
+      <p class="mt-4 text-gray-700">Your order has been successfully placed. You can view your current order details by clicking the button below.</p>
+  
+      <!-- Modal Footer -->
+      <div class="mt-6 flex justify-end"> 
+        <a href="/myOrders/current-order-id" id="viewOrderButton" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+          OK, View Order
+        </a>
+      </div>
+    </div>
+</div>
+ 
+
+  <!-- Footer -->
+  <%- include("partials/footer") %> 
+  <!-- Footer-->
+
+
+  
+
+ 
+
+
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+  
+<script>
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+
+
+    
+    const editbtn = Array.from(document.getElementsByClassName("editbtn")) ; 
+    const userAddressForm = document.getElementsByClassName("userAddressForm") ;
+
+     // toggle the form input 
+      document.getElementById("toggleFormBtn").addEventListener("click" , function(){
+              document.getElementById("addressForm").classList.toggle("hidden") ;
+      })
+
+
+     // toggle the edit form
+      editbtn.forEach( (editbutton , index )=>{
+        editbutton.addEventListener("click" , function(){ 
+        Array.from(userAddressForm)[index].classList.toggle("hidden");
+      })
+      }) ; 
+
+
+
+
+// // Validation add- address
+const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
+const alternatephoneInput = document.getElementById("alternatephone");
+const addressInput = document.getElementById("address");
+const landMarkInput = document.getElementById("landMark");
+const cityInput = document.getElementById("city");
+const stateInput = document.getElementById("state");
+const pincodeInput = document.getElementById("pincode");
+
+const nameError = document.getElementById("nameError");
+const phoneError = document.getElementById("phoneError");
+const alternatephoneError = document.getElementById("alternatephoneError");
+const addressError = document.getElementById("addressError");
+const landMarkError = document.getElementById("landMarkError");
+const cityError = document.getElementById("cityError");
+const stateError = document.getElementById("stateError");
+const pincodeError = document.getElementById("pincodeError");
+
+
+
+
+
+// Show validation messages
+function showMessage(element, message, isValid) {
+    element.textContent = message;
+    element.style.color = isValid ? 'green' : 'red';
+}
+
+// // Validation functions
+function validateName() {
+    const name = nameInput.value.trim();
+    if (name.length < 3 || !/^[a-zA-Z\s]+$/.test(name)){
+        showMessage(nameError, "Name must be at least 3 characters", false);
+        return false;
+    }
+    showMessage(nameError, "valid", true);
+    return true;
+}
+
+ function validatePhone() {
+    const phone = phoneInput.value.trim();
+    const phonePattern = /^[6-9]\d{9}$/;;
+    if (!phonePattern.test(phone)) {
+        showMessage(phoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(phoneError, "valid", true);
+    return true;
+}
+
+   function validateAlternatephone() {
+    const altPhone = alternatephoneInput.value.trim();
+    if (altPhone && !/^[6-9]\d{9}$/.test(altPhone)) {
+        showMessage(alternatephoneError, "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(alternatephoneError, "valid", true);
+    return true;
+}
+
+function validateAddress() {
+    const address = addressInput.value.trim();
+    if (address.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(address) ) {
+        showMessage(addressError, "Address must start with a letter and contain only letters, spaces, and commas", false);
+        return false;
+    }
+    showMessage(addressError, "valid", true);
+    return true;
+}
+
+function validateLandmark() {
+    const landmark  = landMarkInput.value.trim() ; 
+    if (landmark.length < 4 || !/^[a-zA-Z]+$/.test(landmark) ) {
+        showMessage(landMarkError, "Enter a valid landmark ", false);
+        return false;
+    }
+    showMessage(landMarkError, "valid", true);
+    return true;
+}
+
+function validateCity() {
+    const city = cityInput.value.trim();
+    if (city.length <4 || !/^[a-zA-Z]+$/.test(city) ) {
+        showMessage(cityError, "Enter a valid city name", false ) ; 
+        return false;
+    }
+    showMessage(cityError, "valid", true);
+    return true;
+}
+
+function validateState() {
+    const state = stateInput.value.trim();
+    if (state.length <4 || !/^[a-zA-Z]+$/.test(state) ) {
+        showMessage(stateError, "Enter a valid state name", false) ;
+        return false;
+    }
+    showMessage(stateError, "valid", true);
+    return true;
+}
+
+function validatePincode() {
+    const pincode = pincodeInput.value.trim();
+    if ( (!/^[0-9]{6}$/.test(pincode) || /^0{6}$/.test(pincode))) {
+        showMessage(pincodeError, "Enter a valid 6-digit pincode", false);
+        return false;
+    }
+    showMessage(pincodeError, "valid", true);
+    return true;
+}
+
+
+
+// Event listeners for real-time validation
+nameInput.addEventListener("keyup", validateName);
+phoneInput.addEventListener("keyup", validatePhone); 
+alternatephoneInput.addEventListener("keyup", validateAlternatephone); 
+addressInput.addEventListener("keyup", validateAddress);
+landMarkInput.addEventListener("keyup", validateLandmark);
+cityInput.addEventListener("keyup", validateCity);
+stateInput.addEventListener("keyup", validateState);
+pincodeInput.addEventListener("keyup", validatePincode) ; 
+
+
+
+// Form submission handler
+document.getElementById("addressForm").addEventListener("submit", (e) => {
+    // Prevent form submission if any validation fails
+    if (
+        !validateName() ||
+        !validatePhone() ||
+        !validateAlternatephone() ||
+        !validateAddress() ||
+        !validateLandmark() ||
+        !validateCity() || 
+        !validateState() ||
+        !validatePincode()
+    ) {
+        e.preventDefault() ; // Stop form submission
+    
+    }
+});
+
+
+
+
+// // Validation edit- address
+const nameInputEdit = document.querySelectorAll(".name");
+const phoneInputEdit = document.querySelectorAll(".phone");
+const alternatephoneInputEdit = document.querySelectorAll(".alternatephone");
+const addressInputEdit = document.querySelectorAll(".address");
+const landMarkInputEdit = document.querySelectorAll(".landMark");
+const cityInputEdit = document.querySelectorAll(".city");
+const stateInputEdit = document.querySelectorAll(".state");
+const pincodeInputEdit = document.querySelectorAll(".pincode");
+
+const nameErrorEdit = document.querySelectorAll(".nameError");
+const phoneErrorEdit = document.querySelectorAll(".phoneError");
+const alternatephoneErrorEdit = document.querySelectorAll(".alternatephoneError");
+const addressErrorEdit = document.querySelectorAll(".addressError");
+const landMarkErrorEdit = document.querySelectorAll(".landMarkError");
+const cityErrorEdit = document.querySelectorAll(".cityError");
+const stateErrorEdit = document.querySelectorAll(".stateError");
+const pincodeErrorEdit = document.querySelectorAll(".pincodeError");
+
+
+
+//Validation functions
+function e_validateName(i) {
+    const name = nameInputEdit[i].value.trim();
+    if (name.length < 3 || !/^[a-zA-Z\s]+$/.test(name)){
+        showMessage(nameErrorEdit[i], "Name must be at least 3 characters", false);
+        return false;
+    }
+    showMessage(nameErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validatePhone(i) {
+
+    const phone = phoneInputEdit[i].value.trim();
+    const phonePattern = /^[6-9]\d{9}$/;;
+    if (!phonePattern.test(phone)) {
+        showMessage(phoneErrorEdit[i], "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(phoneErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validateAlternatephone(i) {
+    const altPhone = alternatephoneInputEdit[i].value.trim();
+    
+    if (altPhone && !/^[6-9]\d{9}$/.test(altPhone)) {
+        showMessage(alternatephoneErrorEdit[i], "Enter a valid 10-digit phone number", false);
+        return false;
+    }
+    showMessage(alternatephoneErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validateAddress(i) {
+    const address = addressInputEdit[i].value.trim();
+    if (address.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(address) ) {
+        showMessage(addressErrorEdit[i], "Address must start with a letter and contain only letters, spaces, and commas", false);
+        return false;
+    }
+    showMessage(addressErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validateLandmark(i) {
+    const landmark  = landMarkInputEdit[i].value.trim() ; 
+    if (landmark.length < 4 || !/^[a-zA-Z]+$/.test(landmark) ) {
+        showMessage(landMarkErrorEdit[i], "Enter a valid landmark ", false);
+        return false;
+    }
+    showMessage(landMarkErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validateCity(i) {
+    const city = cityInputEdit[i].value.trim();
+    if (city.length <4 || !/^[a-zA-Z]+$/.test(city) ) {
+        showMessage(cityErrorEdit[i], "Enter a valid city name", false ) ; 
+        return false;
+    }
+    showMessage(cityErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validateState(i) {
+    const state = stateInputEdit[i].value.trim();
+    if (state.length <4 || !/^[a-zA-Z]+$/.test(state) ) {
+        showMessage(stateErrorEdit[i], "Enter a valid state name", false) ;
+        return false;
+    }
+    showMessage(stateErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+function e_validatePincode(i) {
+    const pincode = pincodeInputEdit[i].value.trim();
+    if ( (!/^[0-9]{6}$/.test(pincode) || /^0{6}$/.test(pincode))) {
+        showMessage(pincodeErrorEdit[i], "Enter a valid 6-digit pincode", false);
+        return false;
+    }
+    showMessage(pincodeErrorEdit[i], "valid", true);
+    return true;
+}
+
+
+
+//edit form submission validation
+document.querySelectorAll(".addressForm").forEach( ( form , i ) =>{
+    form.addEventListener ("submit",(e)=>{
+        if (
+            !e_validateName(i) ||
+        !e_validatePhone(i) ||
+        !e_validateAlternatephone(i) ||
+        !e_validateAddress(i) ||
+        !e_validateLandmark(i) ||
+        !e_validateCity(i) || 
+        !e_validateState(i) ||
+        !e_validatePincode(i)
+    ) {
+        e.preventDefault() ; // Stop form submission
+    
+    }
+        
+    } )
+} )
+   
+
+
+    //address checked
+    let selectedAddressId = null ;
+ 
+
+    // Add event listener to all checkboxes with class 'addCheck'
+    document.querySelectorAll('.addCheck').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            // Get the addressId from the data-address attribute of the checkbox
+            const addressId = checkbox.getAttribute('data-address');
+    
+            selectedAddressId = addressId ;
+            console.log('Selected Address ID:', addressId);
+             // Uncheck all other checkboxes
+            const allCheckboxes = document.querySelectorAll('.addCheck');
+            allCheckboxes.forEach(function(otherCheckbox) {
+            if (otherCheckbox !== checkbox) {
+                otherCheckbox.checked = false; // Uncheck the other checkboxes
+               }
+            });
+            
+        });
+    });
+
+
+
+    
+
+         
+
+ 
+
+
+ 
+
+
+
+
+
+    // order success modal
+    //  function showModal() {
+    //   document.getElementById('successModal').classList.remove('hidden');
+    // }
+
+
+
+
+      
+        
+
+
+
+
+    //   if(currentUrl.searchParams.get("payment-mode") == "cash-on-delivery" ){
+    //      document.getElementById("cash-on-delivery").setAttribute("checked" , true);
+    //   }else if(currentUrl.searchParams.get("payment-mode") == "razor-pay" ){
+    //     document.getElementById("razor-pay").setAttribute("checked", true );
+    //   }
+
+
+
+
+
+ 
+
+
+  //place order
+//   document.getElementById("placeOrder").addEventListener( "click" , async function(){  
+
+//     const cartId = "<%=cart._id%>" ; 
+//     const userId = "<%=user._id%>" ;
+//     const currentUrl = new URL(window.location.href) ; 
+
+//     if(!currentUrl.searchParams.get("address")){
+       
+//         toastr.error('Select an Address !');
+//         return;
+//     }
+
+//     if(!currentUrl.searchParams.get("payment-mode")){
+//         toastr.error('Select a Payment Mode !');
+//         return;
+//     }
+
+
+//     const addressId = currentUrl.searchParams.get("address") ;
+//     const paymentMethod = currentUrl.searchParams.get("payment-mode"); 
+//     const deliveryCharge = '<%= deliveryCharge %>' ;
+//     const amount = '<%= totalAmount %>' ;  // Amount in INR
+
+//     if(paymentMethod == "cash-on-delivery"){
+
+//     fetch("/placeorder" ,{ 
+//         method : "POST",
+//         headers : { 'Content-Type' : "application/json" },
+//         body : JSON.stringify({ userId , cartId , addressId , paymentMethod , deliveryCharge , amount })})       
+//     .then(response=>response.json())
+//     .then(data =>{
+//         if(data.status){
+//             const orderId = data.orderId ;  
+//             const viewOrderButton = document.getElementById('viewOrderButton') ; 
+//             viewOrderButton.href = `/myOrders/${orderId}`;
+//             showModal();  
+//         }else{  
+//             toastr.error("order couldn't happen");
+//         }
+//     })
+//     .catch(err=>console.error(err));
+     
+//     }else if (paymentMethod == "razor-pay"){
+
+
+//             const amount = '<%= (totalPrice + deliveryCharge ) - (cart.walletBalance + cart.couponBalance) %>' ;  // Amount in INR
+//             const currency = 'INR';
+
+//             // Step 1: Call backend to create an order
+//             const response = await fetch('/create-order', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json'
+//                 }, 
+//                 body: JSON.stringify({ amount, currency }) 
+//             });
+
+    
+
+//             const { orderId, amount: orderAmount , currency: orderCurrency , keyId } = await response.json() ;
+        
+            // Step 2: Razorpay Checkout options
+            // const options = { 
+            //     key: keyId,
+            //     amount: orderAmount,
+            //     currency: orderCurrency,
+            //     name: 'Zelly App',
+            //     description: 'Test Transaction',
+            //     order_id: orderId, // Pass the Razorpay order_id
+            //     handler: function (response) {
+            //         // Step 3: Call backend to verify the payment
+            //         fetch('/verify-payment', {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json'
+            //             },
+            //             body: JSON.stringify({
+            //                 razorpay_order_id: response.razorpay_order_id,
+            //                 razorpay_payment_id: response.razorpay_payment_id, 
+            //                 razorpay_signature: response.razorpay_signature,
+            //                 userId , cartId , addressId , paymentMethod , deliveryCharge
+            //             })
+            //         }).then((res) => res.json())
+            //           .then((result) => {
+            //               window.location.href(window.location.href = `/myOrders/${result.orderId}` )  
+            //           });
+            //     },
+            //     theme: {
+            //         color: "#3399cc"
+            //     }
+            // };
+
+            // Step 4: Open the Razorpay Checkout 
+            // const rzp = new Razorpay(options);
+            // rzp.open();
+
+
+            // Step 5: Handle payment failure
+// rzp.on('payment.failed', function (response) {
+//     // Log the error or show the user a message
+//     console.error('Payment failed:', response.error) ; 
+
+   
+    
+    // Optionally, call the backend to log the failure or perform any other actions
+//     fetch('/payment-failed', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json' 
+//         },
+//         body: JSON.stringify({
+//             error_code: response.error.code,
+//             error_description: response.error.description,
+//             error_source: response.error.source,                           
+//             error_reason: response.error.reason,                            
+//             razorpay_order_id: response.error.metadata.order_id,             
+//             razorpay_payment_id: response.error.metadata.payment_id,       
+//             userId, cartId, addressId, paymentMethod, deliveryCharge       
+//         })
+
+//     }).then((res) => res.json()) 
+//       .then((result) => {
+//         if (result.status === true) { 
+//             // If the order is placed successfully, show this message
+//             toastr.success('Payment failed, but the order has been placed successfully. ');
+//            setTimeout( ()=>{
+//             window.location.href = `/myOrders/${result.orderId}` ; 
+//            },1000 )   
+//         } 
+//       });
+// });
+       
+//     }else{
+//         console.log("no payment method") ; 
+//     }
+
+//     })
+
+   
+  
+
+
+    //delivery charge
+    const shopPincode = "695512"; // Shop's fixed pincode
+        const apiKey = "a357284bfa1f4e10b485d4580c8d0c99" ; // Replace with your Geoapify API key
+
+        // Function to get latitude and longitude from pincode
+        async function getCoordinatesFromPincode(pincode) {
+            const apiUrl = `https://api.geoapify.com/v1/geocode/search?postcode=${pincode}&apiKey=${apiKey}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (data.features.length > 0) {
+                const { lat, lon } = data.features[0].properties;
+                return { latitude: lat, longitude: lon };
+            } else {
+                throw new Error('Unable to get coordinates for the given pincode');
+            }
+        }
+
+        // Function to calculate distance between two locations using Geoapify Routing API
+        async function getDistance(lat1, lon1, lat2, lon2) {
+            const apiUrl = `https://api.geoapify.com/v1/routing?waypoints=${lat1},${lon1}|${lat2},${lon2}&mode=drive&apiKey=${apiKey}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+          
+       
+                const distanceInKm = data.features[0].properties.distance / 1000 ; // Convert to kilometers
+                return distanceInKm;
+         
+        }
+
+        // Function to calculate delivery charge based on distance
+        function calculateDeliveryCharge(distanceInKm) {
+            const chargePerKm = 10; // ₹10 per kilometer
+            return chargePerKm * distanceInKm;
+        }
+
+       // Handle address selection and delivery charge calculation
+document.querySelectorAll('.addCheck').forEach( (checkbox , index )=> { 
+    checkbox.addEventListener('click', async (event) => {
+    
+      //  if (event.target.checked) {
+
+            const buyerPincode = event.target.dataset.pincode; // Get the pincode from data attribute
+            const addressId = event.target.dataset.address;
+            const index = event.target.dataset.index;
+            
+            try {
+                // Get coordinates of shop and buyer
+                const shopCoords = await getCoordinatesFromPincode(shopPincode);  
+                const buyerCoords = await getCoordinatesFromPincode(buyerPincode);  
+                
+                // Calculate distance between shop and buyer
+                const distanceInKm = await getDistance(
+                    shopCoords.latitude, shopCoords.longitude,   
+                    buyerCoords.latitude, buyerCoords.longitude   
+                );
+              
+                // Calculate delivery charge
+                const deliveryCharge = calculateDeliveryCharge(distanceInKm);
+                const currentUrl =  new URL(window.location.href) ;
+                currentUrl.searchParams.set("deliveryCharge" , deliveryCharge) ;  
+                currentUrl.searchParams.set("address" , addressId) ;
+                currentUrl.searchParams.set("addressIndex" , index )
+                setTimeout(()=>window.location.href=currentUrl  , 0) 
+              
+                
+                // Example: document.getElementById('delivery-charge-display').innerText = `Delivery Charge: ₹${deliveryCharge.toFixed(2)}`;
+            } catch (error) {
+                console.error(error.message);
+                // Handle error appropriately in your UI
+            }
+        }
+   // }
+);
+});
+
+
+
+}); //closing tag of dom ;
+        
+  
+
+
+  </script>
+</body>
+</html>
+
+  

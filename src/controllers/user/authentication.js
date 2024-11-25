@@ -6,6 +6,7 @@ const Bcrypt          = require("bcrypt");
 const Crypto          = require("crypto");
 
 
+
 //import schemas
 const User            =   require("../../models/userSchema") ;
 
@@ -48,10 +49,7 @@ const  userLoginPost = async ( req , res ) => {
 
        const passwordCompare = await Bcrypt.compare( password , user.password ) ;   
 
-       if(user.googleId){ 
-          res.render( "frontend/user-login" ,{message : "Please continue with gooogle"} );
-          return;
-       }
+     
        
        if(!passwordCompare){ 
           res.render( "frontend/user-login" ,{message : "Incorrect Password" } );  
@@ -71,14 +69,28 @@ const  userLoginPost = async ( req , res ) => {
 
        }
 
-       if(remember_me){
-           req.session.userId = user._id ;
+
+       req.session.user = {
+        id: user._id,
+        email: user.email,
+        role: "user",
+      };
+
+
+           // Store the token in an HTTP-only cookie (for security)
+           if (remember_me) {
            req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-       }else{
-           req.session.userId = user._id ;
-       }
+          } else {
+            req.session.cookie.expires = false; // Session expires on browser close
+          }
+    
+    
        
-       return res.redirect("/"); 
+          // Save session a
+          req.session.save(() => {
+            return res.redirect("/"); // Redirect after saving session
+          });
+
          
        
     }else{
@@ -111,23 +123,24 @@ const  userSignup  =  async  ( req,res ) =>{
 
 
 //POST USER-SIGNUP
-const  userSignupPost  =  async  ( req,res ) =>{
+const  userSignupPost  =  async  ( req , res ) =>{ 
    try{
-    let {firstName , lastName , email , password } = req.body ; 
+    let {firstName , lastName , email , password  , referralCode} = req.body ; 
     firstName = firstName.trim();
     lastName = lastName.trim();
     email = email.trim();
     password = password.trim();
+   
  
      // First find the referring user by their referral code
      const referringUser = await User.findOne({ 
-       referralCode: req.query.referralCode 
+       referralCode:  referralCode
      });
- 
- 
+     
+    
     // Check if a user with the given email already exists
     const existingUser = await User.findOne({ email: email.trim() }) ;  
- 
+   
     if (existingUser) {
         res.render("frontend/user-signup.ejs", { message: 'Email already exists. Please login.' });
         return;
@@ -183,7 +196,7 @@ const  resendEmailOtp  =  async  ( req , res )  =>{
         let { email } = req.body ; 
         email=email.trim();
         const user = await User.findOne({email});
-        const otp = Crypto.randomBytes(3).toString('hex');
+        const otp = Crypto.randomBytes(3).toString('hex') ; 
         const otpExpiry = Date.now() + 300000; // OTP valid for 5 minutes
      
         user.otp = otp;
@@ -192,7 +205,7 @@ const  resendEmailOtp  =  async  ( req , res )  =>{
      
         sendOTPEmail( email , otp ) ; 
         
-        res.render("frontend/user-otp-verify" , { timer: 1 , email : email ,  message : `A new OTP is sent to your registered email : ${email} . Plese enter new Otp for verify.`});  
+        res.render("frontend/user-otp-verify" , { timer: 1 , email : email ,  message : `A new OTP is sent to your registered email : ${email} . Plese enter new Otp for verify.`}) ; 
     }catch(err){
         console.log(err) ;
         res.status(500).render("frontend/404");  
@@ -326,13 +339,18 @@ const checkOtp = async (req,res) =>{
 
  const userLogout = (req,res) =>{
     try{
-        req.session.destroy((err) => {
-            if (err) {
-                return res.status(500).send('Failed to log out.');
-            }
-            res.redirect('/userlogin'); // Redirect to login
-        });
-  
+        
+        delete req.session.user ;
+        delete req.session.passport ;
+        // Save the session changes and redirect to user login
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error logging out user:", err);
+          return res.status(500).send("Failed to log out.");
+        }
+        return res.redirect("/userlogin"); // Redirect to login page after logout
+      });
+      
 
 
     }catch(err){

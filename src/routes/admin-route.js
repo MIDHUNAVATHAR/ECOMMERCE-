@@ -1,42 +1,46 @@
 
 
-const  express          =  require("express") ;
-const  router           =  express.Router()   ;
+const  express               =  require("express") ;
+const  router                =  express.Router()   ;
 
 
 
 
 //import multer funtions 
-const { uploadProduct } =  require("../configs/multer") ; 
+const { uploadProduct }      =  require("../configs/multer") ; 
 
 
 
 //import controllers
-const  adminAuth        =  require("../controllers/admin/authentication") ; 
-const  dashboard        =  require("../controllers/admin/dashboard")   ; 
-const  landingPage      =  require("../controllers/admin/landingPage")   ;
-const  customers        =  require("../controllers/admin/customers")  ; 
-const  category         =  require("../controllers/admin/category")  ;
-const  product          =  require("../controllers/admin/product") ;
-const  order            =  require("../controllers/admin/order") ;
-const  salesReport      =  require("../controllers/admin/salesReport")  ;
-const  offer            =  require("../controllers/admin/offer") ;
-const  coupon           =  require("../controllers/admin/coupon") ;
-const  returnOrders     =  require("../controllers/admin/returnOrders") ;
+const  adminAuth             =  require("../controllers/admin/authentication") ; 
+const  dashboard             =  require("../controllers/admin/dashboard")   ; 
+const  landingPage           =  require("../controllers/admin/landingPage")   ;
+const  customers             =  require("../controllers/admin/customers")  ; 
+const  category              =  require("../controllers/admin/category")  ;
+const  product               =  require("../controllers/admin/product") ;
+const  order                 =  require("../controllers/admin/order") ;
+const  salesReport           =  require("../controllers/admin/salesReport")  ;
+const  offer                 =  require("../controllers/admin/offer") ;
+const  coupon                =  require("../controllers/admin/coupon") ;
+const  returnOrders          =  require("../controllers/admin/returnOrders") ;
 
- 
+
+
+//import middlewares
+const  adminAuthentication   =  require("../middlewares/admin-authentication") ;
+
 
 
 
 
 //AUTHENTICATION
-router.get( "/"   ,   adminAuth.adminLogin ) ;  
+router.get( "/"   ,  adminAuthentication,   adminAuth.adminLogin ) ;  
 
-router.post( "/loginPost"  , adminAuth.loginPost )   ;  
+router.post( "/loginPost" , adminAuth.loginPost )   ;  
   
 router.get( "/adminSignup" , adminAuth.adminSignup )  ; 
 
-router.post("/adminSignup" , adminAuth.adminSignupPost ) ;
+router.post("/adminSignup"  , adminAuth.adminSignupPost ) ;
 
 router.post("/adminCheckOtp" , adminAuth.adminVerifyOtp) ; 
 
@@ -56,136 +60,144 @@ router.post("/adminResetPassword/:token" , adminAuth.resetPasswordPost) ;
 
 
 
-//DASHBOARD
-router.get( "/dashboard"   ,  dashboard.dashboard )  ; 
 
-router.post('/dashboard/generate-ledger', dashboard.generateLedger) ;
+//DASHBOARD
+router.get( "/dashboard"  ,adminAuthentication,  dashboard.dashboard )  ; 
+
+router.post('/dashboard/generate-ledger'   ,adminAuthentication , dashboard.generateLedger) ;
 
 
 
 
 //LANDING PAGE                                        
-router.get("/landingPage"   , landingPage.landingPage ) ;
+router.get("/landingPage"    ,adminAuthentication , landingPage.landingPage ) ;
 
-router.post("/uploadLogo"   , landingPage.uploadLogo) ;
+router.post("/uploadLogo"    ,adminAuthentication , landingPage.uploadLogo) ;
 
-router.post("/uploadBanner" , landingPage.uploadBanner ) ;
+router.post("/updatelogoDate" , adminAuthentication , landingPage. updatelogoDate )
 
-router.delete("/deleteImage/:type/:id" , landingPage.deleteImages ) ;  
+router.post("/uploadBanner"  ,adminAuthentication , landingPage.uploadBanner ) ;
+
+router.post("/updateBannerDate" , adminAuthentication , landingPage.updateBannerDate)
+
+router.delete("/deleteImage/:type/:id"    , adminAuthentication , landingPage.deleteImages ) ;  
 
 
 
 
 //CUSTOMERS 
-router.get("/customers" , customers.users) ;
+router.get("/customers"   ,adminAuthentication , customers.users ) ;
  
-router.get("/delete-user" , customers.userDel) ;
+router.get("/delete-user"   ,adminAuthentication, customers.userDel ) ;
 
-router.get("/edit-user" , customers.userEdit) ;
+router.get("/edit-user"  ,adminAuthentication , customers.userEdit) ;
 
-router.post("/updateUser" , customers.updateUsers) ;
+router.post("/updateUser"  ,adminAuthentication , customers.updateUsers) ;
 
-router.post("/update-status/:id" , customers.updateStatus) ; 
+router.post("/update-status/:id"  ,adminAuthentication , customers.updateStatus) ; 
 
 
 
 
 //CATEGORY
-router.get("/addCategory" , category.category ) ;
+router.get("/addCategory"  ,adminAuthentication , category.category ) ;
 
-router.post("/addGenderCategory", category.addGenderCategory) ;
+router.post("/addGenderCategory"   ,adminAuthentication, category.addGenderCategory) ; 
 
-router.post("/addProductCategory" , category.addProductCategory) ; 
+router.put("/update-gender-category/:id" , adminAuthentication , category.editGenderCategory ) ;
 
-router.post("/addProductSubCategory" , category.addProductSubCategory) ; 
+router.post("/addProductCategory"   ,adminAuthentication, category.addProductCategory) ; 
 
-router.post("/deleteGenderCategory" , category.softDeleteGenderCat) ; 
+router.put("/update-product-category/:id" , adminAuthentication , category.editProductCategory ) ;
 
-router.post("/softDeleteGenderCate" , category.softDeleteGenderCate) ;
 
-router.post("/deleteProductCategory" , category.deleteProductCategory) ;  
 
-router.post("/softDeleteProductCate" , category.softDeleteProductCate) ;
+router.post("/deleteGenderCategory"  ,adminAuthentication , category.softDeleteGenderCat) ; 
 
-router.post("/deleteProductSubCategory" , category.deleteProductSubCategory ) ;
+router.post("/softDeleteGenderCate"   ,adminAuthentication, category.softDeleteGenderCate) ;
 
-router.post("/softDeleteProductSubCate" , category.softDeleteProductSubCate) ;
+router.post("/deleteProductCategory"   ,adminAuthentication, category.deleteProductCategory) ;  
+
+router.post("/softDeleteProductCate"   ,adminAuthentication, category.softDeleteProductCate) ;
+
 
 
 
 
 
 //PRODUCT
-router.get("/addProduct" , product.addProduct ) ; 
+router.get("/addProduct"   ,adminAuthentication, product.addProduct ) ; 
 
-router.post("/addProductPost" , product.addProductPost);  
+router.post("/addProductPost"   ,adminAuthentication, product.addProductPost);  
 
-router.get("/listProduct" , product.listProducts );
+router.get("/listProduct"   ,adminAuthentication, product.listProducts );
 
-router.get("/editProduct/:id" , product.editProduct) ; 
+router.get("/editProduct/:id"   ,adminAuthentication, product.editProduct) ; 
 
-router.delete('/products/:productid/sizes/:sizeid' , product.deleteSize ) ;
+router.delete('/products/:productid/sizes/:sizeid'   ,adminAuthentication, product.deleteSize ) ;
 
-router.delete("/delete-product-image" , product.deleteProductImage ) ;
+router.delete("/delete-product-image"   ,adminAuthentication, product.deleteProductImage ) ;
 
-router.post("/editProductPost/:id" , uploadProduct , product.editProductPost);
+router.post("/editProductPost/:id"   ,adminAuthentication, uploadProduct , product.editProductPost);
 
-router.post("/blockProduct" , product.blockProduct ) ; 
+router.post("/blockProduct"   ,adminAuthentication, product.blockProduct ) ; 
 
-router.delete("/deleteproduct" , product.deleteproduct ) ;
+router.delete("/deleteproduct"  ,adminAuthentication , product.deleteproduct ) ;
 
 
 
 
 
 //ORDER
-router.get( "/orders" , order.orders ) ; 
+router.get( "/orders"   ,adminAuthentication, order.orders ) ; 
 
-router.get("/orders/:orderId" , order.viewOrder ) ; 
+router.get("/orders/:orderId"   ,adminAuthentication, order.viewOrder ) ; 
 
-router.post("/updateOrderStatus" , order.updateOrderStatus ); 
+router.post("/updateOrderStatus"   ,adminAuthentication, order.updateOrderStatus ); 
 
 
 
 
 //RETURN ORDERS 
-router.get( "/returnOrders" , returnOrders.returnOrders ) ;
+router.get( "/returnOrders"   ,adminAuthentication, returnOrders.returnOrders ) ;
 
-router.get("/returnOrders/:id" , returnOrders.getReturnOrderDetails )
+router.get("/returnOrders/:id"   ,adminAuthentication, returnOrders.getReturnOrderDetails )
 
-router.post( "/returnOrders/:id/update-status" , returnOrders.updateStatus )
+router.post( "/returnOrders/:id/update-status"   ,adminAuthentication, returnOrders.updateStatus )
 
 
 
 
 //SALES REPORT
-router.get( "/sales-report" , salesReport.salesReport );
+router.get( "/sales-report"   ,adminAuthentication, salesReport.salesReport );
 
-router.get( '/download-pdf' , salesReport.generatePDF) ;
+router.get( '/download-pdf'   ,adminAuthentication, salesReport.generatePDF) ;
 
-router.get("/download-excel" , salesReport.generateExcel) ;
+router.get("/download-excel"   ,adminAuthentication, salesReport.generateExcel) ;
 
 
 
 
 //OFFER
-router.get("/offers" , offer.offers ) ;
+router.get("/offers"   ,adminAuthentication, offer.offers ) ;
 
-router.get("/offers-product" , offer.productOffers) ;
+router.get("/offers-product"   ,adminAuthentication, offer.productOffers) ;
 
-router.post("/save-category-offer", offer.saveCategoryOffer );
+router.post("/save-category-offer"  ,adminAuthentication, offer.saveCategoryOffer );
 
-router.post("/save-product-offer" , offer.saveProductOffer );
+router.post("/save-product-offer"   ,adminAuthentication, offer.saveProductOffer );
 
 
 
 
 //COUPON
-router.get("/coupon" , coupon.getCoupon)  ; 
+router.get("/coupon"   ,adminAuthentication, coupon.getCoupon)  ; 
 
-router.post("/coupon-add" , coupon.addCoupon ) ;
+router.post("/coupon-add"   ,adminAuthentication, coupon.addCoupon ) ;
 
-router.delete("/coupon-delete/:id" , coupon.deleteCoupon ) ; 
+router.put("/coupon-update" , adminAuthentication , coupon.updateCoupon ) ; 
+
+router.delete("/coupon-delete/:id"  ,adminAuthentication , coupon.deleteCoupon ) ; 
 
 
 

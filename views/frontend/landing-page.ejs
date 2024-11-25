@@ -27,45 +27,40 @@
     <div class="relative bg-red-200 banner h-96"> 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div class="absolute inset-0">
-          <% if (banners && banners.length > 0 && banners[0].image && banners[0].image.data) { %>
-            <img id="banner-image" src="<%= banners[0].image.data %>" alt="Banner Image" class="w-full h-full object-cover">
+        <% if (banners && banners.length > 0 && banners[0].image && banners[0].image.data) { %>
+            <img id="banner-image" src="<%= banners[0].image.data %>" alt="Banner Image" class="w-full h-full object-cover"> 
         <% } else { %>
             <p>No banner images available</p>
         <% } %>
          
       </div>
-        <div class="absolute inset-0 bg-black opacity-50"></div>
+        <div class="absolute inset-0 bg-black opacity-40"></div>
         <div class="relative z-10 flex items-center justify-center h-full text-center">
           <div>
             <h2 class="text-3xl font-extrabold text-white">Hexagonal Tapestry</h2>
             <p class="mt-2 text-lg text-gray-300">Change Mood in All Directions with Fashion Tapestry.</p>
-            <a href="#" class="mt-4 inline-block bg-yellow-400 text-white px-6 py-3 rounded-lg">Shop Now</a>
+            <a href="/products" class="mt-4 inline-block bg-yellow-400 text-white px-6 py-3 rounded-lg">Shop Now</a>
           </div>
         </div>
       </div>
-      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        <span class="dot w-3 h-3 rounded-full bg-gray-400"></span>
-        <span class="dot w-3 h-3 rounded-full bg-gray-400"></span>
-        <span class="dot w-3 h-3 rounded-full bg-gray-400"></span>
-      </div>
+   
     </div>
     
    
-
-    <section class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"> 
-      <% subCategoryProducts.forEach(({ subCategory, products }) => { %>
+ 
+     <section class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"> 
+      <% categoryProducts.forEach(({ category, products }) => { %>
         <% if ( products.length > 0  ) { %>
           <div class="mb-12 mt-5" >
-            <h2 class="text-2xl font-extrabold text-gray-900 mt-5"> <%= subCategory.name %></h2>
-           
+            <h2 class="text-2xl font-extrabold text-gray-900 mt-5"> <%= category.name %></h2>
             <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
               <% products.forEach(product => { %>
                 <a href="/product/<%= product._id %>">
                 <div class="bg-white rounded-lg shadow-md p-4  max-h-96 flex flex-col" >   
                   <img src="<%= product.images[0] %>" alt="<%= product.title %>" class="w-full h-44 object-cover">
                   <h3 class="text-lg font-semibold mt-4"><%= product.title %></h3>
-                  <p class="text-gray-900"><%= product.titleDescription %></p>
-                  <p class="text-gray-600" ><%= product.productDescription %></p>
+                  <p class="text-gray-900 overflow-hidden text-ellipsis"><%= product.titleDescription %></p>
+                  <p class="text-gray-600 overflow-hidden text-ellipsis" ><%= product.productDescription %></p>
                   <p class="text-lg font-bold"> 
                     <% if (product.sizes.length > 0 && product.sizes[0].price) { %>
                       ₹<%= product.sizes[0].discountedPrice %>
@@ -73,23 +68,57 @@
                       Price not available
                     <% } %>
                   </p>
-                </div>
+                </div> 
                 </a>
               <% }) %>  
             </div>
           </div>
         <% } %>
       <% }) %>
-    </section>
+    </section> 
  
+
+    
   </main>
 
   <!-- Footer -->
   <%- include("partials/footer") %>
 
   <script>
+
+const bannerImage = document.getElementById("banner-image") ;
+
+let current = 0;
+
+let banner1 = '<%= banners[0] ? banners[0].image.data : "" %>';
+let banner2 = '<%= banners[1] ? banners[1].image.data : "" %>';
+let banner3 = '<%= banners[2] ? banners[2].image.data : "" %>';
+
+let banner = [];
+if(banner1){
+    banner.push(banner1) ;
+}
+if(banner2){
+    banner.push(banner2) ;
+}
+if(banner3){
+    banner.push(banner3) ;
+}
+
+function setBanner() {
+    bannerImage.src = banner[current] ; 
+    current = (current + 1) % banner.length ;  
+}
+
+// Set the interval to call setBanner every 4 seconds (4000 ms) ; 
+setBanner();
+setInterval( () => { setBanner(); }, 4000) ;  
+
  
+
+ 
+
   </script>
     
-</body>
+</body> 
 </html>

@@ -14,9 +14,7 @@ const  coupon  =    require("../../models/couponSchema")  ;
 //GET  COUPON PAGE
 const  getCoupon  = async  ( req , res ) => {
     try{
-        if(!req.session.adminEmail){
-            return res.redirect('/admin')
-         }
+      
          const page = parseInt(req.query.page) || 1 ;
          const limit = 10 ;
          
@@ -29,7 +27,7 @@ const  getCoupon  = async  ( req , res ) => {
          const totalPages = Math.ceil( totalCoupons/limit ) ; 
          
         
-         res.render("backend/admin-dashboard" ,{ admin : req.session.adminEmail , partial : "partials/coupon" ,coupons,
+         res.render("backend/admin-dashboard" ,{ admin : req.session.admin.email ,partial : "partials/coupon" ,coupons,
              currentPage : page , totalPages  
         }) ;
      
@@ -42,74 +40,13 @@ const  getCoupon  = async  ( req , res ) => {
 
  
 
-//ADD COUPON
-// const  addCoupon  =  async  ( req , res ) => {
-//     try{
-//         const { code, discountValue, expiryDate, usageLimit } = req.body ;
-//         if(!code){
-//           return res.redirect("/admin/coupon")
-//         }
-       
-//         const submittedCoupons = code.map((code, index) => ({
-//           code,
-//           couponBalance : discountValue[index], 
-//           expiryDate: expiryDate[index],
-//           usageLimit: usageLimit[index]
-//       }));
-     
-//       // Update or add each submitted coupon
-//       for (const submittedCoupon of submittedCoupons) {
-//           await coupon.updateOne(
-//               { code: submittedCoupon.code },
-//               {
-//                   $set: {
-//                       couponBalance: submittedCoupon.couponBalance ,
-//                       expiryDate: submittedCoupon.expiryDate ,
-//                       usageLimit: submittedCoupon.usageLimit
-//                   }
-//               },
-//               { upsert : true }  // Creates a new coupon if it doesn't exist 
-//           );
-//       }
-//        return res.redirect("/admin/coupon?add=1");
-//     }catch(err){
-//         console.log(err);
-//         res.status(500).render("frontend/404") ;         
-//     }
-// }
-
-
 
 
 
 // ADD COUPON
 const addCoupon = async (req, res) => {
     try {
-      const { code, discountValue, expiryDate, usageLimit } = req.body;
-      // If it's an array of coupons, handle as a bulk operation (table form submission)
-      if (Array.isArray(code)) {
-        const submittedCoupons = code.map((code, index) => ({
-          code,
-          couponBalance: discountValue[index],
-          expiryDate: expiryDate[index],
-          usageLimit: usageLimit[index]
-        }));
-        
-        for (const submittedCoupon of submittedCoupons) {
-          await coupon.updateOne(
-            { code: submittedCoupon.code },
-            {
-              $set: {
-                couponBalance: submittedCoupon.couponBalance,
-                expiryDate: submittedCoupon.expiryDate,
-                usageLimit: submittedCoupon.usageLimit
-              }
-            },
-            { upsert: true }
-          );
-        }
-        return res.redirect("/admin/coupon?add=1");
-      } 
+      let { code, discountValue, expiryDate, usageLimit } = req.body;
       
       // Handle single coupon addition (modal form submission)
       const newCoupon = new coupon({
@@ -128,6 +65,45 @@ const addCoupon = async (req, res) => {
       res.status(500).json({ success: false, message: 'Error adding coupon' });
     }
   };
+
+
+  const updateCoupon = async (req, res) => { 
+    try {
+      const { coupons } = req.body; // Receive the array of coupon objects
+  
+       
+      if (Array.isArray(coupons)) {
+          
+        if(coupons.length == 0){
+          return res.status(400).json({ success: false, message: "No coupons to update" });
+        }
+
+        // Loop through each coupon object and update the database
+        
+        for (const couponData of coupons) {
+          await coupon.updateOne(
+            { code: couponData.code }, 
+            {
+              $set: {
+                couponBalance: couponData.discountValue, 
+                expiryDate: new Date(couponData.expiryDate), // Ensure date is in Date format
+                usageLimit: couponData.usageLimit
+              }
+            },
+            { upsert: true }
+          );  
+        }
+        res.status(200).json({success : true , message : "Coupon Updated Succesfull" })
+        
+      } else {
+        res.status(400).json({ success: false, message: "Invalid data format" });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Error updating coupons" });
+    }
+  };
+  
   
 
 
@@ -151,4 +127,4 @@ const  deleteCoupon  =  async ( req , res ) =>{
 
 
 
-module.exports  =  { getCoupon , addCoupon ,  deleteCoupon }  ;
+module.exports  =  { getCoupon , addCoupon , updateCoupon ,  deleteCoupon }  ;

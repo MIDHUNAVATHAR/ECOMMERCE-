@@ -55,6 +55,9 @@
   </div>
 </div>
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 function confirmStatusChange(userId, newStatus)  {
   const formId = `status-form-${userId}`; 
@@ -85,10 +88,24 @@ function sortUsers() {
   window.location.href = `?page=${currentPage}&sort=${sort}`;
 }
 
+
+  
+const result = new URLSearchParams(window.location.search).get("search");
+document.getElementById('search').value = result ;
+
+
 function searchUsers() {
+
+
   const searchValue = document.getElementById('search').value;
+  if( !/^[a-zA-Z\s]+$/.test(searchValue) ){
+    return toastr.error("Enter a valid text");
+  }
   const urlParams = new URLSearchParams(window.location.search);
-  const currentPage = urlParams.get('page') || 1; // Get the current page or default to 1
+  const currentPage = urlParams.get('page') || 1; // Get the current page or default to 1 
+
+ 
+  
   const sort = urlParams.get('sort') || 'asc';
   window.location.href = `?page=${currentPage}&sort=${sort}&search=${searchValue}`;
 }
@@ -110,7 +127,7 @@ function confirmdel(id) {
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#3085d6', 
-    cancelButtonColor: '#d33',
+    cancelButtonColor: '#d33',    
     confirmButtonText: 'Yes, delete user !'
   }).then((result) => {  
     if (result.isConfirmed) {

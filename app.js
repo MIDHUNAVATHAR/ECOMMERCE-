@@ -4,12 +4,13 @@ const  express  =  require("express")  ;
 const  mongoose =  require("mongoose")  ; 
 const  app      =  express()  ;
 const  winston  =  require("winston")  ;
+const  cors     =  require("cors")
 const  path     =  require("path")  ; 
 const  session  =  require('express-session');   
 const  passport = require('passport'); 
 
 
-
+app.use(cors())
 
 
 
@@ -45,13 +46,11 @@ app.use(session({
     secret: process.env.secretKey,
     resave: false, 
     saveUninitialized: true ,   
-    cookie: {  
-      maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds 
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
   }
 })); 
-
-
-
 
 
 
@@ -82,8 +81,17 @@ const adminRoute  =  require("./src/routes/admin-route") ;
 
 
 app.use( "/" , userRoute ) ;
-app.use("/admin" , adminRoute ) ;  
+app.use("/admin" , adminRoute ) ; 
+
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.render( "frontend/404" ) ; 
+});
+  
  
+app.use( (req , res ) =>{
+    res.render( "frontend/404" ) ; 
+} )
   
 
 app.listen( PORT , ( err ) => err  ?  winston.error( err ) : winston.log(  "info" , `Server Started on the Port : ${PORT} `) )  ;

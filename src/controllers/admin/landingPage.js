@@ -23,9 +23,10 @@ const { uploadLogos, uploadBanners } = require("../../configs/multer") ;
 //GET LANNDING PAGE
 const  landingPage  =  async  ( req , res )  =>{
     try{
+         
         const logo = await Logo.find() ; 
         const banner = await Banner.find() ;
-        res.render("backend/admin-dashboard" , {admin: req.session.adminEmail , partial :"partials/front-page-img-add" ,logo , banner} ); 
+        res.render("backend/admin-dashboard" , {admin : req.session.admin.email , partial :"partials/front-page-img-add" ,logo , banner} ); 
     }catch(err){
         console.log(err) ;
         res.status(500).render("frontend/404") ; 
@@ -63,6 +64,30 @@ const  uploadLogo  =  async  ( req , res )  => {
 
 
 
+
+ //updat logo date ,
+ const updatelogoDate =async  ( req, res ) =>{
+     
+    try{
+        const { logoId } = req.body;
+        if (!logoId) {
+            return res.status(400).json({ success: false, message: 'Logo ID is required' });
+        }
+        await Logo.findByIdAndUpdate(logoId, { updatedAt: Date.now() });
+
+        res.json({ success: true, message: 'Logo date updated successfully' }); 
+       
+    }catch(error){
+        console.error('Error updating logo date:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+    
+ }
+
+
+
+
+
 //POST UPLOAD BANNER
 const  uploadBanner  =  async  ( req , res ) =>{
     try{
@@ -86,6 +111,27 @@ const  uploadBanner  =  async  ( req , res ) =>{
     }
 }
 
+
+
+ //updat Banner date ,
+ const updateBannerDate = async  ( req, res ) =>{
+     
+    try{
+        const { bannerId } = req.body ; 
+     
+        if (!bannerId) {
+            return res.status(400).json({ success : false, message: 'Banner ID is required' }) ; 
+        }
+        await Banner.findByIdAndUpdate(bannerId, { updatedAt: Date.now() });   
+
+        res.json({ success: true, message: 'Banner date updated successfully' }) ; 
+       
+    }catch(error){
+        console.error('Error updating banner date:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+    
+ }
 
 
 
@@ -122,11 +168,11 @@ const   deleteImages  =   async  ( req , res )  => {
         console.log(err) ;
         res.status(500).render("frontend/404")  ;  
     }
-}
+} 
 
 
 
 
 
-module.exports  =  {  landingPage  ,  uploadLogo  ,  uploadBanner , deleteImages } ;
+module.exports  =  {  landingPage  ,  uploadLogo , updatelogoDate ,   updateBannerDate ,  uploadBanner , deleteImages }  ; 
   

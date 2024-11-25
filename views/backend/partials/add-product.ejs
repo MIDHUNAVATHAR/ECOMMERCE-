@@ -64,7 +64,9 @@
           <select name="genderCategory" id="genderCategory"  class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="genderCategoryChange(this.value)">
             <option value=""></option>
             <% genderCategories.forEach(gender => { %>
-              <option value="<%= gender._id %>"><%= gender.name %></option> 
+              <% if (gender.softDelete == false){ %>
+               <option value="<%= gender._id %>"><%= gender.name %></option> 
+              <% } %>
             <% }) %>
           </select>
           <span id="genderCategoryErr"></span>
@@ -75,25 +77,14 @@
           <select name="productCategory" id="productCategory"   class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="productCategoryChange()" >
             <option value=""></option>
             <% productCategories.forEach(category => { %>
-              <% if (!category.softDelete && category.genderCategory && category.genderCategory.name ) { %>
+              <% if (!category.softDelete && category.genderCategory  ) { %>
               <option value="<%= category._id %>" data-gender-category-id="<%= category.genderCategory._id %>" ><%= category.name %> - <%= category.genderCategory.name %></option>
               <% } %>
             <% }) %>
           </select>
           <span id="productCategoryErr"></span>
         </div> 
-        <div class="mb-4">
-          <label for="productSubCategory" class="block text-sm font-medium text-gray-700">Product Sub Category</label>
-          <select name="productSubCategory" id="productSubCategory"   class="mt-1 p-2 border border-gray-300 rounded w-full" onchange="productSubCategoryChange()">
-            <option value=""></option>           
-            <% productSubCategories.forEach(subCategory => { %>
-              <% if (!subCategory.softDelete && subCategory.genderCategory && subCategory.genderCategory.name ) { %>
-              <option value="<%= subCategory._id %>" data-product-category-id="<%= subCategory.productCategory._id %>"><%= subCategory.name %> - <%= subCategory.productCategory.name %> -  <%= subCategory.genderCategory.name %> </option>         
-              <% } %>
-            <% }) %>
-          </select>
-          <span id="productSubCategoryErr"></span>
-        </div>
+  
         <div class="mb-4">   
           <label for="images" class="block text-sm font-medium text-gray-700">Product Images</label>
           <input type="file" name="productImages" id="productImages" class="mt-1 p-2 border border-gray-300 rounded w-full " >
@@ -138,8 +129,7 @@
 
  let genderCategoryId;
  let productCategoryId; 
- let productSubCategoryId ;
-
+ 
 
  function genderCategoryChange(id){  
      genderCategoryId = id ;
@@ -164,22 +154,6 @@
 
  }
 
- function productSubCategoryChange(){
-        const selectElement  =  document.getElementById("productSubCategory");
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const subCategoryId = selectedOption.value; // Category ID from value attribute
-
-        productSubCategoryId = subCategoryId ;
-
-        const selectedProductCategoryId = selectedOption.getAttribute('data-product-category-id'); 
-
-        if (productCategoryId !== selectedProductCategoryId) {
-            toastr.error("Select the sub category releated to product category ! if doesn't exist please be add - go to add category !") ;
-            selectElement.value = null; // Revert to last valid selection
-        } else {
-            selectElement.value  = subCategoryId; // Update last valid selection
-        }
- }
 
 
 
@@ -255,7 +229,7 @@ let cropper ;
         const details     =  document.getElementById("details");
         const genderCategory = document.getElementById("genderCategory");
         const productCategory = document.getElementById("productCategory");
-        const productSubCategory = document.getElementById("productSubCategory");
+        
 
 
         const titleError  =  document.getElementById("titleErr") ;
@@ -265,10 +239,9 @@ let cropper ;
         const detailsError     =  document.getElementById("detailsErr");
         const genderCategoryError = document.getElementById("genderCategoryErr");
         const productCategoryError = document.getElementById("productCategoryErr");
-        const productSubCategoryError = document.getElementById("productSubCategoryErr");
         const productImgError       =  document.getElementById("productImgErr") ;
 
-        
+         
 
         // Show validation messages
         function showMessage(element, message, isValid) {
@@ -283,12 +256,12 @@ let cropper ;
           showMessage(titleError, "Name must be at least 3 characters", false);
           return false;
           }
-          showMessage(titleError, "valid", true);
+          showMessage(titleError, "valid", true); 
           return true;
        }
 
 
-       function validateTitleDescr() {
+       function validateTitleDescr() { 
        
          const titleDescrValue = titleDescr.value.trim() ;
          if ( titleDescrValue.length < 5  || !/^[a-zA-Z][a-zA-Z ,.]+$/.test(titleDescrValue) ) {
@@ -296,7 +269,7 @@ let cropper ;
            return false;
          }
        
-         showMessage( titleDescrError , "valid", true);
+         showMessage( titleDescrError , "valid", true ); 
          return true;
        }
 
@@ -400,14 +373,7 @@ let cropper ;
      }
 
 
-     function validateProductSubCategory() {
-       if (productSubCategory.value === "") {
-         showMessage(productSubCategoryError, "Please select a product sub-category." , false );
-         return false;
-       }
-       showMessage(productSubCategoryError, "Valid", true);
-       return true;
-     }
+    
 
      // Minimum images validation function
 function validateMinImages() {
@@ -428,7 +394,7 @@ function validateMinImages() {
        titleDescr.addEventListener("keyup", validateTitleDescr ) ; 
        productDes.addEventListener("keyup" ,validateProductDes ) ;
        highlights.addEventListener("keyup" , validateHighlights  ) ;
-       details.addEventListener("keyup" ,  validateDetails ) ; 
+       details.addEventListener( "keyup" ,  validateDetails ) ; 
        
        
 
@@ -449,12 +415,11 @@ function validateMinImages() {
         validateDetails() &&
         validateGenderCategory() &&
         validateProductCategory() &&
-        validateProductSubCategory() &&
         validateMinImages() // Check if there are at least 3 images
     ){
 
 
-      const allRowsValid = Array.from(document.querySelectorAll('#productTable tbody tr')).every(row => {
+        const allRowsValid = Array.from(document.querySelectorAll('#productTable tbody tr')).every(row => {
         const sizeInput = row.querySelector('input[name="size[]"]');
         const quantityInput = row.querySelector('input[name="quantity[]"]');
         const priceInput = row.querySelector('input[name="price[]"]');
@@ -543,10 +508,10 @@ function validateMinImages() {
         const newRow = table.insertRow() ;
     
         newRow.innerHTML = `
-            <td><input type="text"  name="size[]" class="border border-gray-300 p-1 " ></td>
-            <td><input type="number" name="quantity[]" class="border border-gray-300 p-1" min="0"  ></td>
-            <td><input type="number" name="price[]" class="border border-gray-300 p-1" min="0" ></td>
-            <td><button type="button" class="text-red-500" onclick="deleteRow(this)">Delete</button></td>
+            <td><input type="text"  name="size[]" class="border border-gray-300 p-1 w-full " ></td>
+            <td><input type="number" name="quantity[]" class="border border-gray-300 p-1 w-full" min="0"  ></td>
+            <td><input type="number" name="price[]" class="border border-gray-300 p-1 w-full" min="0" ></td>
+            <td><button type="button" class="text-red-500 w-full" onclick="deleteRow(this)">Delete</button></td>
         `;
 
         const sizeInput = newRow.querySelector('input[name="size[]"]');

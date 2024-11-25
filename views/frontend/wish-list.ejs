@@ -17,44 +17,57 @@
 
 
 
-  <div class="container mx-auto mt-10">
-    <h1 class="text-2xl font-bold mb-6">Your Wishlist</h1>
+  
     
-    <% if (wishlist  &&  wishlist.items.length > 0) { %> 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <% wishlist.items.forEach(item => { %>
-            
-              <div class="bg-white p-4 rounded-lg shadow-md">
-                <a href= "/product/<%= item.product._id%>?id=<%= item.sizeId%>" target="_blank">
-                  <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-full h-48 object-cover rounded">
+    <div class="container mx-auto mt-10">
+      <h1 class="text-2xl font-bold mb-6">Your Wishlist</h1>
+      
+      <% if (wishlist && wishlist.items.length > 0) { %> 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <% wishlist.items.forEach(item => { %>
+              
+                <!-- Check if product, image, title, and size exist -->
+                <% if (item.product && item.product.images && item.product.images[0] && item.product.title && item.product.sizes && item.product.sizes.length > 0) { %>
                 
-                  <h2 class="text-lg font-semibold mt-2"><%= item.product.title %></h2>
-                  <% const selectedSize = item.product.sizes ? item.product.sizes.find(size => size._id.toString() === item.sizeId.toString()) : null; %>  
-
-                  <p class="text-gray-600">
-                    Size: <%= selectedSize ? selectedSize.size : "Not available" %>
-                  </p>
-                  <p class="text-gray-600">
-                    Price: ₹ <%= selectedSize ? selectedSize.discountedPrice : "N/A" %>
-                  </p>
-
-
-                </a>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                  <a href="/product/<%= item.product._id %>?id=<%= item.sizeId %>" target="_blank">
+                    <!-- Product Image -->
+                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-full h-48 object-cover rounded">
+                  
+                    <!-- Product Title -->
+                    <h2 class="text-lg font-semibold mt-2"><%= item.product.title %></h2>
+                    
+                    <% 
+                      // Find the selected size
+                      const selectedSize = item.product.sizes ? item.product.sizes.find(size => size._id.toString() === item.sizeId.toString()) : null; 
+                    %>  
+  
+                    <!-- Display Size and Price -->
+                    <p class="text-gray-600">
+                      Size: <%= selectedSize ? selectedSize.size : "Not available" %>
+                    </p>
+                    <p class="text-gray-600">
+                      Price: ₹ <%= selectedSize ? selectedSize.discountedPrice : "N/A" %>
+                    </p>
+                  </a>
                   <div class="mt-4 flex justify-between">
-                     
+                      <!-- Remove from Wishlist Button -->
                       <button onclick="removeItem('<%=item._id %>')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                           Remove from Wishlist
                       </button>
-                      <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700" onclick="addToCart('<%= item.product._id %>', '<%= item.sizeId %>', '<%= selectedSize ? selectedSize.size : '' %>', '<%= selectedSize ? selectedSize.price : '' %>', '<%= selectedSize ? selectedSize.discountedPrice : '' %>', '<%= selectedSize ? selectedSize.discountedPercentage : '' %>' )" >ADD TO CART </button> 
+                      <!-- Add to Cart Button -->
+                      <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700" onclick="addToCart('<%= item.product._id %>', '<%= item.sizeId %>', '<%= selectedSize ? selectedSize.size : "" %>', '<%= selectedSize ? selectedSize.price : '' %>', '<%= selectedSize ? selectedSize.discountedPrice : '' %>', '<%= selectedSize ? selectedSize.discountedPercentage : '' %>' )" > ADD TO CART</button> 
                   </div>
-               
-              </div>
-            
-          <% }) %>
-      </div>
-  <% } else { %>
-      <p class="mt-4 text-gray-600">Your wishlist is currently empty.</p>
-  <% } %>
+                </div>
+  
+                <% }  %> <!-- End of check for required fields -->
+            <% }) %>
+        </div>
+      <% } else { %>
+        <p class="mt-4 text-gray-600">Your wishlist is currently empty.</p>
+      <% } %>
+  </div>
+  
   
   
 </div>

@@ -21,7 +21,7 @@
       </div>
 
 
-        <form id="form" action="/admin/coupon-add" method="POST">
+        <form id="updateForm" action="/admin/coupon-update" method="PUT">
         <table class="table-auto w-full border-collapse border border-gray-200"> 
             <thead class="bg-gray-100">
                 <tr>
@@ -36,17 +36,21 @@
                 <% coupons.forEach(function(coupon, index) { %> 
                 <tr>
                     <td class="border border-gray-300 p-2">
-                        <input type="text" readonly name="code[]" value="<%= coupon.code %>" class="w-full p-1 border border-gray-300" required>
+                        <input type="text" readonly name="code[]" value="<%= coupon.code %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
-                        <input type="number" min="0"  name="discountValue[]" value="<%= coupon.couponBalance %>" class="w-full p-1 border border-gray-300" required>
+                        <input type="number" min="0"  name="discountValue[]" value="<%= coupon.couponBalance %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
-                        <input type="number" min="1" name="usageLimit[]" value="<%= coupon.usageLimit %>" class="w-full p-1 border border-gray-300" required>
+                        <input type="number" min="1" name="usageLimit[]" value="<%= coupon.usageLimit %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
-                        <input type="date" name="expiryDate[]" value="<%= coupon.expiryDate.toISOString().split('T')[0] %>" class="w-full p-1 border border-gray-300" required>
-                    </td>
+                         <input type="date" name="expiryDate[]" value="<%= coupon.expiryDate.toISOString().split('T')[0] %>" class="w-full p-1 border border-gray-300" > 
+
+
+                     
+                 
+                      </td>
                
                     <td class="border border-gray-300 p-2 text-red-500">
                         <button class="text-red-500 hover:underline" onclick="deleteRow('<%= coupon._id %> ' , this)">Delete</button>
@@ -100,15 +104,15 @@
         <form id="newCouponForm">
           <div class="mb-4">
             <label for="newCode" class="block text-sm font-medium">Coupon Code</label>
-            <input type="text" id="newCode" name="code" class="w-full p-2 border rounded  " required>
+            <input type="text" id="newCode" name="code" class="w-full p-2 border rounded  " >
           </div>
           <div class="mb-4">
             <label for="newDiscountValue" class="block text-sm font-medium">Discount Value</label>
-            <input type="number" id="newDiscountValue" name="discountValue" class="w-full p-2 border rounded" required min="0">
+            <input type="number" id="newDiscountValue" name="discountValue" class="w-full p-2 border rounded"  min="0">
           </div>
           <div class="mb-4">
             <label for="newUsageLimit" class="block text-sm font-medium">Usage Limit</label>
-            <input type="number" id="newUsageLimit" name="usageLimit" class="w-full p-2 border rounded" required min="1">
+            <input type="number" id="newUsageLimit" name="usageLimit" class="w-full p-2 border rounded"  min="1">
           </div>
           <div class="mb-4">
             <label for="newExpiryDate" class="block text-sm font-medium">Expiry Date</label>
@@ -130,42 +134,64 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   <script>
     
-  const url = new URL(window.location.href);
-  const add = url.searchParams.get("add");
-  if(add){
-    toastr.options.positionClass = 'toast-top-center';
-     setTimeout(
-        toastr.success('coupon updated')  , 
-        1 )
-  } 
+
+//update coupon
+document.getElementById("updateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  // Collecting form data into arrays
+  const codes = Array.from(document.querySelectorAll("input[name='code[]']")).map(input => input.value);
+  const discountValues = Array.from(document.querySelectorAll("input[name='discountValue[]']")).map(input => input.value);
+  const usageLimits = Array.from(document.querySelectorAll("input[name='usageLimit[]']")).map(input => input.value);
+  const expiryDates = Array.from(document.querySelectorAll("input[name='expiryDate[]']")).map(input => input.value);
+
+ 
+ 
+  // Validate fields and show an error if any required field is empty
+  let hasError = false;
+  codes.forEach((code, index) => {
+    if (!code || !discountValues[index] || !usageLimits[index] || !expiryDates[index]) {
+      hasError = true;
+    }
+  });
+
+  if (hasError) {
+    toastr.error("Please ensure all fields are filled out.");
+    return; // Stop submission if there is an error
+  }
 
 
-    //add rows 
-// document.getElementById('addRowButton').addEventListener( 'click' , function() {
-//     event.preventDefault() ; 
-//     const tableBody = document.getElementById('table-body') ; 
-//     const newRow = document.createElement('tr') ; 
+  // Structuring data into a single array of coupon objects
+  const coupons = codes.map((code, i) => ({
+    code,
+    discountValue: parseFloat(discountValues[i]),
+    usageLimit: parseInt(usageLimits[i]),
+    expiryDate: expiryDates[i],
+  }));
 
-//     newRow.innerHTML = `
-//         <td class="border border-gray-300 p-2">
-//             <input type="text" name="code[]" class="w-full p-1 border border-gray-300" required>
-//         </td>
-//         <td class="border border-gray-300 p-2">
-//             <input type="number" name="discountValue[]" class="w-full p-1 border border-gray-300" required >
-//         </td>
-//         <td class="border border-gray-300 p-2">
-//             <input type="number" name="usageLimit[]" class="w-full p-1 border border-gray-300" required>
-//         </td>
-//         <td class="border border-gray-300 p-2">
-//             <input type="date" name="expiryDate[]" class="w-full p-1 border border-gray-300" required>
-//         </td>
-//         <td class="border border-gray-300 p-2 text-red-500">
-//             <button class="text-red-500 hover:underline" onclick="this.closest('tr').remove()">Delete</button>
-//         </td>
-//     `;
+  // Sending the array of coupons to the server
+  try {
+    const response = await fetch("/admin/coupon-update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coupons })
+    });
 
-//     tableBody.appendChild(newRow) ; 
-// });
+    if (response.ok) {
+      const data = await response.json();
+      toastr.success(data.message);
+      // Optionally refresh the table or update the UI
+    } else {
+      const errorData = await response.json();
+      toastr.error(errorData.message);
+    }
+  } catch (error) {
+    toastr.error("Error updating coupons."); 
+  }
+});
+
+
+
 
 
 //delete coupon
@@ -225,20 +251,41 @@ function deleteRow(id , element) {
     document.getElementById("addNewCouponButton").addEventListener("click", () => {
       modal.classList.remove("hidden");
     });
+
     document.getElementById("closeModalButton").addEventListener("click", () => {
       modal.classList.add("hidden");
     });
 
+
+
     // Add new coupon via modal form
     document.getElementById("newCouponForm").addEventListener("submit", function (event) {
-      event.preventDefault();
+      event.preventDefault() ;
+     
+      
+      let code =  document.getElementById("newCode").value.trim( );
+      if( !/^[a-zA-Z0-9]+$/.test(code) ){
+        return  toastr.error('coupon contails only alphabets and numbers')  
+      }
+      
+      
 
       const newCouponData = {
-        code: document.getElementById("newCode").value,
+        code,
         discountValue: document.getElementById("newDiscountValue").value,
         usageLimit: document.getElementById("newUsageLimit").value,
         expiryDate: document.getElementById("newExpiryDate").value
       };
+
+      if(newCouponData.discountValue < 0 ){
+        return toastr.error('Enter a valid discount value')  
+      }
+
+      if(newCouponData.usageLimit < 1 ){
+        return toastr.error('usage limit minumum one')  
+      }
+
+     
 
       fetch("/admin/coupon-add", {
         method: "POST",

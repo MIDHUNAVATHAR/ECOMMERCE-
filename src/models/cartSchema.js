@@ -31,7 +31,11 @@ const cartSchema = new Schema({
       }, 
       discountedPrice: {
         type: Number,
-        min: 0
+        min: 0,
+        default: function() {
+          return this.price; // Sets discountedPrice to the same value as price by default
+        },
+        image: { type: Buffer ,  ContentType : String }   
       },
       discountPercentage: {
         type: Number,
