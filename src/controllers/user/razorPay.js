@@ -20,6 +20,7 @@ const Cart                 = require("../../models/cartSchema")   ;
 const Product              = require("../../models/product")   ;
 const User                 = require("../../models/userSchema")   ; 
 const  WalletTransaction   = require("../../models/walletTransaction") ;
+const Counter              = require("../../models/orderIdSchema"); 
 
 
 const lock = new AsyncLock();
@@ -140,9 +141,22 @@ const verifyPayment =  async (req, res) => {
         }, 0);
 
         totalProductPrice = parseFloat( totalProductPrice ).toFixed(2);
+
+        const generateOrderID = async () => {
+          const counter = await Counter.findOneAndUpdate(
+            { _id: 'order' },
+            { $inc: { sequence_value: 1 }  },
+           
+            { new: true, upsert: true }
+          );
+          return counter.sequence_value; // Returns the incremented value
+        };
+
+        const orderId = await generateOrderID();
        
         const newOrder = new Order({
           userId,
+          orderId : orderId,
           shippingAddress : addressId, 
           address,
           items : cartItems , 
@@ -296,10 +310,23 @@ imageUrl = baseUrl + imageUrl;  // Prepend the base URL if relative
 
       const address  =  await Address.findById(addressId)
 
+      const generateOrderID = async () => {
+        const counter = await Counter.findOneAndUpdate(
+          { _id: 'order' },
+          { $inc: { sequence_value: 1 }  },
+         
+          { new: true, upsert: true }
+        );
+        return counter.sequence_value; // Returns the incremented value
+      };
+
+      const orderId = await generateOrderID();
+
   
       // Create the order with paymentStatus: "failed"
       const newOrder = new Order({ 
         userId,
+        orderId : orderId,
         shippingAddress: addressId,
         address,
         items: cartItems,

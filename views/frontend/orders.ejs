@@ -78,10 +78,10 @@
                       </div>
                     <% }) %>
 
-                    <div class="flex items-center mb-2">
+                    <!-- <div class="flex items-center mb-2">
                         <input type="checkbox" id="older" class="mr-2" <%= orderTime === 'older' ? 'checked' : '' %> value="older"  onchange="orderTime(this.value)" >
                         <label for="older">Older</label>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -374,10 +374,11 @@
         })
         .catch(error => {
           Swal.fire(
-            'Error!',
-            'There was a problem cancelling your item.',
-            'error'
-          );
+              'Cancell!',
+              'Your item has been cancelled.',
+              'success'
+            );
+            setTimeout(()=>location.reload() , 3000)
         });
       }
     });

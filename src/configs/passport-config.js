@@ -65,7 +65,7 @@ passport.use( 'google-user' , new GoogleStrategy({
             email: profile.emails[0].value ,
             firstName : profile.name.givenName , 
             lastName : profile.name.familyName , 
-            verified : true,
+            verified : true ,
             referralCode: referralCode || null , // Save referral code if available,
             referredBy: referredByUser ? referredByUser._id : null 
         });  

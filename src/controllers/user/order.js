@@ -15,6 +15,7 @@ const Order              =  require("../../models/orderSchema") ;
 const Review             =  require("../../models/reviewSchema") ;
 const WalletTransaction  =  require("../../models/walletTransaction") ;
 const Address            =  require("../../models/addressSchema") ;
+const Counter            =  require("../../models/orderIdSchema");
 
 
 
@@ -31,7 +32,7 @@ const  placeorder  =  async  ( req , res )  =>{
         }
         
         const cartItems = await Promise.all(cart.items 
-        .filter( item => item.status === "Available") // filter items by status
+        .filter( item => item.status === "Available") // filter items by status 
         .map( async  (item )=>{
          
           const itemDiscount = (item.price * item.quantity) - (item.discountedPrice * item.quantity);
@@ -99,10 +100,24 @@ const  placeorder  =  async  ( req , res )  =>{
         }, 0); 
        
         const address = await Address.findById(addressId)
+
+        const generateOrderID = async () => {
+          const counter = await Counter.findOneAndUpdate(
+            { _id: 'order' },
+            { $inc: { sequence_value: 1 }  },
+           
+            { new: true, upsert: true }
+          );
+          return counter.sequence_value; // Returns the incremented value
+        };
+
+        const orderId = await generateOrderID();
+        
         
        
         const newOrder = new Order({
           userId,
+          orderId : orderId,
           shippingAddress : addressId,
           address,
           items : cartItems , 

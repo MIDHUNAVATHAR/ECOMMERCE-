@@ -8,6 +8,7 @@ const orderSchema = new Schema({
     ref: 'User',
     required: true
   },
+  orderId : { type : Number },
   shippingAddress: {
    type: Schema.Types.ObjectId , 
    ref : "Address" ,
@@ -84,6 +85,7 @@ const orderSchema = new Schema({
   },
   returnRequested :{ type : Boolean , default : false }
 } , { timestamps : true } ) ;  
+
 
 
 module.exports = mongoose.model( 'Order' , orderSchema ) ;
