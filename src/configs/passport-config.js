@@ -12,6 +12,7 @@ passport.use( 'google-user' , new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ,  
     callbackURL : process.env.GOOGLE_CLIENT_CALLBACK_URL ,
     passReqToCallback: true  // Enable request object to be passed to the callback  
+
 }, async (req, accessToken, refreshToken, profile, done) => { 
 
     let adminStatus  = req.session.admin ;

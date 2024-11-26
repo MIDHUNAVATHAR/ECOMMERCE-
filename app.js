@@ -9,10 +9,12 @@ const  path     =  require("path")  ;
 const  session  =  require('express-session');   
 const  passport = require('passport'); 
 
+require('dotenv').config();
+
 
 app.use(cors())
 
-
+console.log( process.env.GOOGLE_CLIENT_CALLBACK_URL)  
 
 //loads env variables from .env file   
 require("dotenv").config()  ; 
