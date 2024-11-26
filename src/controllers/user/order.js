@@ -317,7 +317,7 @@ const  cancelOrder  =  async  ( req , res ) =>{
 
          // Find the product by its ID
          let product = await Product.findById(productId);
-
+       
          if (product) {
             // Find the item in the product.items array with the matching size
             let itemToUpdate =  product.sizes.find(item => item.size === size);
@@ -333,7 +333,7 @@ const  cancelOrder  =  async  ( req , res ) =>{
          }
 
          //add to wallet
-         const userId = req.session.userId ||  req.user._id ; 
+         const userId =req.session.user ? req.session.user.id  : "" || req.session.passport ? req.session.passport.user : "" ; 
          const user = await User.findById(userId) ; 
    
          let amountPayable = (savedOrder.paymentMethod != "cash-on-delivery" && savedOrder.paymentStatus === "completed" ) ? savedOrder.totalPrice : 0 ;
