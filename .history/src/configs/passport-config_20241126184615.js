@@ -7,10 +7,11 @@ require('dotenv').config();
 
 
 // Google Strategy for Users
-passport.use( 'google-user' , new GoogleStrategy({
+passport.use('google-user', new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID , 
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ,  
-    callbackURL : process.env.GOOGLE_CLIENT_CALLBACK_URL ,
+    // callbackURL: 'http://localhost:8001/auth/google/callback' , 
+    callbackURL : 'http://midhunzelly/auth/google/call' ,
     passReqToCallback: true  // Enable request object to be passed to the callback  
 }, async (req, accessToken, refreshToken, profile, done) => { 
 
