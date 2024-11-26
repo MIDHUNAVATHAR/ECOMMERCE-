@@ -137,7 +137,9 @@ function restoreAdminStatus(req, res, next) {
 
 // Google login route (with referral code)
 router.get('/auth/google/login', cacheAdminStatus , (req, res, next) => {
+    
     const referralCode = req.query.referral || ''; // Capture referral code from query params if present
+    console.log(referralCode);
 
     // Pass referral code in the state parameter
     passport.authenticate('google-user', {
