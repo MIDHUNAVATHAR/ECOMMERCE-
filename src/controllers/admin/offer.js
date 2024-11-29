@@ -7,10 +7,6 @@ const  Product         =   require("../../models/product") ;
 
 
 
-
-
-
-
 //GET OFFERS
 const  offers  =  async  ( req , res ) => {
     try{
@@ -73,6 +69,7 @@ const  productOffers  =  async  ( req , res ) =>{
 
 
 
+
 //POST SAVE CATEGORY OFFER
 const   saveCategoryOffer   =   async  ( req , res ) =>{
     try{
@@ -119,4 +116,9 @@ const  saveProductOffer   =  async  ( req , res ) =>{
 
 
 
-module.exports  =  { offers , saveCategoryOffer , saveProductOffer , productOffers  }
+module.exports  =  { 
+    offers , 
+    saveCategoryOffer , 
+    saveProductOffer , 
+    productOffers  
+}

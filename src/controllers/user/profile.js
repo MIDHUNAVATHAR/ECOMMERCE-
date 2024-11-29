@@ -7,16 +7,14 @@ const bcrypt           =  require("bcrypt") ;
 
 
 //import schemas
-const Logo             =   require("../../models/logoSchema")  ; 
+const Logo             =   require("../../models/logoSchema") ; 
 const GenderCategory   =   require("../../models/genderCategory") ; 
 const User             =   require("../../models/userSchema") ;
 const Cart             =   require("../../models/cartSchema") ; 
 const Address          =   require("../../models/addressSchema") ;
 
 
-//const { userLoginPost } = require("./authentication");
-
-
+  
 
 
 
@@ -25,10 +23,10 @@ const Address          =   require("../../models/addressSchema") ;
 //GET  PROFILE  PAGE
 const showProfile = async ( req , res ) => { 
    try{
-      const logo = await Logo.findOne().sort({ updatedAt: -1 });
+      const logo           = await Logo.findOne().sort({ updatedAt: -1 });
       const genderCategory = await GenderCategory.find({ softDelete : false }) ; 
-      const userId = req.session.user ? req.session.user.id  : "" || req.session.passport ? req.session.passport.user : "" ; 
-      const user = await User.findById( userId ) ; // assuming user is authenticated and stored in session
+      const userId         = req.session.user ? req.session.user.id  : "" || req.session.passport ? req.session.passport.user : "" ; 
+      const user           = await User.findById( userId ) ; // assuming user is authenticated and stored in session
     
       let cartTotal ; 
          if(user){

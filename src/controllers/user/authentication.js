@@ -2,8 +2,8 @@
 
 
 //import modules
-const Bcrypt          = require("bcrypt");
-const Crypto          = require("crypto");
+const Bcrypt          = require("bcrypt") ;
+const Crypto          = require("crypto") ;
 
 
 
@@ -32,9 +32,7 @@ const  userLogin  = async ( req,res ) =>{
 
 //POST  LOGIN
 const  userLoginPost = async ( req , res ) => {
-
   try{
-
     let {email , password , remember_me } = req.body ;
     email  = email.trim();
     password = password.trim(); 
@@ -46,10 +44,7 @@ const  userLoginPost = async ( req , res ) => {
           return res.render("frontend/blocked-page");
        }
 
-
        const passwordCompare = await Bcrypt.compare( password , user.password ) ;   
-
-     
        
        if(!passwordCompare){ 
           res.render( "frontend/user-login" ,{message : "Incorrect Password" } );  
@@ -84,15 +79,11 @@ const  userLoginPost = async ( req , res ) => {
             req.session.cookie.expires = false; // Session expires on browser close
           }
     
-    
-       
           // Save session a
           req.session.save(() => {
             return res.redirect("/"); // Redirect after saving session
           });
 
-         
-       
     }else{
        res.render( "frontend/user-login" ,{ message : "Email can't exists. Please signup with Register"} );
        return;
@@ -111,10 +102,10 @@ const  userLoginPost = async ( req , res ) => {
 //GET  USER-SIGNUP
 const  userSignup  =  async  ( req,res ) =>{
     try{
-    res.render( "frontend/user-signup" , {message : ""}); 
+      res.render( "frontend/user-signup" , {message : ""}); 
     }catch(err){
-     console.log(err);
-     res.status(500).render("frontend/404");  
+      console.log(err);
+      res.status(500).render("frontend/404");  
     }
 }
 
@@ -174,11 +165,13 @@ const  userSignupPost  =  async  ( req , res ) =>{
      });
    }
   
- 
     sendOTPEmail(email , otp);
  
- 
-    res.render("frontend/user-otp-verify" , { timer : 1, email : email ,  message : `An OTP is sent to your registered email : ${email} . Plese enter Otp for verify.`});
+    res.render("frontend/user-otp-verify" , { 
+      timer : 1, 
+      email : email ,  
+      message : `An OTP is sent to your registered email : ${email} . Plese enter Otp for verify.`
+    });
  
 
    }catch(err){
@@ -205,7 +198,11 @@ const  resendEmailOtp  =  async  ( req , res )  =>{
      
         sendOTPEmail( email , otp ) ; 
         
-        res.render("frontend/user-otp-verify" , { timer: 1 , email : email ,  message : `A new OTP is sent to your registered email : ${email} . Plese enter new Otp for verify.`}) ; 
+        res.render("frontend/user-otp-verify" , { 
+          timer: 1 , 
+          email : email ,  
+          message : `A new OTP is sent to your registered email : ${email} . Plese enter new Otp for verify.`
+        }) ; 
     }catch(err){
         console.log(err) ;
         res.status(500).render("frontend/404");  
@@ -231,7 +228,11 @@ const checkOtp = async (req,res) =>{
            res.redirect("/");
            return;
          }else{
-           res.render("frontend/user-otp-verify" , {timer : 0,email : email ,  message : `Invalid Otp : ${email} . `}); 
+           res.render("frontend/user-otp-verify" , {
+            timer : 0,
+            email : email ,  
+            message : `Invalid Otp : ${email} . `
+           }); 
            return;
          }
         }else{
@@ -262,7 +263,6 @@ const checkOtp = async (req,res) =>{
 
 
  const forgotPasswordPost  = async ( req,res ) => {
-  
     try{
         let email = req.body.email ;
         email = email.trim();  
@@ -295,9 +295,15 @@ const checkOtp = async (req,res) =>{
             resetPasswordToken : req.params.token  
           });
           if (!user) {
-            return res.render('frontend/user-reset-password', { message: 'Password reset token is invalid or has expired.',token:"" });
+            return res.render('frontend/user-reset-password', { 
+              message: 'Password reset token is invalid or has expired.',
+              token:"" 
+            });
           }
-          res.render('frontend/user-reset-password', { token: req.params.token , message : "create new password" });
+          res.render('frontend/user-reset-password', { 
+            token: req.params.token , 
+            message : "create new password" 
+          });
        
      }catch(err){
         console.log(err);
@@ -309,7 +315,6 @@ const checkOtp = async (req,res) =>{
 
 
  const  resetPasswordPost   =  async  ( req,res )  => {
-  
     try{
         const user = await User.findOne({
             resetPasswordToken: req.params.token,
@@ -325,7 +330,7 @@ const checkOtp = async (req,res) =>{
             user.resetPasswordExpires = undefined; 
             await user.save();
     
-           res.render("frontend/user-login.ejs",{message : "Password creat Success! Please Login"});
+            res.render("frontend/user-login.ejs",{message : "Password creat Success! Please Login"});
           } else {
             res.render('frontend/user-reset-password', { message: 'Passwords do not match.',token :"" });
           }
@@ -339,7 +344,6 @@ const checkOtp = async (req,res) =>{
 
  const userLogout = (req,res) =>{
     try{
-        
         delete req.session.user ;
         delete req.session.passport ;
         // Save the session changes and redirect to user login
@@ -350,20 +354,11 @@ const checkOtp = async (req,res) =>{
         }
         return res.redirect("/userlogin"); // Redirect to login page after logout
       });
-      
-
-
     }catch(err){
         console.log(err);
         res.status(500).render("frontend/404") ;  
     }
  }
-
-
-
-
-
-      
 
 
 
@@ -380,21 +375,18 @@ const blocked = ( req,res )  => {
  
 
 
-
-
-
  module.exports  =  { 
     userLogin,
-     userLoginPost,
-      userSignupPost ,
-       userSignup ,
-       resendEmailOtp,
-       checkOtp,
-       forgotPassword ,
-       forgotPasswordPost ,
-       resetPassword,
-       resetPasswordPost ,
-       userLogout,
-       blocked
+    userLoginPost,
+    userSignupPost ,
+    userSignup ,
+    resendEmailOtp,
+    checkOtp,
+    forgotPassword ,
+    forgotPasswordPost ,
+    resetPassword,
+    resetPasswordPost ,
+    userLogout,
+    blocked
 } 
  

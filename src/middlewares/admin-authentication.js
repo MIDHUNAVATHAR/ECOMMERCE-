@@ -21,10 +21,6 @@ const adminAuthentication = async (req, res ,next) =>{
    
 } 
 
-             
-
-
-
-
+          
 
  module.exports = adminAuthentication ;   

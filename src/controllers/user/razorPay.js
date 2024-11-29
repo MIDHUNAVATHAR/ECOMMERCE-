@@ -8,8 +8,8 @@ const AsyncLock            = require('async-lock');
 
 
 
-const mongoose             = require("mongoose");
-const axios                = require("axios")
+const mongoose             = require("mongoose") ;
+const axios                = require("axios") ;
 
 
  
@@ -142,17 +142,19 @@ const verifyPayment =  async (req, res) => {
 
         totalProductPrice = parseFloat( totalProductPrice ).toFixed(2);
 
-        const generateOrderID = async () => {
-          const counter = await Counter.findOneAndUpdate(
-            { _id: 'order' },
-            { $inc: { sequence_value: 1 }  },
-           
-            { new: true, upsert: true }
-          );
-          return counter.sequence_value; // Returns the incremented value
-        };
+        
+        const getNextOrderID = async () => {
 
-        const orderId = await generateOrderID();
+          const orderIdDoc = await Counter.findOneAndUpdate(
+              {}, // No filter to find the single document
+              { $inc: { currentOrderID: 1 } }, // Increment by 1
+              { new: true, upsert: true } // Create the document if it doesn't exist
+          );
+      
+          return orderIdDoc.currentOrderID;
+      };
+
+      const orderId = await getNextOrderID() ;
        
         const newOrder = new Order({
           userId,
@@ -310,17 +312,19 @@ imageUrl = baseUrl + imageUrl;  // Prepend the base URL if relative
 
       const address  =  await Address.findById(addressId)
 
-      const generateOrderID = async () => {
-        const counter = await Counter.findOneAndUpdate(
-          { _id: 'order' },
-          { $inc: { sequence_value: 1 }  },
-         
-          { new: true, upsert: true }
-        );
-        return counter.sequence_value; // Returns the incremented value
-      };
+     
+      const getNextOrderID = async () => {
 
-      const orderId = await generateOrderID();
+        const orderIdDoc = await Counter.findOneAndUpdate(
+            {}, // No filter to find the single document
+            { $inc: { currentOrderID: 1 } }, // Increment by 1
+            { new: true, upsert: true } // Create the document if it doesn't exist
+        );
+    
+        return orderIdDoc.currentOrderID;
+    };
+
+    const orderId = await getNextOrderID() ;
 
   
       // Create the order with paymentStatus: "failed"
@@ -495,4 +499,10 @@ const continueVerifyPayment = async ( req ,res ) =>{
 
 
 
-module.exports = { createOrder , verifyPayment , paymentFailed , continuePayment , continueVerifyPayment  } ; 
+module.exports = { 
+  createOrder , 
+  verifyPayment , 
+  paymentFailed , 
+  continuePayment , 
+  continueVerifyPayment  
+} ; 

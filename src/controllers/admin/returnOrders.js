@@ -11,14 +11,9 @@ const  Address            =    require('../../models/addressSchema');
 
 
 
-
-
-
 //GET  RETURN ORDERS
 const  returnOrders  =  async  ( req , res )  => {
     try{
-    
-
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
@@ -114,14 +109,13 @@ const   updateStatus   =  async  ( req , res )  =>{
         res.status(500).render("frontend/404") ;  
      }
 }
-  
+   
 
 
 
   
 //VIEW RETURN ORDER
 const  getReturnOrderDetails  =  async  ( req , res ) => {
-    
     try{
         const returnOrderId = req.params.id;
         const returnOrder = await ReturnOrder.findById(returnOrderId)
@@ -150,4 +144,8 @@ const  getReturnOrderDetails  =  async  ( req , res ) => {
 
 
  
-module.exports   =  { returnOrders , updateStatus  , getReturnOrderDetails  } ;    
+module.exports   =  { 
+    returnOrders , 
+    updateStatus  , 
+    getReturnOrderDetails  
+} ;    

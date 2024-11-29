@@ -3,8 +3,6 @@ const User = require("../models/userSchema");
 
 
 
-
-
 const checkAuthentication = async (req, res ,next) =>{
     try {
     
@@ -37,9 +35,5 @@ const checkAuthentication = async (req, res ,next) =>{
 } 
 
              
-
-
-
-
 
  module.exports = checkAuthentication ;   

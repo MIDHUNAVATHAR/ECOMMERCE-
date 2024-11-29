@@ -22,20 +22,6 @@ const  getCheckout  =  async  ( req , res )  =>{
     const user  =  await User.findById(userId);
 
       
-      // let cartTotal ; 
-      //    if(user){
-      //    const cart = await Cart.findOne({user : userId }) ;
-      //    if(cart){
-      //    cartTotal = cart.items.reduce((total, item) => total + item.quantity, 0);  
-      //    }
-      //    }else{
-      //    cartTotal = 0;
-      //    }
-
-      // if(cartTotal == 0 ){
-      //   return res.redirect("/cart");
-      // }
-      
       let cartTotal;
 
       if (user) {

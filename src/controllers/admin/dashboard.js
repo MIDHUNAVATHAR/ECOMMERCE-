@@ -1,41 +1,41 @@
 
+// Import necessary modules
+const  moment  = require('moment');                       // For date manipulation
+const  fs      = require("fs") ;                          // For file system operations
+const  multer  = require("multer") ;                      // For file uploads
+const  path    =  require("path") ;                       // For working with file paths
 
 
-//import modules
-const  moment  = require('moment');
-const  fs      = require("fs") ;
-const  multer  = require("multer") ;
-const  path    =  require("path") ;
-
-
-//import schemas
+//import order schema for database queries
 const  Order   = require("../../models/orderSchema") ; 
 
 
 
-// Helper function to get date range
+// Helper function to get date range based on filter
 const getDateRange = (filter) => {
-    const end = moment().endOf('day');
+    const end = moment().endOf('day');                   // Current day end
     let start;
     
+
+    // Determine the start date based on filter value
     switch(filter) {
-        case 'day':
+        case 'day':                                     // Start of today
             start = moment().startOf('day') ; 
             break;
-        case 'week':
+        case 'week':                                    // 7 days ago
             start = moment().subtract(7, 'days').startOf('day')  ;
             break;
-        case 'month':
+        case 'month':                                  // 30 days ago
             start = moment().subtract(30, 'days').startOf('day') ;
             break;
-        case 'year':
+        case 'year':                                   // 365 days ago
             start = moment().subtract(365, 'days').startOf('day');
             break;
         default:
-            start = moment().subtract(30, 'days').startOf('day') ;
+            start = moment().subtract(30, 'days').startOf('day') ;  // Default to 30 days
     }
     
-    return { start , end } ;   
+    return { start , end } ;                           // Return the start and end date
 };
 
 
@@ -50,20 +50,19 @@ const ensureDirectoryExistence = (dirPath) => {
 
 
 
-//GET DASHBOARD  
+// Controller to get the admin dashboard data
 const  dashboard  =  async ( req , res )  =>{           
     try{
-       
-        const filter = req.query.filter || 'month';
-        const { start, end } = getDateRange(filter);
+        const filter = req.query.filter || 'month';       // Filter for date range
+        const { start, end } = getDateRange(filter);      // Get start and end dates
 
-        // Get orders within date range
+        // Fetch completed orders within the date range
         const orders = await Order.find({
             createdAt: { $gte: start.toDate(), $lte: end.toDate() } ,         
             paymentStatus: 'completed'
         }).sort('createdAt') ;
 
-        // Calculate daily sales data
+        // Prepare sales data for graph
         const salesData = [] ;
         let currentDate = moment(start) ;          
         
@@ -71,21 +70,24 @@ const  dashboard  =  async ( req , res )  =>{
             const dayStart = moment(currentDate).startOf('day');
             const dayEnd = moment(currentDate).endOf('day');
             
+            // Filter orders for the current day
             const dayOrders = orders.filter(order => 
                 moment(order.createdAt).isBetween(dayStart, dayEnd)
             );
             
+            // Calculate total sales for the day
             const totalSales = dayOrders.reduce((sum, order) => sum + order.totalPrice, 0);
             
             salesData.push({
-                x: currentDate.format('YYYY-MM-DD'),
-                y: totalSales
+                x: currentDate.format('YYYY-MM-DD'),       // Date in YYYY-MM-DD format
+                y: totalSales                              // Total sales amount
             });
             
-            currentDate.add(1, 'days');
+            currentDate.add(1, 'days');                    // Move to the next day
         }
 
-        // Calculate summary statistics
+
+        // Summary statistics
         const totalOrders = await Order.countDocuments({
             createdAt: { $gte: start.toDate(), $lte: end.toDate() }
         });
@@ -113,8 +115,8 @@ const  dashboard  =  async ( req , res )  =>{
             },
             {
                 $group: {
-                    _id: '$orderStatus',
-                    count: { $sum: 1 }
+                    _id: '$orderStatus',          // Group by order status
+                    count: { $sum: 1 }            // Count the number of orders
                 }
             }
         ]);
@@ -124,44 +126,45 @@ const  dashboard  =  async ( req , res )  =>{
          const topProducts = await Order.aggregate([
             {
                 $match: {
-                    orderStatus: { $ne: 'cancelled' },
-                    paymentStatus: 'completed'
+                    orderStatus: { $ne: 'cancelled' },  // Exclude cancelled orders
+                    paymentStatus: 'completed'          // Only completed payments
                 }
             },
-            { $unwind: '$items' },
+            { $unwind: '$items' },                      // Unwind the items array
             {
                 $group: {
-                    _id: '$items.product',
-                    totalQuantity: { $sum: '$items.quantity' },
-                    totalRevenue: { $sum: '$items.totalPrice' },
-                    orders: { $addToSet: '$_id' }
+                    _id: '$items.product',                      // Group by product ID
+                    totalQuantity: { $sum: '$items.quantity' }, // Total quantity sold
+                    totalRevenue: { $sum: '$items.totalPrice' },// Total revenue
+                    orders: { $addToSet: '$_id' }               // Collect unique order IDs
                 }
             },
             {
                 $lookup: {
-                    from: 'products',
+                    from: 'products',                   // Join with products collection
                     localField: '_id',
                     foreignField: '_id',
                     as: 'productDetails'
                 }
             },
-            { $unwind: '$productDetails' },
+            { $unwind: '$productDetails' },             // Get individual product details
+
             {
                 $project: {
-                    name: '$productDetails.title',
+                    name: '$productDetails.title',      // Include product name
                     totalQuantity: 1,
                     totalRevenue: 1,
-                    orderCount: { $size: '$orders' }
+                    orderCount: { $size: '$orders' }   // Count of unique orders
                 }
             },
-            { $sort: { totalQuantity: -1 } },
-            { $limit: 10 }
+            { $sort: { totalQuantity: -1 } },         // Sort by quantity sold
+            { $limit: 10 }                            // Limit to top 10 products
         ]);
 
         
 
 
-        // Fetch top 10 product categories with their gender category
+        // Fetch top 10 product categories 
         const topCategories = await Order.aggregate([
             
             {
@@ -222,6 +225,9 @@ const  dashboard  =  async ( req , res )  =>{
 
 
  
+
+
+
         const topSubcategories = await Order.aggregate([
             {
                 $match: {
@@ -374,4 +380,7 @@ const generateLedger = async (req, res) => {
 
 
 
-module.exports  =  {  dashboard , generateLedger }  ; 
+module.exports  =  {  
+    dashboard , 
+    generateLedger 
+}  ; 

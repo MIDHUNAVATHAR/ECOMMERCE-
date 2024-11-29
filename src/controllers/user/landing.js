@@ -57,7 +57,15 @@ const landingPage   =  async  ( req , res )  => {
          })) ;   
         
      
-    res.render("frontend/landing-page" , { logo , banners , user , userId , categoryProducts , genderCategory , cartTotal } ) ; 
+    res.render("frontend/landing-page" , { 
+      logo , 
+      banners , 
+      user , 
+      userId , 
+      categoryProducts , 
+      genderCategory , 
+      cartTotal 
+    } ) ; 
 
   }catch(err){
     console.log(err)

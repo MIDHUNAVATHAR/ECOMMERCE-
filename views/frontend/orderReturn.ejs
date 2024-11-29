@@ -17,7 +17,7 @@
 
 
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6">Return Order #<%= order._id %></h1>
+        <h1 class="text-3xl font-bold mb-6">Return Order # <%=order.orderId? order.orderId : order._id%></h1>     
         
         <!-- Order Summary -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -50,7 +50,7 @@
                 <% order.items.forEach((item, index) => { %>
                     <div class="flex items-start space-x-4 p-4 border rounded-lg">
                         <!-- Product Image -->
-                        <% if (item.product.images && item.product.images.length > 0) { %>
+                        <% if (item.product && item.product.images && item.product.images.length > 0) { %>
                             <div class="w-24 h-24 flex-shrink-0">
                                 <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
                                      class="w-full h-full object-cover rounded-md">
@@ -60,35 +60,37 @@
                         
                         <!-- Product Details -->
                         <div class="flex-grow">
-                            <h3 class="font-medium text-lg"><%= item.product.name %></h3>
-                            <p class="text-gray-600">Size: <%= item.size %></p>
-                            <p class="text-gray-600">Price: ₹<%= item.price %></p>
-                            <p class="text-gray-600">Ordered Quantity: <%= item.quantity %></p>
+                            <h3 class="font-medium text-lg"><%= item.product && item.product.name ? item.product.name : 'Product name unavailable' %></h3>
+                            <p class="text-gray-600">Size: <%= item.size ? item.size : 'N/A' %></p>
+                            <p class="text-gray-600">Price: ₹<%= item.price ? item.price : '0.00' %></p>
+                            <p class="text-gray-600">Ordered Quantity: <%= item.quantity ? item.quantity : 'N/A' %></p>
                         </div>
                         
-                        <!-- Return Selection -->
-                        <div class="flex items-center space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" 
-                                       name="returnItems[<%= index %>][selected]" 
-                                       value="true"
-                                       class="form-checkbox h-5 w-5 text-blue-600">
-                                <span class="ml-2">Return</span>
-                            </label>
-                            
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm text-gray-600">Qty to Return:</label>
-                                <input type="number" 
-                                       name="returnItems[<%= index %>][quantity]" 
-                                       min="1" 
-                                       max="<%= item.quantity %>" 
-                                       value="1"
-                                       class="w-16 px-2 py-1 border rounded-md">
-                                <input type="hidden" 
-                                       name="returnItems[<%= index %>][productId]" 
-                                       value="<%= item.product._id %>">
-                            </div>
-                        </div>
+                        
+                  <!-- Return Selection -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 mt-4">
+    <label class="inline-flex items-center">
+        <input type="checkbox" 
+               name="returnItems[<%= index %>][selected]" 
+               value="true"
+               class="form-checkbox h-5 w-5 text-blue-600">
+        <span class="ml-2">Return</span>
+    </label>
+
+    <div class="flex items-center space-x-2 sm:flex-nowrap flex-wrap w-full sm:w-auto">
+        <label class="text-sm text-gray-600 flex-shrink-0">Qty to Return:</label>
+        <input type="number" 
+               name="returnItems[<%= index %>][quantity]" 
+               min="1" 
+               max="<%= item.quantity %>" 
+               value="1"
+               class="w-16 px-2 py-1 border rounded-md flex-grow">
+        <input type="hidden" 
+               name="returnItems[<%= index %>][productId]" 
+               value="<%= item.product ? item.product._id : '' %>">
+    </div>
+</div>
+
                     </div>
                 <% }); %>
             </div>

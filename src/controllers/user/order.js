@@ -1,8 +1,8 @@
 
 
 //import modules
-const PDFDocument        =  require('pdfkit');
-const axios              =  require("axios");
+const PDFDocument        =  require('pdfkit') ;
+const axios              =  require("axios") ;
 
 
 //import schemas
@@ -35,59 +35,55 @@ const  placeorder  =  async  ( req , res )  =>{
         .filter( item => item.status === "Available") // filter items by status 
         .map( async  (item )=>{
          
-          const itemDiscount = (item.price * item.quantity) - (item.discountedPrice * item.quantity);
+            const itemDiscount = (item.price * item.quantity) - (item.discountedPrice * item.quantity);
           
 
-          // Fetch the product using the product ID (item.product)
-    const product = await Product.findById(item.product).exec();
+            // Fetch the product using the product ID (item.product)
+            const product = await Product.findById(item.product).exec();
 
-    // Check if the product was found
-    if (!product) {
-      console.error(`Product with ID ${item.product} not found`);
-      return null;  // If product is not found, return null or handle it as needed
-    }
+            // Check if the product was found
+            if (!product) {
+              console.error(`Product with ID ${item.product} not found`);
+              return null;  // If product is not found, return null or handle it as needed
+            }
 
-    // Get the first image URL from the product's images array
-    let imageUrl = product.images[0];  // You can customize this to pick the image you want
-    let title    = product.title ;
+            // Get the first image URL from the product's images array
+            let imageUrl = product.images[0];  // You can customize this to pick the image you want
+            let title    = product.title ;
 
-     // Check if it's a relative URL and prepend the base URL dynamically
-     if (!imageUrl.startsWith('http')) {
-      const baseUrl = req.protocol + '://' + req.get('host');  // Dynamically get base URL
-      imageUrl = baseUrl + imageUrl;  // Prepend the base URL if relative
-    }
+            // Check if it's a relative URL and prepend the base URL dynamically
+            if (!imageUrl.startsWith('http')) {
+             const baseUrl = req.protocol + '://' + req.get('host');  // Dynamically get base URL
+             imageUrl = baseUrl + imageUrl;  // Prepend the base URL if relative
+            }
 
-    // Initialize bufferImage to store the image buffer
-    let bufferImage = null;
+            // Initialize bufferImage to store the image buffer
+            let bufferImage = null;
 
-    try {
-      // Fetch the image and convert it to a buffer
-      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      bufferImage = Buffer.from(response.data, 'binary');
-    } catch (error) {
-      console.error("Error downloading image:", error);
-    }
+            try {
+              // Fetch the image and convert it to a buffer
+              const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+              bufferImage = Buffer.from(response.data, 'binary');
+            } catch (error) {
+              console.error("Error downloading image:", error);
+            }
 
 
       
-          return {
-          product : item.product._id ,
-          title , 
-          size : item.size ,
-          price : item.discountedPrice ,
-          quantity : item.quantity ,
-          totalPrice : parseFloat(item.discountedPrice * item.quantity ).toFixed(2),
-          discount :itemDiscount ,  
-          image :  bufferImage 
-        }
+              return {
+              product : item.product._id ,
+              title , 
+              size : item.size ,
+              price : item.discountedPrice ,
+              quantity : item.quantity ,
+              totalPrice : parseFloat(item.discountedPrice * item.quantity ).toFixed(2),
+              discount :itemDiscount ,  
+              image :  bufferImage 
+            }
         })
-
         )
 
     
-        
-      
-      
         // Calculate total price
         const productsPrice = cartItems.reduce((total, item) => {
           return total + (item.price * item.quantity) ;
@@ -101,28 +97,26 @@ const  placeorder  =  async  ( req , res )  =>{
        
         const address = await Address.findById(addressId)
 
-        const generateOrderID = async () => {
-          const counter = await Counter.findOneAndUpdate(
-            { _id: 'order' },
-            { $inc: { sequence_value: 1 }  },
-           
-            { new: true, upsert: true }
+        const getNextOrderID = async () => {
+
+          const orderIdDoc = await Counter.findOneAndUpdate(
+              {}, // No filter to find the single document
+              { $inc: { currentOrderID: 1 } }, // Increment by 1
+              { new: true, upsert: true } // Create the document if it doesn't exist 
           );
-          return counter.sequence_value; // Returns the incremented value
+      
+          return orderIdDoc.currentOrderID;
         };
 
-        const orderId = await generateOrderID();
-        
-        
-       
+        const orderId = await getNextOrderID() ;
+
         const newOrder = new Order({
           userId,
-          orderId : orderId,
+          orderId : orderId  ,
           shippingAddress : addressId,
           address,
           items : cartItems , 
           paymentMethod,
-         // totalPrice : (productsPrice + parseFloat(deliveryCharge) ) - (cart.walletBalance + cart.couponBalance ) , 
           totalPrice : parseInt(amount) ,
           appliedWallet : cart.walletBalance ,
           appliedCoupon : cart.couponBalance , 
@@ -133,8 +127,6 @@ const  placeorder  =  async  ( req , res )  =>{
 
         const savedOrder = await newOrder.save() ; 
       
-       
-
         // wallet transaction
         if ( cart.walletBalance > 0 ) {
           const user = await User.findById(userId);
@@ -225,8 +217,6 @@ const  myOrders  =  async  ( req , res ) => {
      } 
 
 
-  
-
     const orderTime = req.query.orderTime || "";
     const orderStatus = req.query.orderStatus || "";
         
@@ -280,6 +270,7 @@ const  myOrders  =  async  ( req , res ) => {
 
 
 
+
 //GET  VIEW ORDER
 const viewOrder  =  async  ( req , res ) => {
   try{
@@ -303,7 +294,15 @@ const viewOrder  =  async  ( req , res ) => {
        cartTotal = 0 ;
        }
     
-    res.render("frontend/viewOrder.ejs" , { logo , genderCategory , user , userId : user._id , order , orderDate , cartTotal }) ; 
+    res.render("frontend/viewOrder.ejs" , { 
+      logo , 
+      genderCategory , 
+      user , 
+      userId : user._id , 
+      order , 
+      orderDate , 
+      cartTotal 
+    }) ; 
   }catch(err){
     console.error(err);
     res.status(500).render("frontend/404");  
@@ -316,9 +315,7 @@ const viewOrder  =  async  ( req , res ) => {
 //CANCEL ORDER
 const  cancelOrder  =  async  ( req , res ) =>{
   try{
-
        const orderId = req.body.id ;
-         console.log(orderId)
        const savedOrder = await Order.findByIdAndUpdate(orderId, {
           orderStatus: "cancelled",
        });
@@ -371,16 +368,12 @@ const  cancelOrder  =  async  ( req , res ) =>{
                 });
 
                 await walletTransaction.save() ;  
-               
          }
- 
          res.status(200).json({ status : true , wallet  });  
-
   }catch(err){
     console.error(err);
     res.status(500).render("frontend/404");  
   }
-  
 } 
 
 
@@ -416,8 +409,6 @@ const submitReview  =  async  ( req , res ) =>{
     res.status(500).render("frontend/404");  
   }
 }
-
-
 
 
 
@@ -574,13 +565,11 @@ const generateOrderPDF = async (req, res) => {
 
 
 
-module.exports  =  {
-
+module.exports = {
    placeorder ,
    myOrders ,
    viewOrder ,
    cancelOrder , 
    submitReview ,
    generateOrderPDF , 
-
 } ; 

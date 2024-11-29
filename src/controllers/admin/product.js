@@ -159,74 +159,6 @@ const  editProduct  =  async  ( req , res  )  =>{
 
 
 // //POST EDIT PRODUCT
-// const  editProductPost  = async  ( req , res )  =>{
-//     try{
-//         const { id } = req.params ; 
-//         const product = await Product.findById(id); 
-    
-//         if (!product) {
-//             return res.status(404).json( { error : 'Product not found' } ) ;
-//         } 
-          
-
-//         let  {
-//             title, titleDescription, productDescription, highlights, details,
-//             genderCategory, productCategory, productSubCategory , size , quantity , price , 
-//         } = req.body ;
-      
-//         title = title.trim();
-//         titleDescription = titleDescription.trim();
-//         productDescription = productDescription.trim();
-//         highlights  =  highlights.trim();
-//         details  = details.trim();
-        
-         
-
-//         const sizes = [] ;
-//         for(let i = 0 ; i < size.length ; i++){
-//            const productObject = {
-//                size : size[i],
-//                price : parseFloat(price[i]),
-//                quantity : parseInt(quantity[i]),
-           
-
-//            }
-//            sizes.push( productObject );
-//         }
-
-//         let newImageUrls = [];
-//         if (req.files && req.files.length > 0) {
-//            newImageUrls = req.files.map(file => `/uploads/product/${file.filename}` ) ; 
-//         }
-
-
-
-//          // Append the new images to the existing image array without overwriting the old images
-//          const allImageUrls = [...product.images, ...newImageUrls];
-
-//          // Update the product fields with the new data, keeping existing ones where no new data is provided
-//          product.title = title || product.title;
-//          product.titleDescription = titleDescription || product.titleDescription;
-//          product.productDescription = productDescription || product.productDescription;
-//          product.highlights = highlights || product.highlights;
-//          product.details = details || product.details;
-//          product.genderCategory = genderCategory || product.genderCategory;
-//          product.productCategory = productCategory || product.productCategory;
-//          product.productSubCategory = productSubCategory || product.productSubCategory;
-//          product.sizes = sizes.length > 0 ? sizes : product.sizes;  // Update sizes if provided
-//          product.images = allImageUrls;  // Merge new images with the existing ones
-
-//           // Save the updated product
-//          await product.save();
-
-//          res.status(200).json({ message: 'Product updated successfully' });
-//     }catch(err){
-//         console.log(err) ;
-//         res.status(500).render("frontend/404") ;       
-//     }
-// }
-
-
 const editProductPost = async (req, res) => {
     try {
       const { id } = req.params;
@@ -423,7 +355,15 @@ const deleteproduct  =  async ( req , res )  => {
 
 
 
-module.exports  =  {  addProduct , addProductPost , listProducts , editProduct ,
-                      editProductPost  ,  deleteSize  ,  deleteProductImage , deleteProductImage  ,
-                      blockProduct ,  deleteproduct 
+module.exports  =  {  
+    addProduct , 
+    addProductPost , 
+    listProducts , 
+    editProduct ,
+    editProductPost  ,  
+    deleteSize  ,  
+    deleteProductImage , 
+    deleteProductImage  ,
+    blockProduct ,  
+    deleteproduct 
  }  ;

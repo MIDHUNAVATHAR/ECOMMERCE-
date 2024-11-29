@@ -144,8 +144,17 @@ const product = async ( req , res ) =>{
           _id: { $ne: productId } // Exclude the current product from the related products
         });
        
-        const reviews = await Reviews.find({product : productId}).populate("user")
         
+
+        const reviews = await Reviews.find({ product: productId }).populate('user');
+
+        // Calculate average rating
+        const totalReviews = reviews.length;
+        const averageRating = totalReviews
+            ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+            : 0;
+        
+
         // Convert sizeId to ObjectId
         const selectedSizeId = sizeId  || product.sizes[0]._id ;  
      
@@ -187,7 +196,9 @@ const product = async ( req , res ) =>{
           cartTotal,
           selectedSizeId,
           reviews,
-          relatedProducts 
+          relatedProducts ,
+          averageRating, // Pass the average rating to the view
+          totalReviews, // Pass the total number of reviews
           
         });
       } catch (error) {
@@ -201,4 +212,7 @@ const product = async ( req , res ) =>{
 
 
 
-module.exports = { products , product }  ; 
+module.exports = { 
+  products , 
+  product 
+}  ; 

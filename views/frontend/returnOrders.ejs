@@ -116,7 +116,7 @@
       <div class="grid grid-cols-1 gap-6">
         <% returnOrders.forEach(order => { %>
           <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-xl font-bold mb-4">Return Order ID: <%= order._id %></h2>
+            <h2 class="text-xl font-bold mb-4">Return Order ID: <%=order.returnOrderId? order.returnOrderId : order._id%></h2> 
 
             <!-- Loop through each item in the return order -->
             <div class="space-y-4">
@@ -147,11 +147,12 @@
 
             <!-- Return Details -->
             <div class="mt-4">
+              
               <p class="text-gray-700">Return Reason: <%= order.reason %></p>
               <p class="text-gray-700">Total Refund Amount: ₹<%= order.totalRefundAmount.toFixed(2) %></p>
               <p class="text-gray-700">Return Status: <span class="font-bold"><%= order.returnStatus %></span></p>
               <% if (order.adminNote) { %>
-                <p class="text-gray-700">Admin Note: <%= order.adminNote %></p>
+                <p class="text-red-700">Message : <%= order.adminNote %></p> 
               <% } %>
             </div>
 

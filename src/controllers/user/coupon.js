@@ -7,7 +7,7 @@ const Cart        =  require("../../models/cartSchema") ;
 const Coupon      =  require("../../models/couponSchema") ;
 const Logo             =    require("../../models/logoSchema") ;
 const GenderCategory   =    require("../../models/genderCategory") ;
-const { userLogout } = require("./authentication") ; 
+
 
 
 
@@ -40,7 +40,6 @@ const couponAddCart = async (req,res) => {
       
        if(coupon.couponBalance > (cartValue - cart.walletBalance)){
          return res.status(400).json({ success : false , message : `cart must be minimum cart value - ${coupon.couponBalance}`  }) 
-        // return res.redirect(`/cart?coupon-success=0&couponBalance=${coupon.couponBalance}`) ;
        }; 
        }
        
@@ -85,7 +84,6 @@ const couponAddCart = async (req,res) => {
     }catch(err){
         console.log(err);
         res.status(400).json({user : false });
-       // return res.redirect("/cart?coupon-error=1") ;
     }
 }
 
@@ -193,4 +191,8 @@ const  coupons  =  async  ( req , res ) => {
 
 
 
-module.exports  =  { couponAddCart , removeCoupon  , coupons } ; 
+module.exports  =  { 
+    couponAddCart , 
+    removeCoupon  , 
+    coupons 
+} ; 

@@ -3,10 +3,6 @@ const Cart = require("../models/cartSchema") ;
 const Product = require("../models/product") ;
 
 
-
-
-
-
 const cartAvailability  = async(req,res,next) =>{
    
     try{
@@ -65,8 +61,6 @@ const cartAvailability  = async(req,res,next) =>{
         return; 
     }
 }
-
-
 
 
 module.exports = cartAvailability  ; 

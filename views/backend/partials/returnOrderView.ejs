@@ -20,7 +20,7 @@
             
             <div class="mb-6">
                 <h2 class="text-xl font-semibold mb-2">Order Information</h2>
-                <p><strong>Order ID:</strong> <%= returnOrder.orderId._id %></p>
+                <p><strong>Order ID:</strong>   <%= returnOrder.returnOrderId? returnOrder.returnOrderId : returnOrder._id%>  </p>     
                 <p><strong>Return Reason:</strong> <%= returnOrder.reason %></p>
                 <p><strong>Return Status:</strong> <%= returnOrder.returnStatus %></p>
                 <p><strong>Total Refund Amount:</strong> ₹<%= returnOrder.totalRefundAmount %></p>

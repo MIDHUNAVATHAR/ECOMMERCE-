@@ -72,7 +72,7 @@
   
 </div>
  
-  </div>
+  </div>     
 
 
   
@@ -108,7 +108,7 @@
    async function addToCart(prodId, sizeId, size, price, discountedPrice, discountedPercentage) {
         const userId = "<%= user ? user._id : '' %>";
         if (!userId) {
-          window.location.href = "http://localhost:8001/userlogin";
+          window.location.href = "/userlogin";
           return;
         }
 

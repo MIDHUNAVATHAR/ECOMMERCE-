@@ -9,6 +9,10 @@ const returnOrderSchema = new Schema({
         ref: 'Order',
         required: true
     },
+    returnOrderId : {
+        type : Number ,
+        default : 1000
+    },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',

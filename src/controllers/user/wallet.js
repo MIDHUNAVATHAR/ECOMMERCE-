@@ -138,4 +138,8 @@ const getWalletHistory = async (req, res) => {
  
 
 
-module.exports = { walletAddCart , walletRemoveCart , getWalletHistory  } ; 
+module.exports = { 
+    walletAddCart , 
+    walletRemoveCart , 
+    getWalletHistory  
+} ; 

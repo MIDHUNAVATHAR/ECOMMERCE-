@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cart - YourStore</title>
+    <style>
+      /* Truncate long text on smaller screens */
+@media (max-width: 768px) {
+  .truncate-description-mobile {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Show only 2 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
+}
+
+    </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -14,8 +28,8 @@
   <!--Header-->
 
 <!--breadcrumb-->
-<nav class="text-sm mb-4 pl-10 pt-5" aria-label="Breadcrumb">
-  <ol class="list-reset inline-flex items-center space-x-2 bg-black text-white p-2 rounded">
+<nav class="text-sm mb-4 pl-10 pt-5" aria-label="Breadcrumb"> 
+  <ol class="list-reset inline-flex items-center space-x-2 bg-black text-white p-2 rounded" > 
     <li>
       <a href="/" class="hover:text-gray-400">Home</a>
     </li>
@@ -36,50 +50,53 @@
     <div class="flex flex-col lg:flex-row gap-8"> 
 
        <!-- Product List -->
-<div class="w-full lg:w-2/3">
-  <% cart.items.forEach(item => { %>
-      <div class="bg-white rounded-lg shadow-md p-6 mb-4 lg:ml-5">
-          <div class="flex items-center">
-              <!-- Product Image -->
-              <img src="<%= item.product && item.product.images && item.product.images[0] ? item.product.images[0] : 'path/to/default-image.jpg' %>"
-                   alt="<%= item.product && item.product.title ? item.product.title : 'Product' %>"
-                   class="w-20 h-20 object-cover rounded-md mr-4 ml-4">
-              <div class="flex-1 ml-5 relative">
-                  <!-- Product Title -->
-                  <h2 class="text-lg font-semibold">
-                      <%= item.product && item.product.title ? item.product.title : 'Product Title' %>
-                      <!-- Product Status -->
-                      <span class="status absolute right-1 text-sm font-semibold text-red-500">
+       <div class="w-full lg:w-2/3">
+        <% cart.items.forEach(item => { %>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-4 lg:ml-5">
+                <div class="flex items-center">
+                    <!-- Product Image -->
+                    <img src="<%= item.product && item.product.images && item.product.images[0] ? item.product.images[0] : 'path/to/default-image.jpg' %>"
+                         alt="<%= item.product && item.product.title ? item.product.title : 'Product' %>"
+                         class="w-20 h-20 object-cover rounded-md mr-4 ml-4">
+                    <div class="flex-1 ml-5 relative">
+                         <!-- Product Status -->
+                         <span class="status mb-1 text-sm font-semibold text-red-500"  >
                           <%= item.status ? item.status : 'Status not available' %>
                       </span> 
-                  </h2>
-                  <!-- Product Size -->
-                  <p class="text-sm text-gray-600">Size: <%= item.size ? item.size : 'N/A' %></p>
-                  <!-- Product Description -->
-                  <p class="text-sm text-gray-600">Description: <%= item.product && item.product.titleDescription ? item.product.titleDescription : 'No description available' %></p>
-                  <!-- Product Specifications -->
-                  <p class="text-sm text-gray-600">Spec: <%= item.product && item.product.productDescription ? item.product.productDescription : 'No specifications available' %></p>
-                  <!-- Price and Discount Info -->
-                  <div class="flex items-center mt-2">
-                      <span class="text-lg font-bold">₹<%= item.discountedPrice %></span>
-                      <span class="text-sm text-gray-500 line-through ml-2">₹<%= item.price %></span>
-                      <span class="text-sm text-green-500 ml-2"><%= item.discountPercentage ? item.discountPercentage : '0' %>% OFF</span>
-                  </div>
-              </div>
-          </div>
-          <!-- Quantity Controls -->
-          <div class="flex items-center justify-between mt-4">
-              <div class="flex items-center border rounded ml-4">
-                  <button class="decrement-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">-</button>
-                  <span class="quantity px-3 py-1"><%= item.quantity %></span> 
-                  <button class="increment-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">+</button>
-              </div>
-              <span class="message text-red-900"></span>
-              <button class="removeBtn text-pink-500 hover:text-pink-600" data-id="<%= item._id %>">REMOVE</button>
-          </div>
+                        <!-- Product Title -->
+                        <h2 class="text-lg font-semibold">
+                         
+                            <%= item.product && item.product.title ? item.product.title : 'Product Title' %>
+                          
+                        </h2>
+                        <!-- Product Size -->
+                        <p class="text-sm text-gray-600">Size: <%= item.size ? item.size : 'N/A' %></p>
+                        <!-- Product Description -->
+                        <p class="text-sm text-gray-600 truncate-description-mobile">Description: <%= item.product && item.product.titleDescription ? item.product.titleDescription : 'No description available' %></p>
+                        <!-- Product Specifications -->
+                        <p class="text-sm text-gray-600 truncate-description-mobile">Spec: <%= item.product && item.product.productDescription ? item.product.productDescription : 'No specifications available' %></p>
+                        <!-- Price and Discount Info -->
+                        <div class="flex items-center mt-2">
+                            <span class="text-lg font-bold">₹<%= item.discountedPrice %></span>
+                            <span class="text-sm text-gray-500 line-through ml-2">₹<%= item.price %></span>
+                            <span class="text-sm text-green-500 ml-2"><%= item.discountPercentage ? item.discountPercentage : '0' %>% OFF</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quantity Controls -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="flex items-center border rounded ml-4">
+                        <button class="decrement-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">-</button>
+                        <span class="quantity px-3 py-1"><%= item.quantity %></span> 
+                        <button class="increment-btn px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300" data-id="<%= item._id %>">+</button>
+                    </div>
+                    <span class="message text-red-900"></span>
+                    <button class="removeBtn text-pink-500 hover:text-pink-600" data-id="<%= item._id %>">REMOVE</button>
+                </div>
+            </div>
+        <% }); %>
       </div>
-  <% }); %>
-</div>
+      
 
 
         <!-- Checkout Section -->
@@ -210,24 +227,7 @@
   <script>
     
   
-   //alerts
-    // const url = new URL (window.location.href); 
-    
-    // if(url.searchParams.get("coupon") == 0){
-    //   toastr.error('Invalid Coupon !')
-    // }
-    // if(url.searchParams.get("coupon-expiry") == 0){
-    //   toastr.error('Coupon expired !')
-    // }
-    // if(url.searchParams.get("coupon-limit")==0){
-    //   toastr.error('Coupon Limit Exceeded !'); 
-    // }
-    // if(url.searchParams.get("coupon-success") == 1){  
-    //   toastr.success('Coupon Added '); 
-    // }
-    // if(url.searchParams.get("coupon-success") == 0){  
-    //   toastr.error(`Cart Should have minimum  : ${url.searchParams.get("couponBalance")}`); 
-    // }
+  
 
 
 
@@ -320,7 +320,7 @@ const initQuantityIncrement = () => {
 
         // Check if user is logged in
         if (!userId) {
-          window.location.href = "http://localhost:8001/userlogin";
+          window.location.href = "/userlogin";
           return;
         }
 
@@ -367,7 +367,7 @@ const initQuantityDecrement = () => {
           const userId = "<%= user ? user._id : '' %>";
           const itemId = this.dataset.id ;
           if(userId == ""){
-            window.location.href = "http://localhost:8001/userlogin" ;
+            window.location.href = "/userlogin" ;
             return;  // prevent further code execution 
           }
           
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.user === false) {
-        window.location.href = "http://localhost:8001/userlogin";
+        window.location.href = "/userlogin";
       }
 
       if (data.success) {
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data1 = await response.json();
 
       if (data1.user === false) {
-        window.location.href = "http://localhost:8001/userlogin";
+        window.location.href = "/userlogin";
       }
 
       if (data1.success) {
@@ -516,7 +516,7 @@ document.addEventListener('DOMContentLoaded',  () => {
     const data1 = await response.json(); 
 
     if (data1.user === false) {
-      window.location.href = "http://localhost:8001/userlogin";
+      window.location.href = "/userlogin";
     }    
 
     if (data1.success) {
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded',  () => {
    const data1 = await response.json(); 
 
    if (data1.user == false) { 
-     window.location.href = "http://localhost:8001/userlogin" ;  
+     window.location.href = "/userlogin" ;  
    }    
 
    if (data1.success) { 
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const userId = "<%= user ? user._id : '' %>";
       const itemId = this.dataset.id ;
        if(userId == ""){
-         window.location.href = "http://localhost:8002/userlogin" ;
+         window.location.href = "/userlogin" ;
          return;  // prevent further code execution  
        }
        

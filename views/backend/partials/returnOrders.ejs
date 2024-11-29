@@ -27,10 +27,10 @@
                     <% returnOrders.forEach(order => { %>
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <%= order.orderId._id %>
+                          <%=order.returnOrderId? order.returnOrderId : order._id%>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <%= order.userId.email %>
+                            <%= order.userId && order.userId.email ? order.userId.email : '' %>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <%= order.reason %>

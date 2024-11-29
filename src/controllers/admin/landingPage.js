@@ -174,5 +174,12 @@ const   deleteImages  =   async  ( req , res )  => {
 
 
 
-module.exports  =  {  landingPage  ,  uploadLogo , updatelogoDate ,   updateBannerDate ,  uploadBanner , deleteImages }  ; 
+module.exports  =  {  
+    landingPage  ,  
+    uploadLogo , 
+    updatelogoDate ,   
+    updateBannerDate ,  
+    uploadBanner , 
+    deleteImages 
+}  ; 
   

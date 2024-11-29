@@ -15,7 +15,7 @@ const addressSchema = new Schema({
     alternatePhone : { type : Number },
     addresstype : { type : String },
     softDelete : { type : Boolean,
-        default : false,  } ,
+    default : false,  } ,
     userId : { type : Schema.Types.ObjectId , ref: 'UserSchema', required : true } , 
 })
 
@@ -24,5 +24,5 @@ const addressSchema = new Schema({
 addressSchema.index({ userId : 1 }) ; 
 
 
-const Address = mongoose.model('Address', addressSchema );
+const Address  = mongoose.model('Address', addressSchema );
 module.exports = Address ;   

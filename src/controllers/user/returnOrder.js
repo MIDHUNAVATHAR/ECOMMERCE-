@@ -7,6 +7,7 @@ const  Logo           =  require("../../models/logoSchema") ;
 const  GenderCategory =  require("../../models/genderCategory") ;
 const  User           =  require("../../models/userSchema") ;
 const  Cart           =  require("../../models/cartSchema" ) ;
+const  ReturnCounter  =  require("../../models/returnOrderIdSchema") ; 
 
 
 
@@ -92,7 +93,7 @@ const  postReturnOrder  =  async ( req ,res ) => {
                     message: `Product ${returnItem.productId} not found in original order` 
                 });
             }
-
+           
           //  Check if return quantity is valid
             if (returnItem.quantity > originalItem.quantity) {
                 return res.status(400).json({ 
@@ -124,9 +125,24 @@ const  postReturnOrder  =  async ( req ,res ) => {
        const refundAmount          =   totalProductValue - proportionalDiscount ;
         
 
+       const getNextReturnOrderID = async () => {
+
+        const orderIdDoc = await ReturnCounter.findOneAndUpdate(
+            {}, // No filter to find the single document
+            { $inc: { currentReturnOrderID: 1 } }, // Increment by 1
+            { new: true, upsert: true } // Create the document if it doesn't exist 
+        );
+    
+        return orderIdDoc.currentReturnOrderID;
+    };
+
+    const returnOrderId = await getNextReturnOrderID() ;
+
+
         // Create return order
         const returnOrder = new ReturnOrder({
             orderId: orderId,
+            returnOrderId : returnOrderId  ,
             userId : originalOrder.userId ,
             items: returnItems,
             reason: reason,
@@ -213,4 +229,8 @@ const  orderReturn  =  async  ( req , res ) => {
 
 
 
-module.exports  =  { returnOrder , postReturnOrder , orderReturn }  ; 
+module.exports  =  { 
+    returnOrder , 
+    postReturnOrder , 
+    orderReturn 
+}  ; 

@@ -39,39 +39,43 @@ const  updateCartPrices      =  require("../middlewares/updateCartPrices")
 
  
 
-//LANDING
-
+// ====== LANDING ROUTES ======
+// Render the landing page
 router.get( "/" , landing.landingPage ) ;  
 
+// Display list of all products
 router.get("/products" , product.products) ;
  
+// Display a specific product with offers applied
 router.get("/product/:id", implementOffers  , product.product) ;
 
 
 
 
 
-//PROFILE
-
+// ====== PROFILE ROUTES ======
+// Display user profile page
 router.get("/userProfile" , checkAuthentication , profile.showProfile ) ;
 
+// Update user profile details
 router.post("/userProfile"  , checkAuthentication , profile.editProfilePost);
 
-//get user adress management
+// Manage user addresses
 router.get("/userAdressMang" ,  checkAuthentication  ,  profile.userAdressMng );
 
 //add addresses
 router.post("/saveAddress"  , checkAuthentication , profile.saveAddress );
 
-//delete addresses
+// Delete an existing address
 router.get("/deleteAddress/:id"  , checkAuthentication , profile.deleteAddress); 
 
-//post edit address
+// Edit and save an existing address
 router.post("/saveEditAddress/:id"  , checkAuthentication , profile.editAddress);
 
-//change password
+//GET CHANGE PASSWORD PAGE
 router.get("/changePassword" , checkAuthentication , profile.changePassword ) ;
 
+// Handle password change request
 router.post("/changePassword"  , checkAuthentication , profile.postChangePassword ) ; 
  
 
@@ -80,30 +84,41 @@ router.post("/changePassword"  , checkAuthentication , profile.postChangePasswor
 
 
 
-//AUTHENTICATION
-
+// ====== AUTHENTICATION ROUTES ======
+// Render login page
 router.get("/userLogin" , checkAuthentication , authentication.userLogin)  ;
 
+// Handle login POST request
 router.post("/userlogin"  , authentication.userLoginPost) ; 
 
+// Render signup page
 router.get("/userSignup" ,  authentication.userSignup ) ;
 
+// Handle user signup POST request
 router.post("/userSignupPost" ,  authentication.userSignupPost ) ;
 
+// Resend OTP during signup
 router.post("/resendEmailOtp", authentication.resendEmailOtp );
 
+// Verify OTP during signup
 router.post("/userCheckOtp", authentication.checkOtp );
 
+// Render forgot password page
 router.get("/userForgotPassword",authentication.forgotPassword );
 
+// Handle forgot password POST request
 router.post("/userForgotPassword", authentication.forgotPasswordPost ); 
 
+// Render reset password page using token
 router.get("/userResetPassword/:token" , authentication.resetPassword );   
 
+// Handle reset password POST request
 router.post("/userResetPassword/:token" , authentication.resetPasswordPost ); 
 
+// Handle user logout
 router.get("/userLogout" , authentication.userLogout ); 
 
+// Render blocked user page
 router.get("/blocked"  , authentication.blocked); 
 
 
@@ -111,9 +126,9 @@ router.get("/blocked"  , authentication.blocked);
 
 
 
-// Middleware to cache `adminStatus` before Google authentication
+// ====== GOOGLE AUTHENTICATION WITH REFERRAL ======
+// Middleware to cache admin status before Google login
 function cacheAdminStatus(req, res, next) {
-   // console.log("Caching adminStatus:", req.session.admin); 
     req.app.locals.adminStatus = req.session.admin; // Cache adminStatus in app.locals
     next();
 }
@@ -151,6 +166,7 @@ router.get('/auth/google/login', cacheAdminStatus , (req, res, next) => {
 
 
 
+// Google authentication callback route
 router.get('/auth/google/callback' , passport.authenticate( 'google-user', {
     failureRedirect: '/userLogin'
 }),  restoreAdminStatus , (req, res) => {
@@ -163,95 +179,134 @@ router.get('/auth/google/callback' , passport.authenticate( 'google-user', {
 
 
 
-//WISHLIST  
+// ====== WISHLIST ROUTES ======
+// Display user's wishlist
 router.get( "/wishlist" , checkAuthentication, wishlistAvailability , wishlist.wishlist) ;    
 
+// Add an item to the wishlist
 router.post("/wishlist/add" , checkAuthentication , wishlist.addToWishlist) ;    // fetch 
 
+// Remove an item from the wishlist
 router.delete("/removeWishlistItem/:id" ,checkAuthentication, wishlist.removeWishlistitem ) ; 
  
 
 
 
 
-//CART 
+// ====== CART ROUTES ======
+// Display the cart
 router.get("/cart" , checkAuthentication , updateCartPrices , cartAvailability  ,  cart.getCart ) ;
 
+// Add an item to the cart
 router.post( "/addToCart", checkAuthentication , cart.addToCart); 
 
+// Increase product quantity in the cart
 router.post("/cartProductInc", checkAuthentication , cart.increQuantity); 
 
+// Decrease product quantity in the cart
 router.post("/cartProductDec", checkAuthentication , cart.decreQuantity);
 
+// Remove an item from the cart
 router.post("/removeItem", checkAuthentication , cart.removeItem ); 
 
 
 
 
-//CHECKOUT
+// ====== CHECKOUT ROUTES ======
+// Render checkout page
 router.get( "/checkout" , checkAuthentication , cartAvailability , checkout.getCheckout ) ; 
 
 
 
 
-//ORDER
+// ====== ORDER ROUTES ======
+// Place an order
 router.post( '/placeorder' , checkAuthentication , cartAvailability , order.placeorder ) ;  
+
+// View user's orders
 router.get(  "/myOrders" , checkAuthentication , order.myOrders); 
+
+// View details of a specific order
 router.get(  "/myOrders/:orderId" , checkAuthentication , order.viewOrder );  
+
+// Download order invoice as PDF
 router.get('/api/orders/download-pdf/:orderId', checkAuthentication , order.generateOrderPDF );
+
+// Cancel an order
 router.post( "/cancelOrder" , checkAuthentication , order.cancelOrder ) ;
 
-
-
-
-//REVIEW 
+// Submit a review for an order
 router.post( "/submitReview", checkAuthentication , order.submitReview ) ; 
 
 
 
-//RAZORPAY
+
+
+// ====== RAZORPAY ROUTES ======
+// Create a Razorpay order
 router.post("/create-order", checkAuthentication ,razorPay.createOrder );
 
+// Verify Razorpay payment
 router.post("/verify-payment" , checkAuthentication , razorPay.verifyPayment ) ;
 
+// Handle payment failure
 router.post("/payment-failed" ,checkAuthentication, razorPay.paymentFailed ) ;
 
+// Continue with a failed payment
 router.post('/continue-failed-payment' , checkAuthentication , razorPay.continuePayment ) ; 
 
+// Verify continued payment
 router.post("/continue-verify-payment" , checkAuthentication, razorPay.continueVerifyPayment );
 
 
 
 
-//WALLET
+
+
+// ====== WALLET ROUTES ======
+// Add wallet balance to cart
 router.post("/add-wallet-cart" , wallet.walletAddCart) ;    //fetch
 
+// Remove wallet balance from cart
 router.post("/remove-wallet-cart"  , wallet.walletRemoveCart ) ; // fetch
 
+// View wallet transaction history
 router.get('/walletHistory' , checkAuthentication  , wallet.getWalletHistory );
 
 
 
-//REFERRAL
+
+
+
+// ====== REFERRAL ROUTES ======
+// Withdraw referral balance
 router.post("/withDrawRefferalBalance" , checkAuthentication , refferal.withDrawBalance ) ; 
 
 
 
-//COUPON
+
+
+// ====== COUPON ROUTES ======
+// Get all available coupons
 router.get("/getCoupons" , checkAuthentication , coupon.coupons ) ;
 
+// Apply a coupon code
 router.post("/add-coupon-code", coupon.couponAddCart ) ;
 
+// Remove an applied coupon code
 router.post("/remove-coupon-code" , coupon.removeCoupon ) ;
 
 
 
 
-//RETURN ORDER
+// ====== RETURN ORDER ROUTES ======
+// Render return order details
 router.get("/returnOrder/:id" , checkAuthentication ,  orderReturn.returnOrder ) ;
 
+// Submit a return order request
 router.post("/returnOrder", checkAuthentication , orderReturn.postReturnOrder ) ;
 
+// View all return orders
 router.get("/orderReturns" , checkAuthentication , orderReturn.orderReturn ) ; 
 
 

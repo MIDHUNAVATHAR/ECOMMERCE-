@@ -1,6 +1,8 @@
 const Cart = require('../models/cartSchema');
 const Product = require('../models/product');
 
+
+
 const updateCartPrices = async (req, res, next) => {
   try {
     const userId = req.session.user?.id || (req.session.passport?.user ?? '');
@@ -38,6 +40,9 @@ const updateCartPrices = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
 
 module.exports = updateCartPrices;
 

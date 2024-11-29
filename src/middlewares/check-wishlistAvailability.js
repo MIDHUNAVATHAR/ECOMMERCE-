@@ -2,8 +2,6 @@
 const  Wishlist  =  require("../models/wishList") ;
 const  Product   =  require("../models/product") ;
 
-
-
 const wishlistAvailability = async (req, res, next) => {
     try {
       const userId =
@@ -50,6 +48,8 @@ const wishlistAvailability = async (req, res, next) => {
       return;
     }
   };
+  
+
   
   module.exports = wishlistAvailability;
   

@@ -46,8 +46,6 @@ const wishlist = async ( req , res ) => {
 
 //POST WISHIST-ADD
 const addToWishlist  = async ( req , res ) =>{
-
-
   try {
 
     const userId = req.session.user ? req.session.user.id  : "" || req.session.passport ? req.session.passport.user : "" ; 
@@ -128,4 +126,8 @@ const removeWishlistitem  = async  ( req,res ) =>{
 
 
 
- module.exports = {  wishlist  ,  addToWishlist , removeWishlistitem  } ; 
+ module.exports = {  
+    wishlist  ,  
+    addToWishlist , 
+    removeWishlistitem  
+}; 
