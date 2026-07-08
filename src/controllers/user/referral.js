@@ -1,29 +1,30 @@
 
 
 //import schemas
-const   User   =  require("../../models/userSchema") ;
+const User = require("../../models/userSchema");
+
+
+const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 
+const withDrawBalance = async (req, res) => {
+    try {
+        const { amount, userId } = req.body;
 
+        const user = await User.findById(userId);
 
-const  withDrawBalance  =  async  ( req , res )  => {
-    try{
-        const { amount , userId } = req.body ; 
-       
-        const user  =  await User.findById(userId) ;
-
-        user.walletBalance +=   user.rewardsBalance  ;
-        user.rewardsBalance  = 0; 
+        user.walletBalance += user.rewardsBalance;
+        user.rewardsBalance = 0;
 
         user.save();
 
-        return res.status(200).json({ status : true });
+        return res.status(HTTP_STATUS.OK).json({ status: true });
 
 
-    }catch(err){
+    } catch (err) {
         console.error('Error withdraw referral balance :', err);
-        res.status(500).render('frontend/404');        
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('frontend/404');
     }
 }
 
@@ -31,4 +32,4 @@ const  withDrawBalance  =  async  ( req , res )  => {
 
 
 
-module.exports  =  { withDrawBalance }  ; 
+module.exports = { withDrawBalance }; 

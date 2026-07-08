@@ -1,49 +1,50 @@
 
 
 const mongoose = require('mongoose');
-const Product = require('../models/product'); 
+const Product = require('../models/product');
+
+const { HTTP_STATUS } = require("../constants/statusCodes")
 
 
-
-const implementOffers = async ( req , res , next ) =>{
+const implementOffers = async (req, res, next) => {
 
     try {
-        const productId = req.params.id; 
+        const productId = req.params.id;
 
-           // Check if the ID is a valid ObjectId format
-      if (!mongoose.Types.ObjectId.isValid(productId)) {
-        throw new Error(`Invalid product ID: ${productId}`);
-      }
-        
+        // Check if the ID is a valid ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            throw new Error(`Invalid product ID: ${productId}`);
+        }
+
         //  Find the product by ID 
-        const product = await Product.findById(productId).populate('genderCategory') ; 
+        const product = await Product.findById(productId).populate('genderCategory');
 
         if (!product) {
-            throw new Error('Product not found') ; 
+            throw new Error('Product not found');
         }
 
         // Get the gender offer and expiry date
         const genderOffer = product.genderCategory.offer;
-        const genderOfferExpiry = product.genderCategory.offerExpiry ;  
+        const genderOfferExpiry = product.genderCategory.offerExpiry;
 
         //  Calculate the product offer and expiry date
-        const productOffer = product.offer ;
-        const productOfferExpiry = product.offerExpiry ; 
+        const productOffer = product.offer;
+        const productOfferExpiry = product.offerExpiry;
 
         //  Determine if offers are valid
         const currentDate = new Date();
-        const isGenderOfferValid = genderOfferExpiry > currentDate ;
-        const isProductOfferValid = productOfferExpiry > currentDate ; 
+        const isGenderOfferValid = genderOfferExpiry > currentDate;
+        const isProductOfferValid = productOfferExpiry > currentDate;
 
 
         //  Calculate total discount if both offers are valid
 
         let totalDiscount = 0;
-        let x =0;
+        let x = 0;
         let y = 0;
         if (isGenderOfferValid) {
-           
-           x=genderOffer;
+
+            x = genderOffer;
         }
 
 
@@ -51,8 +52,8 @@ const implementOffers = async ( req , res , next ) =>{
             y = productOffer;
         }
 
-        totalDiscount = 100*(1-(1- x/100)*(1- y/100)) ;
-        
+        totalDiscount = 100 * (1 - (1 - x / 100) * (1 - y / 100));
+
         totalDiscount = totalDiscount.toFixed(2);
 
 
@@ -66,18 +67,18 @@ const implementOffers = async ( req , res , next ) =>{
                 size.discountedPrice = size.price; // No discount
                 size.discountedPercentage = 0; // No discount
             }
-            
-        }); 
+
+        });
 
 
         //  Save the updated product
-        await product.save(); 
+        await product.save();
 
         next();
 
     } catch (error) {
         console.error('Error updating discounts:', error);
-        res.status(500).render("frontend/404") ;        
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
@@ -85,4 +86,4 @@ const implementOffers = async ( req , res , next ) =>{
 
 
 
-module.exports = implementOffers  ; 
+module.exports = implementOffers; 

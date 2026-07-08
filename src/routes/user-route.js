@@ -2,52 +2,53 @@
 
 
 //import modules
-const  express               =  require("express") ;
+const express = require("express");
 //const app = express();
-const  router                =  express.Router() ; 
-const  passport              =  require("passport") ;
+const router = express.Router();
+const passport = require("passport");
 
 
 
 //import controllers
-const  landing               =  require("../controllers/user/landing") ;
-const  product               =  require("../controllers/user/product") ;
-const  profile               =  require("../controllers/user/profile") ;
-const  authentication        =  require("../controllers/user/authentication") ; 
-const  wishlist              =  require("../controllers/user/wishlist") ;
-const  cart                  =  require("../controllers/user/cart") ;
-const  checkout              =  require("../controllers/user/checkout") ;
-const  order                 =  require("../controllers/user/order") ; 
-const  razorPay              =  require("../controllers/user/razorPay") ;
-const  wallet                =  require("../controllers/user/wallet") ;
-const  coupon                =  require("../controllers/user/coupon") ; 
-const  orderReturn           =  require("../controllers/user/returnOrder") ;
-const  refferal              =  require("../controllers/user/referral") ; 
+const landing = require("../controllers/user/landing");
+const product = require("../controllers/user/product");
+const profile = require("../controllers/user/profile");
+const authentication = require("../controllers/user/authentication");
+const wishlist = require("../controllers/user/wishlist");
+const cart = require("../controllers/user/cart");
+const checkout = require("../controllers/user/checkout");
+const order = require("../controllers/user/order");
+const razorPay = require("../controllers/user/razorPay");
+const wallet = require("../controllers/user/wallet");
+const coupon = require("../controllers/user/coupon");
+const orderReturn = require("../controllers/user/returnOrder");
+const refferal = require("../controllers/user/referral");
 
+const { USER_ROUTES } = require("../constants/routes.js");
 
 
 
 //import  middlewares
-const  checkAuthentication   =  require("../middlewares/check-authentication") ;
-const  cartAvailability      =  require("../middlewares/check-cartavailability")  ;
-const  wishlistAvailability  =  require("../middlewares/check-wishlistAvailability"); 
-const  implementOffers       =  require("../middlewares/implement-offers") ; 
-const  updateCartPrices      =  require("../middlewares/updateCartPrices")
+const checkAuthentication = require("../middlewares/check-authentication");
+const cartAvailability = require("../middlewares/check-cartavailability");
+const wishlistAvailability = require("../middlewares/check-wishlistAvailability");
+const implementOffers = require("../middlewares/implement-offers");
+const updateCartPrices = require("../middlewares/updateCartPrices")
 
 
 
 
- 
+
 
 // ====== LANDING ROUTES ======
 // Render the landing page
-router.get( "/" , landing.landingPage ) ;  
+router.get(USER_ROUTES.HOME, landing.landingPage);
 
 // Display list of all products
-router.get("/products" , product.products) ;
- 
+router.get(USER_ROUTES.PRODUCTS, product.products);
+
 // Display a specific product with offers applied
-router.get("/product/:id", implementOffers  , product.product) ;
+router.get(USER_ROUTES.PRODUCT_DETAILS, implementOffers, product.product);
 
 
 
@@ -55,29 +56,29 @@ router.get("/product/:id", implementOffers  , product.product) ;
 
 // ====== PROFILE ROUTES ======
 // Display user profile page
-router.get("/userProfile" , checkAuthentication , profile.showProfile ) ;
+router.get(USER_ROUTES.PROFILE, checkAuthentication, profile.showProfile);
 
 // Update user profile details
-router.post("/userProfile"  , checkAuthentication , profile.editProfilePost);
+router.post(USER_ROUTES.PROFILE, checkAuthentication, profile.editProfilePost);
 
 // Manage user addresses
-router.get("/userAdressMang" ,  checkAuthentication  ,  profile.userAdressMng );
+router.get(USER_ROUTES.ADDRESS_MANAGEMENT, checkAuthentication, profile.userAdressMng);
 
 //add addresses
-router.post("/saveAddress"  , checkAuthentication , profile.saveAddress );
+router.post(USER_ROUTES.SAVE_ADDRESS, checkAuthentication, profile.saveAddress);
 
 // Delete an existing address
-router.get("/deleteAddress/:id"  , checkAuthentication , profile.deleteAddress); 
+router.get(USER_ROUTES.DELETE_ADDRESS, checkAuthentication, profile.deleteAddress);
 
 // Edit and save an existing address
-router.post("/saveEditAddress/:id"  , checkAuthentication , profile.editAddress);
+router.post(USER_ROUTES.EDIT_ADDRESS, checkAuthentication, profile.editAddress);
 
 //GET CHANGE PASSWORD PAGE
-router.get("/changePassword" , checkAuthentication , profile.changePassword ) ;
+router.get(USER_ROUTES.CHANGE_PASSWORD, checkAuthentication, profile.changePassword);
 
 // Handle password change request
-router.post("/changePassword"  , checkAuthentication , profile.postChangePassword ) ; 
- 
+router.post(USER_ROUTES.CHANGE_PASSWORD, checkAuthentication, profile.postChangePassword);
+
 
 
 
@@ -86,40 +87,40 @@ router.post("/changePassword"  , checkAuthentication , profile.postChangePasswor
 
 // ====== AUTHENTICATION ROUTES ======
 // Render login page
-router.get("/userLogin" , checkAuthentication , authentication.userLogin)  ;
+router.get(USER_ROUTES.LOGIN, checkAuthentication, authentication.userLogin);
 
 // Handle login POST request
-router.post("/userlogin"  , authentication.userLoginPost) ; 
+router.post(USER_ROUTES.LOGIN_POST, authentication.userLoginPost);
 
 // Render signup page
-router.get("/userSignup" ,  authentication.userSignup ) ;
+router.get(USER_ROUTES.SIGNUP, authentication.userSignup);
 
 // Handle user signup POST request
-router.post("/userSignupPost" ,  authentication.userSignupPost ) ;
+router.post(USER_ROUTES.SIGNUP_POST, authentication.userSignupPost);
 
 // Resend OTP during signup
-router.post("/resendEmailOtp", authentication.resendEmailOtp );
+router.post(USER_ROUTES.RESEND_EMAIL_OTP, authentication.resendEmailOtp);
 
 // Verify OTP during signup
-router.post("/userCheckOtp", authentication.checkOtp );
+router.post(USER_ROUTES.VERIFY_OTP, authentication.checkOtp);
 
 // Render forgot password page
-router.get("/userForgotPassword",authentication.forgotPassword );
+router.get(USER_ROUTES.FORGOT_PASSWORD, authentication.forgotPassword);
 
 // Handle forgot password POST request
-router.post("/userForgotPassword", authentication.forgotPasswordPost ); 
+router.post(USER_ROUTES.FORGOT_PASSWORD, authentication.forgotPasswordPost);
 
 // Render reset password page using token
-router.get("/userResetPassword/:token" , authentication.resetPassword );   
+router.get(USER_ROUTES.RESET_PASSWORD, authentication.resetPassword);
 
 // Handle reset password POST request
-router.post("/userResetPassword/:token" , authentication.resetPasswordPost ); 
+router.post(USER_ROUTES.RESET_PASSWORD, authentication.resetPasswordPost);
 
 // Handle user logout
-router.get("/userLogout" , authentication.userLogout ); 
+router.get(USER_ROUTES.LOGOUT, authentication.userLogout);
 
 // Render blocked user page
-router.get("/blocked"  , authentication.blocked); 
+router.get(USER_ROUTES.BLOCKED, authentication.blocked);
 
 
 
@@ -141,9 +142,9 @@ function restoreAdminStatus(req, res, next) {
     if (req.app.locals.adminStatus !== undefined) {
         req.session.admin = req.app.locals.adminStatus; // Restore adminStatus to session
         delete req.app.locals.adminStatus; // Clear the cache in app.locals after restoration
-     //   console.log("adminStatus restored to session:", req.session.admin);
+        //   console.log("adminStatus restored to session:", req.session.admin);
     } else {
-       // console.log("No adminStatus found in app.locals to restore.");
+        // console.log("No adminStatus found in app.locals to restore.");
     }
     next();
 }
@@ -151,8 +152,8 @@ function restoreAdminStatus(req, res, next) {
 
 
 // Google login route (with referral code)
-router.get('/auth/google/login', cacheAdminStatus , (req, res, next) => {
-    
+router.get(USER_ROUTES.GOOGLE_LOGIN, cacheAdminStatus, (req, res, next) => {
+
     const referralCode = req.query.referral || ''; // Capture referral code from query params if present
     console.log(referralCode);
 
@@ -167,13 +168,13 @@ router.get('/auth/google/login', cacheAdminStatus , (req, res, next) => {
 
 
 // Google authentication callback route
-router.get('/auth/google/callback' , passport.authenticate( 'google-user', {
-    failureRedirect: '/userLogin'
-}),  restoreAdminStatus , (req, res) => {
+router.get(USER_ROUTES.GOOGLE_CALLBACK, passport.authenticate('google-user', {
+    failureRedirect: USER_ROUTES.LOGIN
+}), restoreAdminStatus, (req, res) => {
     // Successful authentication, redirect home.
-    res.redirect('/'); 
-});  
- 
+    res.redirect(USER_ROUTES.HOME);
+});
+
 
 
 
@@ -181,62 +182,62 @@ router.get('/auth/google/callback' , passport.authenticate( 'google-user', {
 
 // ====== WISHLIST ROUTES ======
 // Display user's wishlist
-router.get( "/wishlist" , checkAuthentication, wishlistAvailability , wishlist.wishlist) ;    
+router.get(USER_ROUTES.WISHLIST, checkAuthentication, wishlistAvailability, wishlist.wishlist);
 
 // Add an item to the wishlist
-router.post("/wishlist/add" , checkAuthentication , wishlist.addToWishlist) ;    // fetch 
+router.post(USER_ROUTES.ADD_WISHLIST, checkAuthentication, wishlist.addToWishlist);    // fetch 
 
 // Remove an item from the wishlist
-router.delete("/removeWishlistItem/:id" ,checkAuthentication, wishlist.removeWishlistitem ) ; 
- 
+router.delete(USER_ROUTES.REMOVE_WISHLIST, checkAuthentication, wishlist.removeWishlistitem);
+
 
 
 
 
 // ====== CART ROUTES ======
 // Display the cart
-router.get("/cart" , checkAuthentication , updateCartPrices , cartAvailability  ,  cart.getCart ) ;
+router.get(USER_ROUTES.CART, checkAuthentication, updateCartPrices, cartAvailability, cart.getCart);
 
 // Add an item to the cart
-router.post( "/addToCart", checkAuthentication , cart.addToCart); 
+router.post(USER_ROUTES.ADD_TO_CART, checkAuthentication, cart.addToCart);
 
 // Increase product quantity in the cart
-router.post("/cartProductInc", checkAuthentication , cart.increQuantity); 
+router.post(USER_ROUTES.CART_INCREMENT, checkAuthentication, cart.increQuantity);
 
 // Decrease product quantity in the cart
-router.post("/cartProductDec", checkAuthentication , cart.decreQuantity);
+router.post(USER_ROUTES.CART_DECREMENT, checkAuthentication, cart.decreQuantity);
 
 // Remove an item from the cart
-router.post("/removeItem", checkAuthentication , cart.removeItem ); 
+router.post(USER_ROUTES.REMOVE_CART_ITEM, checkAuthentication, cart.removeItem);
 
 
 
 
 // ====== CHECKOUT ROUTES ======
 // Render checkout page
-router.get( "/checkout" , checkAuthentication , cartAvailability , checkout.getCheckout ) ; 
+router.get(USER_ROUTES.CHECKOUT, checkAuthentication, cartAvailability, checkout.getCheckout);
 
 
 
 
 // ====== ORDER ROUTES ======
 // Place an order
-router.post( '/placeorder' , checkAuthentication , cartAvailability , order.placeorder ) ;  
+router.post(USER_ROUTES.PLACE_ORDER, checkAuthentication, cartAvailability, order.placeorder);
 
 // View user's orders
-router.get(  "/myOrders" , checkAuthentication , order.myOrders); 
+router.get(USER_ROUTES.MY_ORDERS, checkAuthentication, order.myOrders);
 
 // View details of a specific order
-router.get(  "/myOrders/:orderId" , checkAuthentication , order.viewOrder );  
+router.get(USER_ROUTES.ORDER_DETAILS, checkAuthentication, order.viewOrder);
 
 // Download order invoice as PDF
-router.get('/api/orders/download-pdf/:orderId', checkAuthentication , order.generateOrderPDF );
+router.get(USER_ROUTES.DOWNLOAD_ORDER_PDF, checkAuthentication, order.generateOrderPDF);
 
 // Cancel an order
-router.post( "/cancelOrder" , checkAuthentication , order.cancelOrder ) ;
+router.post(USER_ROUTES.CANCEL_ORDER, checkAuthentication, order.cancelOrder);
 
 // Submit a review for an order
-router.post( "/submitReview", checkAuthentication , order.submitReview ) ; 
+router.post(USER_ROUTES.SUBMIT_REVIEW, checkAuthentication, order.submitReview);
 
 
 
@@ -244,19 +245,19 @@ router.post( "/submitReview", checkAuthentication , order.submitReview ) ;
 
 // ====== RAZORPAY ROUTES ======
 // Create a Razorpay order
-router.post("/create-order", checkAuthentication ,razorPay.createOrder );
+router.post(USER_ROUTES.CREATE_ORDER, checkAuthentication, razorPay.createOrder);
 
 // Verify Razorpay payment
-router.post("/verify-payment" , checkAuthentication , razorPay.verifyPayment ) ;
+router.post(USER_ROUTES.VERIFY_PAYMENT, checkAuthentication, razorPay.verifyPayment);
 
 // Handle payment failure
-router.post("/payment-failed" ,checkAuthentication, razorPay.paymentFailed ) ;
+router.post(USER_ROUTES.PAYMENT_FAILED, checkAuthentication, razorPay.paymentFailed);
 
 // Continue with a failed payment
-router.post('/continue-failed-payment' , checkAuthentication , razorPay.continuePayment ) ; 
+router.post(USER_ROUTES.CONTINUE_PAYMENT, checkAuthentication, razorPay.continuePayment);
 
 // Verify continued payment
-router.post("/continue-verify-payment" , checkAuthentication, razorPay.continueVerifyPayment );
+router.post(USER_ROUTES.CONTINUE_VERIFY_PAYMENT, checkAuthentication, razorPay.continueVerifyPayment);
 
 
 
@@ -265,13 +266,13 @@ router.post("/continue-verify-payment" , checkAuthentication, razorPay.continueV
 
 // ====== WALLET ROUTES ======
 // Add wallet balance to cart
-router.post("/add-wallet-cart" , wallet.walletAddCart) ;    //fetch
+router.post(USER_ROUTES.ADD_WALLET, wallet.walletAddCart);    //fetch
 
 // Remove wallet balance from cart
-router.post("/remove-wallet-cart"  , wallet.walletRemoveCart ) ; // fetch
+router.post(USER_ROUTES.REMOVE_WALLET, wallet.walletRemoveCart); // fetch
 
 // View wallet transaction history
-router.get('/walletHistory' , checkAuthentication  , wallet.getWalletHistory );
+router.get(USER_ROUTES.WALLET_HISTORY, checkAuthentication, wallet.getWalletHistory);
 
 
 
@@ -280,7 +281,7 @@ router.get('/walletHistory' , checkAuthentication  , wallet.getWalletHistory );
 
 // ====== REFERRAL ROUTES ======
 // Withdraw referral balance
-router.post("/withDrawRefferalBalance" , checkAuthentication , refferal.withDrawBalance ) ; 
+router.post(USER_ROUTES.WITHDRAW_REFERRAL, checkAuthentication, refferal.withDrawBalance);
 
 
 
@@ -288,29 +289,29 @@ router.post("/withDrawRefferalBalance" , checkAuthentication , refferal.withDraw
 
 // ====== COUPON ROUTES ======
 // Get all available coupons
-router.get("/getCoupons" , checkAuthentication , coupon.coupons ) ;
+router.get(USER_ROUTES.COUPONS, checkAuthentication, coupon.coupons);
 
 // Apply a coupon code
-router.post("/add-coupon-code", coupon.couponAddCart ) ;
+router.post(USER_ROUTES.APPLY_COUPON, coupon.couponAddCart);
 
 // Remove an applied coupon code
-router.post("/remove-coupon-code" , coupon.removeCoupon ) ;
+router.post(USER_ROUTES.REMOVE_COUPON, coupon.removeCoupon);
 
 
 
 
 // ====== RETURN ORDER ROUTES ======
 // Render return order details
-router.get("/returnOrder/:id" , checkAuthentication ,  orderReturn.returnOrder ) ;
+router.get(USER_ROUTES.RETURN_ORDER, checkAuthentication, orderReturn.returnOrder);
 
 // Submit a return order request
-router.post("/returnOrder", checkAuthentication , orderReturn.postReturnOrder ) ;
+router.post(USER_ROUTES.RETURN_ORDER_POST, checkAuthentication, orderReturn.postReturnOrder);
 
 // View all return orders
-router.get("/orderReturns" , checkAuthentication , orderReturn.orderReturn ) ; 
+router.get(USER_ROUTES.RETURN_ORDERS, checkAuthentication, orderReturn.orderReturn);
 
 
 
 
 
-module.exports  =  router ;     
+module.exports = router;     

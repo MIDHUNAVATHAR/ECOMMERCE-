@@ -3,54 +3,59 @@
 
 
 //import schemas
-const Orders             =  require("../../models/orderSchema") ;
-const User               =  require("../../models/userSchema") ; 
-const WalletTransaction  =  require("../../models/walletTransaction") ;
-const Product            =  require("../../models/product") ;
+const Orders = require("../../models/orderSchema");
+const User = require("../../models/userSchema");
+const WalletTransaction = require("../../models/walletTransaction");
+const Product = require("../../models/product");
 
 
+
+const { ADMIN_ROUTES } = require("../../constants/routes")
+const { VIEWS } = require("../../constants/view")
+const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 
 //GET ORDERS
-const  orders            =   async  ( req , res ) => {
-    try{
-        
-        const page  = parseInt(req.query.page) || 1 ;
-        const limit = 8 ;
-        
-        const totalOrders = await Orders.countDocuments() ;
-        const skip = ( page-1 ) * limit ; 
-        
-        const orders = await Orders.find().skip(skip).limit(limit).populate("userId") ; 
-        const totalPages = Math.ceil( totalOrders/limit ) ;  
+const orders = async (req, res) => {
+    try {
 
-        res.render("backend/admin-dashboard.ejs" ,{ message : '', admin : req.session.admin.email ,
-        partial : "partials/orders" , orders ,  currentPage : page  , totalPages , 
-        searchKeyword :"" 
-    } ) ; 
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8;
 
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404")  ;  
+        const totalOrders = await Orders.countDocuments();
+        const skip = (page - 1) * limit;
+
+        const orders = await Orders.find().skip(skip).limit(limit).populate("userId");
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        res.render("backend/admin-dashboard.ejs", {
+            message: '', admin: req.session.admin.email,
+            partial: "partials/orders", orders, currentPage: page, totalPages,
+            searchKeyword: ""
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
- 
+
 
 
 //ORDER VIEW
-const  viewOrder  =  async ( req , res )  => { 
-    try{
-        
-        const order = await Orders.findById(req.params.orderId).populate("items.product").populate("shippingAddress") ;
+const viewOrder = async (req, res) => {
+    try {
+
+        const order = await Orders.findById(req.params.orderId).populate("items.product").populate("shippingAddress");
         // Format order date
         const orderDate = new Date(order.createdAt).toLocaleString();
-        res.render("backend/admin-dashboard.ejs" ,{message : '',admin : req.session.admin.email , partial : "partials/viewOrder" , order ,orderDate } ) ; 
-        
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404")  ;         
+        res.render("backend/admin-dashboard.ejs", { message: '', admin: req.session.admin.email, partial: "partials/viewOrder", order, orderDate });
+
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
@@ -58,74 +63,74 @@ const  viewOrder  =  async ( req , res )  => {
 
 
 //UPDATE ORDER STATUS
-const  updateOrderStatus  =  async  ( req , res ) =>{
-    try{
-       
-        const { orderStatus , orderId } = req.body ;
-        const savedOrder = await Orders.findByIdAndUpdate( orderId , { orderStatus  }) ; 
-    
-        if(orderStatus == 'cancelled' ){
+const updateOrderStatus = async (req, res) => {
+    try {
+
+        const { orderStatus, orderId } = req.body;
+        const savedOrder = await Orders.findByIdAndUpdate(orderId, { orderStatus });
+
+        if (orderStatus == 'cancelled') {
             //increase the quantity of products in the database . 
-       for(let i=0 ; i<savedOrder.items.length ; i++){
-        let productId  = savedOrder.items[i].product ; 
-        let size = savedOrder.items[i].size ;
-        let orderQuantity = savedOrder.items[i].quantity ; 
+            for (let i = 0; i < savedOrder.items.length; i++) {
+                let productId = savedOrder.items[i].product;
+                let size = savedOrder.items[i].size;
+                let orderQuantity = savedOrder.items[i].quantity;
 
-        // Find the product by its ID
-        let product = await Product.findById(productId);
+                // Find the product by its ID
+                let product = await Product.findById(productId);
 
-        if (product) {
-           // Find the item in the product.items array with the matching size
-           let itemToUpdate =  product.sizes.find(item => item.size === size);
-  
-           if (itemToUpdate) {
-              // Decrease the quantity by the order's quantity
-              itemToUpdate.quantity += orderQuantity;
-  
-              // Save the updated product back to the database
-              await product.save();
-           }
-         }
+                if (product) {
+                    // Find the item in the product.items array with the matching size
+                    let itemToUpdate = product.sizes.find(item => item.size === size);
+
+                    if (itemToUpdate) {
+                        // Decrease the quantity by the order's quantity
+                        itemToUpdate.quantity += orderQuantity;
+
+                        // Save the updated product back to the database
+                        await product.save();
+                    }
+                }
+            }
+
+            //add to wallet
+            const userId = savedOrder.userId;
+
+            const user = await User.findById(userId);
+
+
+            let amountPayable = (savedOrder.paymentMethod != "cash-on-delivery" && savedOrder.paymentStatus === "completed") ? savedOrder.totalPrice : 0;
+            user.walletBalance += (savedOrder.appliedWallet + amountPayable);
+
+            let wallet = savedOrder.appliedWallet > 0 ? savedOrder.appliedWallet + amountPayable : false;
+
+            const savedUser = await user.save();
+
+            //wallet transaction 
+            if ((savedOrder.appliedWallet + amountPayable) > 0) {
+
+                // Create wallet transaction record for the order placement
+                const walletTransaction = new WalletTransaction({
+                    userId,
+                    amount: savedOrder.appliedWallet + amountPayable,
+                    type: 'credit',
+                    description: `Refund for cancel  order ${savedOrder._id}`,
+                    balanceAfterTransaction: savedUser.walletBalance
+                });
+
+                await walletTransaction.save();
+
+            }
         }
 
-        //add to wallet
-        const userId = savedOrder.userId ;
-      
-        const user = await User.findById(userId) ;  
-      
-  
-        let amountPayable = (savedOrder.paymentMethod != "cash-on-delivery" && savedOrder.paymentStatus === "completed" ) ? savedOrder.totalPrice : 0 ;
-        user.walletBalance += (savedOrder.appliedWallet +  amountPayable); 
-
-        let wallet = savedOrder.appliedWallet > 0 ? savedOrder.appliedWallet+amountPayable : false ;  
-
-        const savedUser  =  await user.save();
-
-        //wallet transaction 
-        if( (savedOrder.appliedWallet + amountPayable) > 0  ){
-   
-                 // Create wallet transaction record for the order placement
-                 const walletTransaction = new WalletTransaction({
-                   userId,
-                   amount: savedOrder.appliedWallet + amountPayable , 
-                   type: 'credit',
-                   description: `Refund for cancel  order ${savedOrder._id}`,
-                   balanceAfterTransaction: savedUser.walletBalance 
-               });
-
-               await walletTransaction.save() ;  
-              
+        if (savedOrder) {
+            res.status(HTTP_STATUS.OK).json({ success: true })
+        } else {
+            res.status(HTTP_STATUS.NOT_FOUND).json({ message: "order not found" })
         }
-        }
-     
-        if(savedOrder){
-            res.status(200).json({success : true })
-        }else{
-            res.status(404).json({message : "order not found" })
-        }  
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404")  ;          
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
@@ -134,8 +139,8 @@ const  updateOrderStatus  =  async  ( req , res ) =>{
 
 
 
-module.exports  =  { 
-    orders , 
-    viewOrder ,
-    updateOrderStatus  
+module.exports = {
+    orders,
+    viewOrder,
+    updateOrderStatus
 }

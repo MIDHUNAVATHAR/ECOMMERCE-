@@ -2,39 +2,44 @@
 
 
 //import  schemas
-const  ReturnOrder        =    require("../../models/returnOrder") ;
-const  Product            =    require("../../models/product")  ;
-const  User               =    require("../../models/userSchema") ;
-const  WalletTransaction  =    require("../../models/walletTransaction") ;
-const  Address            =    require('../../models/addressSchema');
+const ReturnOrder = require("../../models/returnOrder");
+const Product = require("../../models/product");
+const User = require("../../models/userSchema");
+const WalletTransaction = require("../../models/walletTransaction");
+const Address = require('../../models/addressSchema');
 
+
+const { ADMIN_ROUTES } = require("../../constants/routes")
+const { VIEWS } = require("../../constants/view")
+const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 
 //GET  RETURN ORDERS
-const  returnOrders  =  async  ( req , res )  => {
-    try{
+const returnOrders = async (req, res) => {
+    try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
 
         const totalOrders = await ReturnOrder.countDocuments();
-        const totalPages = Math.ceil(totalOrders / limit) ; 
+        const totalPages = Math.ceil(totalOrders / limit);
 
         const returnOrders = await ReturnOrder.find()
             .populate('orderId')
             .populate('userId')
             .populate('pickupAddress')
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit) ;
+            .limit(limit);
 
-        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.admin.email  , partial : "partials/returnOrders" ,
-            returnOrders, currentPage: page , totalPages ,  totalOrders
+        res.render("backend/admin-dashboard.ejs", {
+            message: '', admin: req.session.admin.email, partial: "partials/returnOrders",
+            returnOrders, currentPage: page, totalPages, totalOrders
         })
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404") ;      
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 
 }
@@ -43,8 +48,8 @@ const  returnOrders  =  async  ( req , res )  => {
 
 
 //UPDATE STATUS
-const   updateStatus   =  async  ( req , res )  =>{
-    try{
+const updateStatus = async (req, res) => {
+    try {
         const { id } = req.params;
         const { status, adminNote } = req.body;
 
@@ -56,8 +61,8 @@ const   updateStatus   =  async  ( req , res )  =>{
 
         // Check if order is already completed
         if (returnOrder.returnStatus === 'completed') {
-            return res.status(400).json({ 
-                message: 'Cannot modify completed return orders' 
+            return res.status(400).json({
+                message: 'Cannot modify completed return orders'
             });
         }
 
@@ -68,8 +73,8 @@ const   updateStatus   =  async  ( req , res )  =>{
 
 
 
-          //update the product quantity to database 
-          if (status === 'completed') {
+        //update the product quantity to database 
+        if (status === 'completed') {
             // Update product quantities
             for (const item of returnOrder.items) {
                 const product = await Product.findById(item.product);
@@ -93,59 +98,61 @@ const   updateStatus   =  async  ( req , res )  =>{
                     amount: returnOrder.totalRefundAmount,
                     type: 'credit',
                     description: `Refund for returned order ${returnOrder._id}`,
-                    balanceAfterTransaction: user.walletBalance 
+                    balanceAfterTransaction: user.walletBalance
                 });
 
                 await walletTransaction.save();
 
-                await user.save() ; 
+                await user.save();
             }
         }
 
-         await returnOrder.save() ;
-        res.redirect('/admin/returnOrders'); 
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404") ;  
-     }
-}
-   
-
-
-
-  
-//VIEW RETURN ORDER
-const  getReturnOrderDetails  =  async  ( req , res ) => {
-    try{
-        const returnOrderId = req.params.id;
-        const returnOrder = await ReturnOrder.findById(returnOrderId)
-            .populate('orderId')
-            .populate('userId')
-            .populate({
-                path: 'items.product' , 
-                model: 'Product'
-            })
-            .populate('pickupAddress') ;
-
-        if (!returnOrder) {
-            return res.status(404).json({ message: 'Return order not found' }) ; 
-        }
-
-        res.render("backend/admin-dashboard.ejs" , { message : '', admin : req.session.admin.email , 
-            partial : "partials/returnOrderView" , returnOrder } );
-
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404") ;         
+        await returnOrder.save();
+        res.redirect('/admin/returnOrders');
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
 
 
 
- 
-module.exports   =  { 
-    returnOrders , 
-    updateStatus  , 
-    getReturnOrderDetails  
-} ;    
+
+//VIEW RETURN ORDER
+const getReturnOrderDetails = async (req, res) => {
+    try {
+        const returnOrderId = req.params.id;
+        const returnOrder = await ReturnOrder.findById(returnOrderId)
+            .populate('orderId')
+            .populate('userId')
+            .populate({
+                path: 'items.product',
+                model: 'Product'
+            })
+            .populate('pickupAddress');
+
+        if (!returnOrder) {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Return order not found' });
+        }
+
+        res.render("backend/admin-dashboard.ejs", {
+            message: '', admin: req.session.admin.email,
+            partial: "partials/returnOrderView", returnOrder
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
+    }
+}
+
+
+
+
+
+module.exports = {
+    returnOrders,
+    updateStatus,
+    getReturnOrderDetails
+};    

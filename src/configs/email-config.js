@@ -6,12 +6,8 @@ const dotenv      = require("dotenv");      // Module for loading environment va
  
 
 
-
-
 // Load environment variables from the .env file
 dotenv.config();                            // Reads the .env file and makes variables accessible via process.env
-
-
 
 
 
@@ -29,7 +25,9 @@ const transporter = nodemailer.createTransport({
 
 
 
-
-
 // Export the transporter so it can be used in other parts of the application
 module.exports   =   transporter ;   
+
+
+
+

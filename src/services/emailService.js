@@ -21,7 +21,6 @@ const sendOTPEmail = async (email, otp) => {
         res.status(500).json({ message : "An error occurred while sending email otp." }) ;
         res.render("frontend/404" )  ; 
     }
-
 };
   
 

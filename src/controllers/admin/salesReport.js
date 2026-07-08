@@ -2,98 +2,106 @@
 
 
 //import modules
-const  moment      =   require("moment");
-const PDFDocument  =   require('pdfkit');
-const ExcelJS      =   require('exceljs');
+const moment = require("moment");
+const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
 
+
+const { ADMIN_ROUTES } = require("../../constants/routes")
+const { VIEWS } = require("../../constants/view")
+const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 //import schemas
-const  Order       =   require("../../models/orderSchema") ;
+const Order = require("../../models/orderSchema");
 
 
 
 
 //GET  SALES  REPORT  PAGE
-const   salesReport   =  async  ( req ,res )  =>{
-    try{
-        
-      const { dateRange, fromDate, toDate } = req.query;
-    
-      let startDate = new Date();
-      let endDate = new Date();
-    
-      switch (dateRange) {
-        case 'day':
-          startDate.setHours(0, 0, 0, 0);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case 'week':
-          startDate.setDate(startDate.getDate() - 7);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case 'month':
-          startDate.setMonth(startDate.getMonth() - 1);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case 'year':
-          startDate.setFullYear(startDate.getFullYear() - 1);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case 'custom':
-          startDate = new Date(fromDate);
-          endDate = new Date(toDate);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        default:
-          break;
-      }
-    
-      const salesReport = await Order.find({
-        createdAt: { $gte: startDate, $lte: endDate },
-      }).populate("userId");
-    
-   
-      // Calculate summary data
-      const totalSalesCount = salesReport.length;
-      const totalOrderAmount = salesReport.reduce((sum, order) => sum + order.totalPrice, 0);
-      const totalDiscount = salesReport.reduce((sum, order) => sum + order.totalDiscount , 0);
-      const totalCouponDeduction = salesReport.reduce((sum, order) => sum + order.appliedCoupon, 0);
-    
+const salesReport = async (req, res) => {
+    try {
+
+        const { dateRange, fromDate, toDate } = req.query;
+
+        let startDate = new Date();
+        let endDate = new Date();
+
+        switch (dateRange) {
+            case 'day':
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            case 'week':
+                startDate.setDate(startDate.getDate() - 7);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            case 'month':
+                startDate.setMonth(startDate.getMonth() - 1);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            case 'year':
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            case 'custom':
+                startDate = new Date(fromDate);
+                endDate = new Date(toDate);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            default:
+                break;
+        }
+
+        const salesReport = await Order.find({
+            createdAt: { $gte: startDate, $lte: endDate },
+        }).populate("userId");
 
 
-      //pagination
-      const page = parseInt(req.query.page) || 1 ; 
-      const limit = 10 ;
-     
-      const totalOrders = await Order.countDocuments({ createdAt: { $gte: startDate, $lte: 
-        endDate }}) ;
-      const skip = ( page-1 ) * limit ; 
-     
-      const orders = await Order.find({
-        createdAt: { $gte: startDate, $lte: endDate }, 
-      }).skip(skip).limit(limit).populate("userId") ; 
-
-
-      const totalPages = Math.ceil( totalOrders/limit ) ;  
+        // Calculate summary data
+        const totalSalesCount = salesReport.length;
+        const totalOrderAmount = salesReport.reduce((sum, order) => sum + order.totalPrice, 0);
+        const totalDiscount = salesReport.reduce((sum, order) => sum + order.totalDiscount, 0);
+        const totalCouponDeduction = salesReport.reduce((sum, order) => sum + order.appliedCoupon, 0);
 
 
 
+        //pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
 
-      res.render("backend/admin-dashboard" , {
-        partial : "partials/sales-report" ,
-        salesReport,
-        totalSalesCount,
-        totalOrderAmount,
-        totalDiscount,
-        totalCouponDeduction , 
-        admin : req.session.admin.email ,
-        orders ,  currentPage : page  , totalPages , 
-        searchKeyword : "" 
-      });
-    }catch(err){
-        console.log(err) ;
-        res.status(500).render("frontend/404") ;  
+        const totalOrders = await Order.countDocuments({
+            createdAt: {
+                $gte: startDate, $lte:
+                    endDate
+            }
+        });
+        const skip = (page - 1) * limit;
+
+        const orders = await Order.find({
+            createdAt: { $gte: startDate, $lte: endDate },
+        }).skip(skip).limit(limit).populate("userId");
+
+
+        const totalPages = Math.ceil(totalOrders / limit);
+
+
+
+
+        res.render("backend/admin-dashboard", {
+            partial: "partials/sales-report",
+            salesReport,
+            totalSalesCount,
+            totalOrderAmount,
+            totalDiscount,
+            totalCouponDeduction,
+            admin: req.session.admin.email,
+            orders, currentPage: page, totalPages,
+            searchKeyword: ""
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
 
@@ -104,7 +112,7 @@ const   salesReport   =  async  ( req ,res )  =>{
 const generatePDF = async (req, res) => {
     try {
         const { dateRange, fromDate, toDate } = req.query;
-    
+
         let startDate = new Date();
         let endDate = new Date();
 
@@ -246,8 +254,8 @@ const generatePDF = async (req, res) => {
                     currentY += 15;
                 }
             }
-             // Add gap between orders
-             currentY += 30; // Add 10 units of space between orders
+            // Add gap between orders
+            currentY += 30; // Add 10 units of space between orders
         }
 
         // Footer
@@ -256,8 +264,8 @@ const generatePDF = async (req, res) => {
         doc.end();
     } catch (err) {
         console.error('Error generating PDF:', err);
-        res.status(500).render("frontend/404");
-    } 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
+    }
 };
 
 
@@ -267,7 +275,7 @@ const generatePDF = async (req, res) => {
 const generateExcel = async (req, res) => {
     try {
         const { dateRange, fromDate, toDate } = req.query;
-        
+
         // Set date range
         let startDate = new Date();
         let endDate = new Date();
@@ -299,8 +307,8 @@ const generateExcel = async (req, res) => {
         }
 
         const orders = await Order.find({});
-        if( orders.length == 0 ){
-            return res.redirect("/admin/sales-report") ; 
+        if (orders.length == 0) {
+            return res.redirect("/admin/sales-report");
         }
 
         // Fetch sales data
@@ -381,7 +389,7 @@ const generateExcel = async (req, res) => {
 
             // Main order information
             row.getCell(1).value = order._id.toString();
-            row.getCell(2).value = `${order.userId?.firstName || 'N/A'} ${order.userId?.lastName || ''}`; 
+            row.getCell(2).value = `${order.userId?.firstName || 'N/A'} ${order.userId?.lastName || ''}`;
             row.getCell(3).value = moment(order.createdAt).format('DD/MM/YYYY'); // Format date in Indian format
             row.getCell(4).value = order.orderStatus;
 
@@ -389,7 +397,7 @@ const generateExcel = async (req, res) => {
             amountCell.value = order.totalPrice;
             amountCell.numFmt = '₹#,##0.00';
 
-            const itemsInfo = order.items.map(item => 
+            const itemsInfo = order.items.map(item =>
                 `${item.product?.title || 'Unknown Product'} (Qty: ${item.quantity}, Size: ${item.size}, Price: ₹${item.price})`
             ).join('\n');
             row.getCell(6).value = itemsInfo;
@@ -429,7 +437,7 @@ const generateExcel = async (req, res) => {
         await workbook.xlsx.write(res);
     } catch (err) {
         console.log(err);
-        res.status(500).render("frontend/404");
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 };
 
@@ -438,8 +446,8 @@ const generateExcel = async (req, res) => {
 
 
 
-module.exports  =  { 
-    salesReport , 
-    generatePDF  ,
-    generateExcel 
-} ;
+module.exports = {
+    salesReport,
+    generatePDF,
+    generateExcel
+};
