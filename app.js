@@ -3,7 +3,7 @@
 const  express  =  require("express")  ;         // Web framework for Node.js
 const  mongoose =  require("mongoose")  ;        // MongoDB object modeling tool
 const  app      =  express()  ;                  // Initialize Express application
-const  winston  =  require("winston")  ;         // Logging library
+const  logger   =  require("./src/configs/logger") ; // Custom Winston logger
 const  cors     =  require("cors")               // Middleware to enable Cross-Origin Resource Sharing
 const  path     =  require("path")  ;            // Utility for working with file and directory paths
 const  session  =  require('express-session');   // Middleware for handling sessions
@@ -29,9 +29,9 @@ const PORT      =  process.env.PORT  ||  8001  ;
 const connectDB = async () =>{
     try{
         await mongoose.connect(process.env.MONGO_URI) ;
-        winston.log("info" , "MongoDB Connected") ;
+        logger.info("MongoDB Connected") ;
     }catch(err){ 
-        winston.error(err.message) ; 
+        logger.error(`MongoDB Connection Error: ${err.message}`, { stack: err.stack }) ; 
     }
 }
 connectDB() ; // Invoke the connection function
@@ -39,38 +39,9 @@ connectDB() ; // Invoke the connection function
 
 
 // Middleware to parse incoming requests
-app.use(express.urlencoded({ extended: true }));// Parse URL-encoded payloads
-app.use(express.json());                        // Parse JSON payloads
+app.use(express.urlencoded({ limit: '50mb', extended: true }));// Parse URL-encoded payloads
+app.use(express.json({ limit: '50mb' }));                       // Parse JSON payloads
 
-
-
-// Middleware to log API request, request data, response data, and response time
-// app.use((req, res, next) => {
-//     const start = Date.now();
-//     let responseData;
-
-//     const originalSend = res.send;
-//     res.send = function (body) {
-//         responseData = body;
-//         return originalSend.apply(this, arguments);
-//     };
-
-//     res.on('finish', () => {
-//         const responseTime = Date.now() - start;
-//         console.log({
-//             api: `${req.method} ${req.originalUrl || req.url}`,
-//             requestData: {
-//                 query: req.query,
-//                 body: req.body,
-//                 params: req.params
-//             },
-//             responseData: responseData,
-//             responseTime: `${responseTime}ms`
-//         });
-//     });
-
-//     next();
-// });
 
 
 // Session middleware configuration
@@ -114,7 +85,7 @@ app.use("/admin" , adminRoute ) ;  // Mount admin routes
 
 // Global error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err);            // Log the error
+    logger.error(`Unhandled Express Error: ${err.message}`, { stack: err.stack, url: req.originalUrl, method: req.method });
     res.render( "frontend/404" ) ; // Render 404 error page
 });
   
@@ -126,4 +97,4 @@ app.use( (req , res ) =>{
   
 
 // Start the server and log success or errors
-app.listen( PORT , ( err ) => err  ?  winston.error( err ) : winston.log(  "info" , `Server Started on the Port : ${PORT} `) )  ;
+app.listen( PORT , ( err ) => err  ?  logger.error(`Server Error: ${err.message}`, { stack: err.stack }) : logger.info(`Server Started on Port : ${PORT}`) )  ;

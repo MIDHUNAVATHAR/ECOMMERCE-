@@ -9,6 +9,7 @@ const   multer     =  require("multer")  ;
 
 // Configure multer for uploading logo files
 const uploadLogos  =  multer({
+    limits: { fileSize: 50 * 1024 * 1024, fieldSize: 50 * 1024 * 1024 },
     storage :  multer.diskStorage ({ 
         destination : "uploads/logo",                  // Directory to store uploaded logo files
         filename    : (req , file , cb ) =>{ 
@@ -23,6 +24,7 @@ const uploadLogos  =  multer({
 
  // Configure multer for uploading banner files
 const uploadBanners  = multer({
+    limits: { fileSize: 50 * 1024 * 1024, fieldSize: 50 * 1024 * 1024 },
     storage :  multer.diskStorage ({ 
         destination : "uploads/banner",                 // Directory to store uploaded banner files
         filename    : (req , file , cb ) =>{ 
@@ -38,6 +40,7 @@ const uploadBanners  = multer({
 
  // Configure multer for uploading product images
 const uploadProduct = multer({
+    limits: { fileSize: 50 * 1024 * 1024, fieldSize: 50 * 1024 * 1024 },
     storage :  multer.diskStorage ({  
         destination : "uploads/product",                // Directory to store uploaded product images
         filename    : (req , file , cb ) =>{ 
@@ -53,7 +56,6 @@ const uploadProduct = multer({
 
 // Export all upload configurations to use them in other parts of the application
  module.exports  =  {  uploadLogos  ,  uploadBanners  , uploadProduct  } ;  
-
 
 
 
