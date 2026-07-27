@@ -192,7 +192,12 @@ let cropper ;
                 return;
             }
 
-            cropper.getCroppedCanvas().toBlob((blob) => {
+            cropper.getCroppedCanvas({
+                maxWidth: 1280,
+                maxHeight: 1280,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            }).toBlob((blob) => {
                 croppedImagesData.push(blob);
 
                 const url = URL.createObjectURL(blob);
@@ -206,7 +211,7 @@ let cropper ;
                 cropButton.style.display = 'none'; 
                 inputImage.value = '';
                 inputImage.disabled = false;  
-            }, 'image/png');
+            }, 'image/jpeg', 0.85);
         });
 
 
@@ -432,43 +437,44 @@ function validateMinImages() {
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
-            }).then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                   
-                    Swal.fire({
-                icon: 'success',
-                title: `${data.message}`,
-                text:' success.',
-                confirmButtonText: 'OK'
-            });
-
-                    location.reload();
-                    
-                } else if(data.size ){
-                  Swal.fire({
-                icon: 'warning',
-                title: `${data.size}`,
-                text:' Try again.',
-                confirmButtonText: 'OK' 
-                  })
+            }).then(async response => {
+                const data = await response.json().catch(() => null);
+                if (!response.ok) {
+                    const errorMsg = (data && (data.error || data.message)) || (response.status === 413 ? 'Images are too large. Please select smaller images.' : `Server Error (${response.status})`);
+                    throw new Error(errorMsg);
                 }
-                else {
-                  Swal.fire({
-                icon: 'warning',
-                title: `${data.error}`,
-                text:'Failed to add product',
-                confirmButtonText: 'OK' 
-                  })
-                   
+                return data;
+            }).then(data => {
+                if (data && data.message) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: `${data.message}`,
+                        text:' success.',
+                        confirmButtonText: 'OK'
+                    });
+                    location.reload();
+                } else if(data && data.size ){
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `${data.size}`,
+                        text:' Try again.',
+                        confirmButtonText: 'OK' 
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `${data ? data.error : 'Failed to add product'}`,
+                        text:'Failed to add product',
+                        confirmButtonText: 'OK' 
+                    });
                 }
             }).catch(error => {
               Swal.fire({
                 icon: 'warning',
-                title: `${error}`,
+                title: `${error.message || error}`,
                 text:'Failed to add product',
                 confirmButtonText: 'OK' 
-                  })
+              });
             });
         }else{
           Swal.fire({

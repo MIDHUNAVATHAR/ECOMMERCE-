@@ -1,4 +1,4 @@
-  <!--field validation-->  
+ <!--field validation-->  
   <script defer src="/public/scripts/validation-editProduct.js"></script>
 
 <div class="p-4">
@@ -211,7 +211,12 @@
           return;
       }
 
-      cropper.getCroppedCanvas().toBlob((blob) => {
+      cropper.getCroppedCanvas({
+          maxWidth: 1280,
+          maxHeight: 1280,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+      }).toBlob((blob) => {
           croppedImagesData.push(blob);
 
           const url = URL.createObjectURL(blob);
@@ -225,7 +230,7 @@
           cropButton.style.display = 'none'; 
           inputImage.value = '';
           inputImage.disabled = false;
-      }, 'image/png');
+      }, 'image/jpeg', 0.85);
   });
 
 
@@ -528,27 +533,31 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
     fetch(this.action, {
         method: 'POST',
         body: formData, 
-    }).then(response => response.json())
-    .then(data => {
-        if (data.message) {
-          Swal.fire({
-        title: 'Product updated',
-        icon: 'success',
-        confirmButtonText: 'Okay',
-        confirmButtonColor: '#3085d6',
-        background: '#f7f7f7',
-        backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
-      }).then(()=>{
-        window.location.reload() ;  
-            // Optionally, you can redirect or refresh the page here
-      })
-         
-        } else if (data.error) {
+    }).then(async response => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            const errorMsg = (data && (data.error || data.message)) || (response.status === 413 ? 'Images are too large. Please select smaller images.' : `Server Error (${response.status})`);
+            throw new Error(errorMsg);
+        }
+        return data;
+    }).then(data => {
+        if (data && data.message) {
+            Swal.fire({
+                title: 'Product updated',
+                icon: 'success',
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#3085d6',
+                background: '#f7f7f7',
+                backdrop: `rgba(0, 123, 255, 0.4) left top no-repeat`
+            }).then(()=>{
+                window.location.reload() ;  
+            });
+        } else if (data && data.error) {
             alert(`Error: ${data.error}`);
         }
     }).catch(error => {
         console.error('Error:', error);
-        alert('Failed to update product. Please try again later.');
+        alert(error.message || 'Failed to update product. Please try again later.');
     });
 
 

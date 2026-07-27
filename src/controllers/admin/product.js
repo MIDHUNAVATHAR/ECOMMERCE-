@@ -99,7 +99,7 @@ const addProductPost = async (req, res) => {
             res.status(HTTP_STATUS.OK).json({ message: 'Product added successfully' });
         } catch (error) {
             console.log(error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message || 'Internal Server Error' });
         }
 
     });
@@ -227,7 +227,7 @@ const editProductPost = async (req, res) => {
         res.status(HTTP_STATUS.OK).json({ message: 'Product updated successfully' });
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: err.message || 'Internal Server Error' });
     }
 };
 
