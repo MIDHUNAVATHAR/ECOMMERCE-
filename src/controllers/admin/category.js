@@ -25,7 +25,7 @@ const category = async (req, res) => {
         });
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                                   // Render error page on failure
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);     // Render error page on failure
     }
 }
 
@@ -36,13 +36,13 @@ const category = async (req, res) => {
 const addGenderCategory = async (req, res) => {
     let { name } = req.body;
     name = name.trim().toUpperCase();                                           // Normalize name input
-    const isExists = await GenderCategory.findOne({ name });                     // Check if the category already exists
+    const isExists = await GenderCategory.findOne({ name });                    // Check if the category already exists
     if (isExists) {
         return res.redirect("/admin/addCategory?alreadyExists=1");              // Redirect if category already exists
     } else {
 
-        await GenderCategory.create({ name });                                        // Create a new gender category
-        res.redirect("/admin/addCategory?added=1");                                // Redirect on successful creation
+        await GenderCategory.create({ name });                                  // Create a new gender category
+        res.redirect("/admin/addCategory?added=1");                             // Redirect on successful creation
     }
 }
 
@@ -53,11 +53,11 @@ const addGenderCategory = async (req, res) => {
 const editGenderCategory = async (req, res) => {
     const { id } = req.params;                                                  // Get the category ID from URL params
     let { name } = req.body;
-    name = name.trim().toUpperCase();                                          // Normalize name input
+    name = name.trim().toUpperCase();                                           // Normalize name input
 
 
     try {
-        const isExists = await GenderCategory.findOne({ name })                  // Check if category with new name already exists
+        const isExists = await GenderCategory.findOne({ name })                 // Check if category with new name already exists
         if (isExists) {
             return res.status(HTTP_STATUS.CONFLICT).json({ message: "category already exists" });// Return conflict response if exists
         }
@@ -90,7 +90,7 @@ const editGenderCategory = async (req, res) => {
 // POST request to add a new product category
 const addProductCategory = async (req, res) => {
     let { name, genderCategory } = req.body;
-    name = name.trim().toUpperCase();                                      // Normalize name input
+    name = name.trim().toUpperCase();                                    // Normalize name input
     if (!genderCategory) {
         return res.redirect("/admin/addCategory?genderCategory=0");      // Redirect if gender category is not selected
     }
@@ -98,8 +98,8 @@ const addProductCategory = async (req, res) => {
     if (isExists) {
         return res.redirect("/admin/addCategory?alreadyExists=1");
     } else {
-        await ProductCategory.create({ name, genderCategory });                 // Create new product category
-        res.redirect("/admin/addCategory?added=1");                            // Redirect after creation
+        await ProductCategory.create({ name, genderCategory });          // Create new product category
+        res.redirect("/admin/addCategory?added=1");                      // Redirect after creation
     }
 }
 
@@ -111,10 +111,10 @@ const editProductCategory = async (req, res) => {
     const { id } = req.params;                                            // Get product category ID
     let { name } = req.body;
     console.log(id, name)
-    name = name.trim().toUpperCase();                                    // Normalize name input
+    name = name.trim().toUpperCase();                                     // Normalize name input
 
     try {
-        const isExists = await ProductCategory.findOne({ name })           // Check if category with new name exists
+        const isExists = await ProductCategory.findOne({ name })          // Check if category with new name exists
         if (isExists) {
             return res.status(HTTP_STATUS.CONFLICT).json({ message: "category already exists" }); // Return conflict response if exists
         }
@@ -150,7 +150,7 @@ const softDeleteGenderCat = async (req, res) => {
     try {
         const { genderId } = req.body;                                                 // Get the gender category ID
         await GenderCategory.findByIdAndUpdate(genderId, { softDelete: true });        // Set softDelete flag to true
-        res.json({ success: true, message: 'Gender catgegory deleted successfully' });// Respond with success 
+        res.json({ success: true, message: 'Gender catgegory deleted successfully' }); // Respond with success 
 
     } catch (err) {
         console.error(err);
@@ -167,7 +167,7 @@ const softDeleteGenderCate = async (req, res) => {
     try {
         const { genderId } = req.body;                                               // Get the gender category ID
         await GenderCategory.findByIdAndUpdate(genderId, { softDelete: false });     // Restore soft-deleted category
-        res.json({ success: true, message: 'Gender catgegory added successfully' });// Respond with success
+        res.json({ success: true, message: 'Gender catgegory added successfully' }); // Respond with success
 
     } catch (err) {
         console.error(err);
@@ -183,7 +183,7 @@ const softDeleteGenderCate = async (req, res) => {
 const deleteProductCategory = async (req, res) => {
     try {
         const { productId } = req.body;                                                // Get the product category ID
-        await ProductCategory.findByIdAndUpdate(productId, { softDelete: true });     // Set softDelete flag to true
+        await ProductCategory.findByIdAndUpdate(productId, { softDelete: true });      // Set softDelete flag to true
         res.json({ success: true, message: 'Product catgegory deleted successfully' });// Respond with success  
     } catch (err) {
         console.error(err);
@@ -200,21 +200,12 @@ const softDeleteProductCate = async (req, res) => {
     try {
         const { productId } = req.body;                                               // Get the product category ID
         await ProductCategory.findByIdAndUpdate(productId, { softDelete: false });    // Restore soft-deleted category
-        res.json({ success: true, message: 'Product catgegory added successfully' });// Respond with success
+        res.json({ success: true, message: 'Product catgegory added successfully' }); // Respond with success
     } catch (err) {
         console.error(err);
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Internal Server Error' });   // Handle server error
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 module.exports = {

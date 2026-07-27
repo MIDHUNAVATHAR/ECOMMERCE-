@@ -22,9 +22,6 @@ const { uploadLogos, uploadBanners } = require("../../configs/multer");
 
 
 
-
-
-
 //GET LANNDING PAGE
 const landingPage = async (req, res) => {
     try {
@@ -37,9 +34,6 @@ const landingPage = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
-
 
 
 
@@ -67,9 +61,6 @@ const uploadLogo = async (req, res) => {
 }
 
 
-
-
-
 //updat logo date ,
 const updatelogoDate = async (req, res) => {
 
@@ -88,9 +79,6 @@ const updatelogoDate = async (req, res) => {
     }
 
 }
-
-
-
 
 
 //POST UPLOAD BANNER
@@ -117,7 +105,6 @@ const uploadBanner = async (req, res) => {
 }
 
 
-
 //updat Banner date ,
 const updateBannerDate = async (req, res) => {
 
@@ -137,7 +124,6 @@ const updateBannerDate = async (req, res) => {
     }
 
 }
-
 
 
 //DELETE LOGO AND BANNER IMAGES  
@@ -174,8 +160,6 @@ const deleteImages = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 

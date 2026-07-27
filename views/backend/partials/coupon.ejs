@@ -26,7 +26,9 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border border-gray-300 p-2">Coupon Code</th>
-                    <th class="border border-gray-300 p-2">Discount Value</th>
+                    <th class="border border-gray-300 p-2">Discount (%)</th>
+                    <th class="border border-gray-300 p-2">Min Purchase Amount (₹)</th>
+                    <th class="border border-gray-300 p-2">Max Discount Value (₹)</th>
                     <th class="border border-gray-300 p-2">Usage Limit</th>
                     <th class="border border-gray-300 p-2">Expiry Date</th>
                     <th class="border border-gray-300 p-2">Action</th>
@@ -39,17 +41,19 @@
                         <input type="text" readonly name="code[]" value="<%= coupon.code %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
-                        <input type="number" min="0"  name="discountValue[]" value="<%= coupon.couponBalance %>" class="w-full p-1 border border-gray-300" >
+                        <input type="number" min="0" max="100" name="discountPercentage[]" value="<%= coupon.discountPercentage %>" class="w-full p-1 border border-gray-300" >
+                    </td>
+                    <td class="border border-gray-300 p-2">
+                        <input type="number" min="0" name="minPurchaseAmount[]" value="<%= coupon.minPurchaseAmount %>" class="w-full p-1 border border-gray-300" >
+                    </td>
+                    <td class="border border-gray-300 p-2">
+                        <input type="number" min="0" name="maxDiscountAmount[]" value="<%= coupon.maxDiscountAmount %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
                         <input type="number" min="1" name="usageLimit[]" value="<%= coupon.usageLimit %>" class="w-full p-1 border border-gray-300" >
                     </td>
                     <td class="border border-gray-300 p-2">
-                         <input type="date" name="expiryDate[]" value="<%= coupon.expiryDate.toISOString().split('T')[0] %>" class="w-full p-1 border border-gray-300" > 
-
-
-                     
-                 
+                         <input type="date" name="expiryDate[]" value="<%= coupon.expiryDate ? coupon.expiryDate.toISOString().split('T')[0] : '' %>" class="w-full p-1 border border-gray-300" > 
                       </td>
                
                     <td class="border border-gray-300 p-2 text-red-500">
@@ -104,15 +108,23 @@
         <form id="newCouponForm">
           <div class="mb-4">
             <label for="newCode" class="block text-sm font-medium">Coupon Code</label>
-            <input type="text" id="newCode" name="code" class="w-full p-2 border rounded  " >
+            <input type="text" id="newCode" name="code" class="w-full p-2 border rounded" required>
           </div>
           <div class="mb-4">
-            <label for="newDiscountValue" class="block text-sm font-medium">Discount Value</label>
-            <input type="number" id="newDiscountValue" name="discountValue" class="w-full p-2 border rounded"  min="0">
+            <label for="newDiscountPercentage" class="block text-sm font-medium">Discount Percentage (%)</label>
+            <input type="number" id="newDiscountPercentage" name="discountPercentage" class="w-full p-2 border rounded" min="0" max="100" required>
+          </div>
+          <div class="mb-4">
+            <label for="newMinPurchaseAmount" class="block text-sm font-medium">Min Purchase Amount (₹)</label>
+            <input type="number" id="newMinPurchaseAmount" name="minPurchaseAmount" class="w-full p-2 border rounded" min="0" required>
+          </div>
+          <div class="mb-4">
+            <label for="newMaxDiscountAmount" class="block text-sm font-medium">Max Discount Value (₹)</label>
+            <input type="number" id="newMaxDiscountAmount" name="maxDiscountAmount" class="w-full p-2 border rounded" min="0" required>
           </div>
           <div class="mb-4">
             <label for="newUsageLimit" class="block text-sm font-medium">Usage Limit</label>
-            <input type="number" id="newUsageLimit" name="usageLimit" class="w-full p-2 border rounded"  min="1">
+            <input type="number" id="newUsageLimit" name="usageLimit" class="w-full p-2 border rounded" min="1" required>
           </div>
           <div class="mb-4">
             <label for="newExpiryDate" class="block text-sm font-medium">Expiry Date</label>
@@ -141,7 +153,9 @@ document.getElementById("updateForm").addEventListener("submit", async (e) => {
 
   // Collecting form data into arrays
   const codes = Array.from(document.querySelectorAll("input[name='code[]']")).map(input => input.value);
-  const discountValues = Array.from(document.querySelectorAll("input[name='discountValue[]']")).map(input => input.value);
+  const discountPercentages = Array.from(document.querySelectorAll("input[name='discountPercentage[]']")).map(input => input.value);
+  const minPurchaseAmounts = Array.from(document.querySelectorAll("input[name='minPurchaseAmount[]']")).map(input => input.value);
+  const maxDiscountAmounts = Array.from(document.querySelectorAll("input[name='maxDiscountAmount[]']")).map(input => input.value);
   const usageLimits = Array.from(document.querySelectorAll("input[name='usageLimit[]']")).map(input => input.value);
   const expiryDates = Array.from(document.querySelectorAll("input[name='expiryDate[]']")).map(input => input.value);
 
@@ -150,7 +164,7 @@ document.getElementById("updateForm").addEventListener("submit", async (e) => {
   // Validate fields and show an error if any required field is empty
   let hasError = false;
   codes.forEach((code, index) => {
-    if (!code || !discountValues[index] || !usageLimits[index] || !expiryDates[index]) {
+    if (!code || discountPercentages[index] === "" || minPurchaseAmounts[index] === "" || maxDiscountAmounts[index] === "" || !usageLimits[index] || !expiryDates[index]) {
       hasError = true;
     }
   });
@@ -164,7 +178,9 @@ document.getElementById("updateForm").addEventListener("submit", async (e) => {
   // Structuring data into a single array of coupon objects
   const coupons = codes.map((code, i) => ({
     code,
-    discountValue: parseFloat(discountValues[i]),
+    discountPercentage: parseFloat(discountPercentages[i]),
+    minPurchaseAmount: parseFloat(minPurchaseAmounts[i]),
+    maxDiscountAmount: parseFloat(maxDiscountAmounts[i]),
     usageLimit: parseInt(usageLimits[i]),
     expiryDate: expiryDates[i],
   }));
@@ -240,12 +256,6 @@ function deleteRow(id , element) {
 
 
 
-
-
-
-
-
-
   // Toggle modal display
   const modal = document.getElementById("addCouponModal");
     document.getElementById("addNewCouponButton").addEventListener("click", () => {
@@ -265,24 +275,33 @@ function deleteRow(id , element) {
       
       let code =  document.getElementById("newCode").value.trim( );
       if( !/^[a-zA-Z0-9]+$/.test(code) ){
-        return  toastr.error('coupon contails only alphabets and numbers')  
+        return  toastr.error('Coupon code contains only alphabets and numbers')  
       }
-      
       
 
       const newCouponData = {
         code,
-        discountValue: document.getElementById("newDiscountValue").value,
-        usageLimit: document.getElementById("newUsageLimit").value,
+        discountPercentage: parseFloat(document.getElementById("newDiscountPercentage").value),
+        minPurchaseAmount: parseFloat(document.getElementById("newMinPurchaseAmount").value),
+        maxDiscountAmount: parseFloat(document.getElementById("newMaxDiscountAmount").value),
+        usageLimit: parseInt(document.getElementById("newUsageLimit").value),
         expiryDate: document.getElementById("newExpiryDate").value
       };
 
-      if(newCouponData.discountValue < 0 ){
-        return toastr.error('Enter a valid discount value')  
+      if(isNaN(newCouponData.discountPercentage) || newCouponData.discountPercentage < 0 || newCouponData.discountPercentage > 100){
+        return toastr.error('Enter a valid discount percentage (0-100)')  
       }
 
-      if(newCouponData.usageLimit < 1 ){
-        return toastr.error('usage limit minumum one')  
+      if(isNaN(newCouponData.minPurchaseAmount) || newCouponData.minPurchaseAmount < 0){
+        return toastr.error('Enter a valid minimum purchase amount')  
+      }
+
+      if(isNaN(newCouponData.maxDiscountAmount) || newCouponData.maxDiscountAmount < 0){
+        return toastr.error('Enter a valid maximum discount value')  
+      }
+
+      if(isNaN(newCouponData.usageLimit) || newCouponData.usageLimit < 1){
+        return toastr.error('Usage limit minimum is one')  
       }
 
      
@@ -294,8 +313,12 @@ function deleteRow(id , element) {
       })
       .then(response => response.json())
       .then(data => {
-        toastr.success("Coupon added successfully!");
-        location.reload(); // Refresh page to display the new coupon
+        if(data.success) {
+          toastr.success(data.message || "Coupon added successfully!");
+          location.reload(); // Refresh page to display the new coupon
+        } else {
+          toastr.error(data.message || "Failed to add coupon.");
+        }
       })
       .catch(error => {
         console.error("Error:", error);

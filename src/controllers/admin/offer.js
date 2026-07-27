@@ -1,6 +1,4 @@
 
-
-
 //import schemas
 const GenderCategory = require("../../models/genderCategory");
 const Product = require("../../models/product");
@@ -23,8 +21,6 @@ const offers = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 
@@ -74,8 +70,6 @@ const productOffers = async (req, res) => {
 
 
 
-
-
 //POST SAVE CATEGORY OFFER
 const saveCategoryOffer = async (req, res) => {
     try {
@@ -95,7 +89,6 @@ const saveCategoryOffer = async (req, res) => {
 
 
 
-
 //POST SAVE PRODUCT OFFER
 const saveProductOffer = async (req, res) => {
     try {
@@ -112,13 +105,6 @@ const saveProductOffer = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
-
-
-
-
-
 
 
 

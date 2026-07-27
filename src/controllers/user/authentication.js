@@ -1,6 +1,4 @@
 
-
-
 //import modules
 const Bcrypt = require("bcrypt");
 const Crypto = require("crypto");
@@ -16,8 +14,6 @@ const User = require("../../models/userSchema");
 const { sendOTPEmail, sendPasswordResetEmail } = require("../../services/emailService");
 
 
-
-
 //GET LOGIN 
 const userLogin = async (req, res) => {
   try {
@@ -27,7 +23,6 @@ const userLogin = async (req, res) => {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
   }
 }
-
 
 
 
@@ -98,8 +93,6 @@ const userLoginPost = async (req, res) => {
 
 
 
-
-
 //GET  USER-SIGNUP
 const userSignup = async (req, res) => {
   try {
@@ -109,8 +102,6 @@ const userSignup = async (req, res) => {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
   }
 }
-
-
 
 
 
@@ -248,9 +239,6 @@ const checkOtp = async (req, res) => {
 }
 
 
-
-
-
 const forgotPassword = async (req, res) => {
   try {
     res.render("frontend/user-forgot-password", { message: '' });
@@ -314,7 +302,6 @@ const resetPassword = async (req, res) => {
 
 
 
-
 const resetPasswordPost = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -371,8 +358,6 @@ const blocked = (req, res) => {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
   }
 }
-
-
 
 
 

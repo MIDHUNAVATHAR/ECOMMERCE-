@@ -10,10 +10,11 @@ const  session  =  require('express-session');   // Middleware for handling sess
 const  passport = require('passport');           // Authentication middleware
 
 
-require('dotenv').config();                      // Load environment variables from .env file
+// Load environment variables from .env file
+require('dotenv').config();                     
 
-
-app.use(cors());                                 // Enable CORS to allow requests from other origins
+// Enable CORS to allow requests from other origins
+app.use(cors());                                 
 
 
 // Passport configuration (assumes the config file sets up strategies)
@@ -42,14 +43,44 @@ app.use(express.urlencoded({ extended: true }));// Parse URL-encoded payloads
 app.use(express.json());                        // Parse JSON payloads
 
 
+
+// Middleware to log API request, request data, response data, and response time
+// app.use((req, res, next) => {
+//     const start = Date.now();
+//     let responseData;
+
+//     const originalSend = res.send;
+//     res.send = function (body) {
+//         responseData = body;
+//         return originalSend.apply(this, arguments);
+//     };
+
+//     res.on('finish', () => {
+//         const responseTime = Date.now() - start;
+//         console.log({
+//             api: `${req.method} ${req.originalUrl || req.url}`,
+//             requestData: {
+//                 query: req.query,
+//                 body: req.body,
+//                 params: req.params
+//             },
+//             responseData: responseData,
+//             responseTime: `${responseTime}ms`
+//         });
+//     });
+
+//     next();
+// });
+
+
 // Session middleware configuration
 app.use(session({
-    secret: process.env.secretKey,// Secret key from environment for session encryption
-    resave: false, // Prevents saving session back to the store if unmodified
-    saveUninitialized: true , // Allows saving uninitialized sessions  
+    secret: process.env.secretKey,                    // Secret key from environment for session encryption
+    resave: false,                                    // Prevents saving session back to the store if unmodified
+    saveUninitialized: true ,                         // Allows saving uninitialized sessions  
     cookie: {
-        httpOnly: true,// Prevents client-side JavaScript access to cookies
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        httpOnly: true,                               // Prevents client-side JavaScript access to cookies
+        secure: process.env.NODE_ENV === "production",// Use secure cookies in production
   }
 })); 
 
@@ -66,8 +97,8 @@ app.use('/public', express.static('public'));
 
 
 // Set the template engine and views directory
-app.set("view engine" , "ejs" ) ;          // Set EJS as the view engine
-app.set("views" , path.join(__dirname , "views") )  ;// Define views directory
+app.set("view engine" , "ejs" ) ;                   // Set EJS as the view engine
+app.set("views" , path.join(__dirname , "views") ) ;// Define views directory
 
 
 
@@ -77,13 +108,13 @@ const adminRoute  =  require("./src/routes/admin-route") ;// Admin-related route
 
 
 
-app.use( "/" , userRoute ) ;// Mount user routes
-app.use("/admin" , adminRoute ) ; // Mount admin routes
+app.use( "/" , userRoute ) ;       // Mount user routes
+app.use("/admin" , adminRoute ) ;  // Mount admin routes
 
 
 // Global error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err); // Log the error
+    console.error(err);            // Log the error
     res.render( "frontend/404" ) ; // Render 404 error page
 });
   

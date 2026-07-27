@@ -1,13 +1,9 @@
 
-
-
-
 //import schemas
 const Orders = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const WalletTransaction = require("../../models/walletTransaction");
 const Product = require("../../models/product");
-
 
 
 const { ADMIN_ROUTES } = require("../../constants/routes")
@@ -42,8 +38,6 @@ const orders = async (req, res) => {
 }
 
 
-
-
 //ORDER VIEW
 const viewOrder = async (req, res) => {
     try {
@@ -58,7 +52,6 @@ const viewOrder = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
 
 
 
@@ -133,9 +126,6 @@ const updateOrderStatus = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
-
 
 
 

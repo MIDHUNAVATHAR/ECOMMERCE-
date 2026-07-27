@@ -171,9 +171,6 @@
  }
 
 
-
-
-
   let cropper;
   const inputImage = document.getElementById('productImages');
   const image = document.getElementById('image');  
@@ -231,7 +228,6 @@
       }, 'image/png');
   });
 
-  
 
 
 function deleteRow(s_id) {
@@ -321,8 +317,6 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
         priceInput.addEventListener('keyup', () => validatePrice(priceInput));
 
 });
-
- 
 
 
 
@@ -479,25 +473,12 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
        return true;
      }
 
-
-     
-
-
-
      
        titleInput.addEventListener("keyup", validateTitle );
        titleDescr.addEventListener("keyup", validateTitleDescr ) ; 
        productDes.addEventListener("keyup" ,validateProductDes ) ;
        highlights.addEventListener("keyup" , validateHighlights  ) ;
        details.addEventListener("keyup" ,  validateDetails ) ; 
-
-
-
-
-
-
-
-
 
 
 //submit the form
@@ -582,11 +563,5 @@ document.getElementById('addRowButton').addEventListener( 'click' , function() {
 
 
 
-    
-
-
-
-
-  
 
 </script> 

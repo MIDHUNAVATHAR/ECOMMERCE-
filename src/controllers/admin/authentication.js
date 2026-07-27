@@ -1,7 +1,7 @@
 
 // Import necessary modules
-const Bcrypt = require("bcrypt");                                                     // For hashing passwords and comparing them
-const Crypto = require("crypto");                                                     // For generating secure random values (e.g., OTPs)
+const Bcrypt = require("bcrypt");            // For hashing passwords and comparing them
+const Crypto = require("crypto");            // For generating secure random values (e.g., OTPs)
 
 
 const { ADMIN_ROUTES } = require("../../constants/routes")
@@ -10,12 +10,13 @@ const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 //import services
-const { sendOTPEmail, sendPasswordResetEmailAdmin } = require("../../services/emailService");// Email service for sending OTPs and password reset links
+// Email service for sending OTPs and password reset links
 
+const { sendOTPEmail, sendPasswordResetEmailAdmin } = require("../../services/emailService");
 
 
 // Import schemas
-const Admin = require("../../models/adminSchema");                                 // Admin schema for database operations
+const Admin = require("../../models/adminSchema");        // Admin schema for database operations
 const { MESSAGES } = require("../../constants/messages");
 
 
@@ -24,11 +25,11 @@ const { MESSAGES } = require("../../constants/messages");
 //GET ADMIN LOGIN PAGE
 const adminLogin = async (req, res) => {
     try {
-        return res.redirect(ADMIN_ROUTES.DASHBOARD);                                             // Redirect to dashboard if already logged in
+        return res.redirect("/admin/dashboard");          // Redirect to dashboard if already logged in
     }
     catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                                               // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND); // Render 404 page on error
     }
 }
 
@@ -42,7 +43,7 @@ const loginPost = async (req, res) => {
         email = email.trim();
         password = password.trim();
 
-        const admin = await Admin.findOne({ email });                                        // Check if admin exists with given email
+        const admin = await Admin.findOne({ email });   // Check if admin exists with given email
 
         if (admin) {
             // Compare input password with the hashed password in the database
@@ -55,12 +56,12 @@ const loginPost = async (req, res) => {
 
                 // Check if admin is verified
                 if (admin.verified == false) {
-                    const otp = Crypto.randomBytes(3).toString('hex');                          // Generate OTP
-                    const otpExpiry = Date.now() + 30000;                                       // OTP valid for 30 seconds
+                    const otp = Crypto.randomBytes(3).toString('hex');       // Generate OTP
+                    const otpExpiry = Date.now() + 30000;                    // OTP valid for 30 seconds
                     admin.otp = otp;
                     admin.otpExpiry = otpExpiry;
-                    admin.save();                                                                // Save OTP and expiry in the database
-                    sendOTPEmail(email, otp);                                                   // Send OTP via email
+                    admin.save();                                            // Save OTP and expiry in the database
+                    sendOTPEmail(email, otp);                                // Send OTP via email
                     res.render("backend/admin-otp-verify", { email: email, message: `${MESSAGES.OTP.VERIFY} ${email}` });
                     return;
                 }
@@ -75,24 +76,24 @@ const loginPost = async (req, res) => {
 
 
                 if (remember_me) {
-                    req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;                       // Set session expiration to 7 days
+                    req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;      // Set session expiration to 7 days
                 } else {
-                    req.session.cookie.expires = false;                                          // Session expires on browser close
+                    req.session.cookie.expires = false;                       // Session expires on browser close
                 }
 
 
                 req.session.save(() => {
-                    return res.redirect(ADMIN_ROUTES.DAS);                                     // Redirect after successful login
+                    return res.redirect("/admin/dashboard");                   // Redirect after successful login
                 });
             }
 
         } else {
-            res.render("backend/admin-login.ejs", { message: "Email can't exists. Please signup with Register" }); // Admin not found
+            res.render(VIEWS.ADMIN.LOGIN, { message: MESSAGES.ADMIN.EMAIL_NOT_FOUND }); // Admin not found
             return;
         }
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                                            // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);  // Render 404 page on error
     }
 }
 
@@ -103,10 +104,10 @@ const loginPost = async (req, res) => {
 //GET ADMIN  SIGNUP PAGE
 const adminSignup = async (req, res) => {
     try {
-        res.render("backend/admin-signup.ejs", { message: "" });                      // Render signup page
+        res.render("backend/admin-signup.ejs", { message: "" });      // Render signup page
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                                            // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);  // Render 404 page on error
     }
 }
 
@@ -124,7 +125,7 @@ const adminSignupPost = async (req, res) => {
         email = email.trim();
         password = password.trim();
 
-        const adminCount = await Admin.countDocuments();                                 // Count the number of admins
+        const adminCount = await Admin.countDocuments();   // Count the number of admins
 
 
         // Check if admin already exists
@@ -135,9 +136,9 @@ const adminSignupPost = async (req, res) => {
             return;
         } else if (adminCount < 1) {
             // Create first admin
-            password = await Bcrypt.hash(password, 10);                                   // Hash the password
-            const otp = Crypto.randomBytes(3).toString('hex');                           // Generate OTP
-            const otpExpiry = Date.now() + 30000;                                        // OTP valid for 30 sec 
+            password = await Bcrypt.hash(password, 10);                    // Hash the password
+            const otp = Crypto.randomBytes(3).toString('hex');             // Generate OTP
+            const otpExpiry = Date.now() + 30000;                          // OTP valid for 30 sec 
 
             await Admin.create({
                 firstName,
@@ -148,20 +149,18 @@ const adminSignupPost = async (req, res) => {
                 otpExpiry
             })
 
-            sendOTPEmail(email, otp);                                                      // Send OTP via email
+            sendOTPEmail(email, otp);         // Send OTP via email
 
             res.render("backend/admin-otp-verify", { email: email, message: `An OTP is sent to your registered email : ${email} . Plese enter Otp for verify.` });
             return;
         } else {
-            res.redirect("/admin");                                                   // Redirect if admin limit reached
+            res.redirect("/admin");           // Redirect if admin limit reached
         }
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                                       // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);  // Render 404 page on error
     }
 }
-
-
 
 
 
@@ -197,7 +196,7 @@ const adminVerifyOtp = async (req, res) => {
         }
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                                // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;  // Render 404 page on error
     }
 }
 
@@ -235,7 +234,7 @@ const resendEmailOtp = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                            // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);; // Render 404 page on error
     }
 }
 
@@ -249,7 +248,7 @@ const forgotPassword = (req, res) => {
         res.render("backend/admin-forgot-password", { message: 'Enter your email for Password Reset Link ' });
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                          // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;  // Render 404 page on error
     }
 
 }
@@ -280,7 +279,7 @@ const forgotPasswordPost = async (req, res) => {
         res.render('backend/admin-forgot-password', { message: 'An email has been sent to ' + admin.email + ' with further instructions.' });
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                     // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;         // Render 404 page on error
     }
 }
 
@@ -310,7 +309,7 @@ const resetPassword = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                 // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);  // Render 404 page on error
     }
 }
 
@@ -353,7 +352,7 @@ const resetPasswordPost = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);;                          // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND); // Render 404 page on error
     }
 }
 
@@ -365,19 +364,19 @@ const resetPasswordPost = async (req, res) => {
 const adminLogout = async (req, res) => {
     try {
 
-        delete req.session.admin;                                           // Clear admin session
+        delete req.session.admin;      // Clear admin session
 
         req.session.save((err) => {
             if (err) {
                 console.error("Error logging out admin:", err);
                 return res.status(500).send("Failed to log out.");
             }
-            return res.redirect("/admin");                                      // Redirect to login page after logout
+            return res.redirect("/admin");   // Redirect to login page after logout
         })
 
     } catch (err) {
         console.log(err);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);                          // Render 404 page on error
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render(VIEWS.FRONTEND.NOT_FOUND);  // Render 404 page on error
     }
 }
 

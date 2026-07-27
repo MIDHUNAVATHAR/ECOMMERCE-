@@ -59,12 +59,11 @@ const userSchema = new mongoose.Schema({
 
 
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   // If the user is new, generate a unique referral code
   if (this.isNew) {
     this.referralCode = Math.random().toString(36).substring(2, 10) + Date.now().toString(36); // Generates a unique code
   }
-  next();
 }); 
 
 

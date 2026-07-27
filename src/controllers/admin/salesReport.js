@@ -1,6 +1,4 @@
 
-
-
 //import modules
 const moment = require("moment");
 const PDFDocument = require('pdfkit');

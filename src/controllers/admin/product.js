@@ -1,5 +1,4 @@
 
-
 //import modules
 const fs = require('fs');
 const path = require('path');
@@ -22,9 +21,6 @@ const ProductCategory = require("../../models/productCategory");
 const { uploadProduct } = require("../../configs/multer");
 
 
-
-
-
 //GET  ADD PRODUCT PAGE 
 const addProduct = async (req, res) => {
     try {
@@ -39,8 +35,6 @@ const addProduct = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 //POST ADD PRODUCT
@@ -112,8 +106,6 @@ const addProductPost = async (req, res) => {
 }
 
 
-
-
 //GET LIST PRODUCTS
 const listProducts = async (req, res) => {
 
@@ -143,9 +135,6 @@ const listProducts = async (req, res) => {
 }
 
 
-
-
-
 //GET EDIT PRODUCT
 const editProduct = async (req, res) => {
     try {
@@ -160,8 +149,6 @@ const editProduct = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 // //POST EDIT PRODUCT
@@ -246,8 +233,6 @@ const editProductPost = async (req, res) => {
 
 
 
-
-
 //POST DELETE SIZE
 const deleteSize = async (req, res) => {
     try {
@@ -259,7 +244,6 @@ const deleteSize = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
 
 
 
@@ -302,8 +286,6 @@ const deleteProductImage = async (req, res) => {
 }
 
 
-
-
 //BLOCK PRODUCT
 const blockProduct = async (req, res) => {
     try {
@@ -320,8 +302,6 @@ const blockProduct = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 //DELETE PRODUCT 
@@ -356,8 +336,6 @@ const deleteproduct = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 

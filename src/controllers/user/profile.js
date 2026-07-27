@@ -1,6 +1,4 @@
 
-
-
 //import modules
 const bcrypt = require("bcrypt");
 
@@ -13,12 +11,6 @@ const GenderCategory = require("../../models/genderCategory");
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
-
-
-
-
-
-
 
 
 //GET  PROFILE  PAGE
@@ -168,8 +160,6 @@ const deleteAddress = async (req, res) => {
 
 
 
-
-
 //POST EDIT PROFILE ADDRESSES 
 const editAddress = async (req, res) => {
 
@@ -211,8 +201,6 @@ const editAddress = async (req, res) => {
    }
 
 }
-
-
 
 
 
@@ -280,10 +268,7 @@ const postChangePassword = async (req, res) => {
          }
       }
 
-      //  }
-
-
-
+      
 
 
    } catch (err) {
@@ -291,8 +276,6 @@ const postChangePassword = async (req, res) => {
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
    }
 }
-
-
 
 
 

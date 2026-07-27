@@ -1,5 +1,4 @@
 
-
 //IMPORT MODULES
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
@@ -46,8 +45,6 @@ const createOrder = async (req, res) => {
   };
 
 
-
-
   try {
 
     const order = await razorpayInstance.orders.create(options);
@@ -63,8 +60,6 @@ const createOrder = async (req, res) => {
     console.log(error)
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send('Something went wrong with order creation');
   }
-
-
 
 };
 
@@ -243,10 +238,6 @@ const verifyPayment = async (req, res) => {
 
 
 
-
-
-
-
 const paymentFailed = async (req, res) => {
   const {
     error_code, error_description, error_source, error_reason,
@@ -399,11 +390,6 @@ const paymentFailed = async (req, res) => {
 
 
 
-
-
-
-
-
 const continuePayment = async (req, res) => {
   const { amount, currency } = req.body;
 
@@ -479,8 +465,6 @@ const continueVerifyPayment = async (req, res) => {
 
       };
 
-
-
       res.status(HTTP_STATUS.OK).json({ status: true, orderId: savedOrder._id });
     } catch (err) {
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ status: false });
@@ -492,13 +476,6 @@ const continueVerifyPayment = async (req, res) => {
     res.status(HTTP_STATUS.BAD_REQUEST).send('Payment verification failed');
   }
 }
-
-
-
-
-
-
-
 
 
 

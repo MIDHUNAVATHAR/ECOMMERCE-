@@ -126,21 +126,7 @@
                             </div>
                         </div>
 
-                        <!-- <div class="mb-4">
-                            <label class="block font-medium text-gray-700">Your Gender</label>
-                            <div class="mt-2">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="gender"  value="male"  <%= user.gender == 'male' ? 'checked' : "" %> disabled'
-                                           class="form-radio text-blue-600">
-                                    <span class="ml-2">Male</span>
-                                </label>  
-                                <label class="inline-flex items-center ml-6">
-                                    <input type="radio" name="gender" value="female" <%= user.gender == 'female' ? "checked" : "" %>  disabled
-                                           class="form-radio text-blue-600" >
-                                    <span class="ml-2">Female</span>
-                                </label>
-                            </div>
-                        </div> -->
+                    
 
                         <div class="mb-4">
                             <label for="email" class="block font-medium text-gray-700">Email Address</label>
@@ -207,10 +193,6 @@
                 editBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
             }
         });
-
-
-   
-
 
 
          
@@ -295,16 +277,6 @@
         });
 
 
-
-
-
-
-
-
-
-
-
-
         //side bar 
 
         function copyText(text) {
@@ -351,9 +323,6 @@ const referalLink = url.origin  +  '/userSignup' + `?referral=${referralCode}`
 const ref = document.querySelectorAll(".refLink") ; 
 ref[0].textContent = referalLink ;
 ref[1].value = referalLink ;
-
-
-
 
 
 
@@ -409,8 +378,6 @@ document.getElementById("withdraw-ref-bln").addEventListener( "click", ()=>{
         
     });
 } )
-
-
 
 
 

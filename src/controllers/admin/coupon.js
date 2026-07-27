@@ -39,11 +39,9 @@ const getCoupon = async (req, res) => {
 
   } catch (err) {
     console.log(err);
-    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");                   // Handle error and render the 404 page     
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");    // Handle error and render the 404 page     
   }
 }
-
-
 
 
 
@@ -52,20 +50,22 @@ const getCoupon = async (req, res) => {
 // POST request to add a new coupon
 const addCoupon = async (req, res) => {
   try {
-    let { code, discountValue, expiryDate, usageLimit } = req.body;
+    let { code, discountPercentage, minPurchaseAmount, maxDiscountAmount, expiryDate, usageLimit } = req.body;
 
     // Create a new coupon object
     const newCoupon = new coupon({
       code,
-      couponBalance: discountValue,                             // Store the discount value as couponBalance
-      expiryDate,                                               // Store the expiry date
-      usageLimit                                                // Store the usage limit for the coupon
+      discountPercentage,
+      minPurchaseAmount,
+      maxDiscountAmount,
+      expiryDate,
+      usageLimit
     });
 
     // Save the new coupon to the database
     await newCoupon.save();
 
-    // Respond with JSON if the request was made using AJAX (modal form submission)
+    
     return res.json({ success: true, message: 'Coupon added successfully!' });
   } catch (err) {
     console.log(err);
@@ -98,7 +98,9 @@ const updateCoupon = async (req, res) => {
           { code: couponData.code },                                 // Find coupon by its code
           {
             $set: {
-              couponBalance: couponData.discountValue,               // Update coupon balance
+              discountPercentage: couponData.discountPercentage,
+              minPurchaseAmount: couponData.minPurchaseAmount,
+              maxDiscountAmount: couponData.maxDiscountAmount,
               expiryDate: new Date(couponData.expiryDate),           // Ensure expiry date is in Date format
               usageLimit: couponData.usageLimit                      // Update usage limit
             }
@@ -125,12 +127,12 @@ const updateCoupon = async (req, res) => {
 // DELETE request to remove a coupon from the database
 const deleteCoupon = async (req, res) => {
   try {
-    const couponId = req.params.id;                             // Get the coupon ID from the URL params
+    const couponId = req.params.id;                            // Get the coupon ID from the URL params
     await coupon.findByIdAndDelete(couponId);                  // Delete the coupon by its ID
-    res.json({ success: true });                                 // Send a success response
+    res.json({ success: true });                               // Send a success response
   } catch (err) {
     console.log(err);
-    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");                     // Handle error and render the 404 page
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");  // Handle error and render the 404 page
   }
 }
 

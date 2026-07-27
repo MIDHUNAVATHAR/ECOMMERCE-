@@ -1,6 +1,4 @@
 
-
-
 //import schemas
 const Logo = require("../../models/logoSchema");
 const GenderCategory = require("../../models/genderCategory");
@@ -15,7 +13,6 @@ const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 //$-----------------------------------------------------------------------------$//
-
 
 
 // GET LANDING PAGE 

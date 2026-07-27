@@ -7,6 +7,7 @@ const GenderCategory = require("../../models/genderCategory");
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
 const Addresses = require("../../models/addressSchema");
+const Coupon = require("../../models/couponSchema");
 
 const { HTTP_STATUS } = require("../../constants/statusCodes")
 
@@ -71,6 +72,29 @@ const getCheckout = async (req, res) => {
     }
     totalPrice = parseFloat(totalPrice.toFixed(2));
     console.log(totalPrice)
+
+    // Recalculate coupon balance if active
+    if (user && user.coupon) {
+      const userCouponEntry = user.appliedCoupons.find(ac => ac._id.equals(user.coupon));
+      if (userCouponEntry) {
+        const activeCoupon = await Coupon.findOne({ code: userCouponEntry.couponCode });
+        if (activeCoupon) {
+          if (totalPrice >= activeCoupon.minPurchaseAmount) {
+            let discount = (totalPrice * activeCoupon.discountPercentage) / 100;
+            if (activeCoupon.maxDiscountAmount && discount > activeCoupon.maxDiscountAmount) {
+              discount = activeCoupon.maxDiscountAmount;
+            }
+            cart.couponBalance = parseFloat(discount.toFixed(2));
+            user.couponBalance = cart.couponBalance;
+          } else {
+            cart.couponBalance = 0;
+            user.couponBalance = 0;
+          }
+          await cart.save();
+          await user.save();
+        }
+      }
+    }
 
     const deliveryCharge = parseFloat(req.query.deliveryCharge) || 0;
 

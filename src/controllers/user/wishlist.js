@@ -42,9 +42,6 @@ const wishlist = async (req, res) => {
 
 
 
-
-
-
 //POST WISHIST-ADD
 const addToWishlist = async (req, res) => {
   try {
@@ -120,9 +117,6 @@ const removeWishlistitem = async (req, res) => {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
   }
 }
-
-
-
 
 
 

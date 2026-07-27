@@ -33,8 +33,6 @@ const walletAddCart = async (req, res) => {
 
 
 
-
-
         if (cartTotal == 0) {
             return res.status(HTTP_STATUS.OK).json({ success: false, message: "Please add products to cart" })
         }

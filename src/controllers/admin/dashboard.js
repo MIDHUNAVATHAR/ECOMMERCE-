@@ -61,11 +61,213 @@ const dashboard = async (req, res) => {
         const filter = req.query.filter || 'month';       // Filter for date range
         const { start, end } = getDateRange(filter);      // Get start and end dates
 
-        // Fetch completed orders within the date range
-        const orders = await Order.find({
-            createdAt: { $gte: start.toDate(), $lte: end.toDate() },
-            paymentStatus: 'completed'
-        }).sort('createdAt');
+        // Execute database queries concurrently using Promise.all
+        const [
+            orders,
+            totalOrders,
+            totalRevenue,
+            orderStatusCount,
+            topProducts,
+            topCategories,
+            topSubcategories
+        ] = await Promise.all([
+            // Fetch completed orders within the date range
+            Order.find({
+                createdAt: { $gte: start.toDate(), $lte: end.toDate() },
+                paymentStatus: 'completed'
+            }).sort('createdAt'),
+
+            // Summary statistics: total orders count
+            Order.countDocuments({
+                createdAt: { $gte: start.toDate(), $lte: end.toDate() }
+            }),
+
+            // Summary statistics: total revenue
+            Order.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: start.toDate(), $lte: end.toDate() },
+                        paymentStatus: 'completed'
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: '$totalPrice' }
+                    }
+                }
+            ]),
+
+            // Summary statistics: order status count
+            Order.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: start.toDate(), $lte: end.toDate() }
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$orderStatus',          // Group by order status
+                        count: { $sum: 1 }            // Count the number of orders
+                    }
+                }
+            ]),
+
+            // Fetch top 10 selling products
+            Order.aggregate([
+                {
+                    $match: {
+                        orderStatus: { $ne: 'cancelled' },  // Exclude cancelled orders
+                        paymentStatus: 'completed'          // Only completed payments
+                    }
+                },
+                { $unwind: '$items' },                      // Unwind the items array
+                {
+                    $group: {
+                        _id: '$items.product',                      // Group by product ID
+                        totalQuantity: { $sum: '$items.quantity' }, // Total quantity sold
+                        totalRevenue: { $sum: '$items.totalPrice' },// Total revenue
+                        orders: { $addToSet: '$_id' }               // Collect unique order IDs
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',                   // Join with products collection
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
+                },
+                { $unwind: '$productDetails' },             // Get individual product details
+                {
+                    $project: {
+                        name: '$productDetails.title',      // Include product name
+                        totalQuantity: 1,
+                        totalRevenue: 1,
+                        orderCount: { $size: '$orders' }   // Count of unique orders
+                    }
+                },
+                { $sort: { totalQuantity: -1 } },         // Sort by quantity sold
+                { $limit: 10 }                            // Limit to top 10 products
+            ]),
+
+            // Fetch top 10 product categories 
+            Order.aggregate([
+                {
+                    $match: {
+                        orderStatus: { $ne: 'cancelled' },  // Only include non-cancelled orders
+                        paymentStatus: 'completed'  // Only include completed payment orders
+                    }
+                },
+                { $unwind: '$items' },  // Unwind the items array to treat each item individually
+                {
+                    $lookup: {
+                        from: 'products',  // Lookup from the 'products' collection
+                        localField: 'items.product',  // Match product ID from the order items
+                        foreignField: '_id',  // Match the _id field in the 'products' collection
+                        as: 'product'  // Alias the matched product details as 'product'
+                    }
+                },
+                { $unwind: '$product' },  // Unwind the product array to access individual product details
+                {
+                    $group: {
+                        _id: '$product.productCategory',  // Group by product category ID
+                        totalQuantity: { $sum: '$items.quantity' },  // Sum the quantities for each category
+                        totalRevenue: { $sum: '$items.totalPrice' },  // Sum the total price for each category
+                        orders: { $addToSet: '$_id' },  // Collect unique order IDs
+                        genderCategoryId: { $first: '$product.genderCategory' }  // Get the gender category ID from the product
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'productcategories',  // Lookup from the 'categories' collection
+                        localField: '_id',  // Match the product category ID
+                        foreignField: '_id',  // Match with the _id field in the 'categories' collection
+                        as: 'categoryDetails'  // Alias the matched category details as 'categoryDetails'
+                    }
+                },
+                { $unwind: '$categoryDetails' },  // Unwind to get the category name
+                {
+                    $lookup: {
+                        from: 'gendercategories',  // Lookup from the 'gendercategories' collection
+                        localField: 'genderCategoryId',  // Match the gender category ID
+                        foreignField: '_id',  // Match the _id field in the 'gendercategories' collection
+                        as: 'genderCategoryDetails'  // Alias the matched gender category details as 'genderCategoryDetails'
+                    }
+                },
+                { $unwind: '$genderCategoryDetails' },  // Unwind to get the gender category details
+                {
+                    $project: {
+                        category: '$categoryDetails.name',  // Replace _id with the category name
+                        genderCategory: '$genderCategoryDetails.name',  // Include the gender category name
+                        totalQuantity: 1,  // Include total quantity in the result
+                        totalRevenue: 1,  // Include total revenue in the result
+                        orderCount: { $size: '$orders' }  // Calculate the number of unique orders
+                    }
+                },
+                { $sort: { totalQuantity: -1 } },  // Sort by total quantity in descending order
+                { $limit: 10 }  // Limit the results to the top 10 categories
+            ]),
+
+            // Fetch top 10 product subcategories
+            Order.aggregate([
+                {
+                    $match: {
+                        orderStatus: { $ne: 'cancelled' },  // Only non-cancelled orders
+                        paymentStatus: 'completed'          // Only completed payments
+                    }
+                },
+                { $unwind: '$items' },  // Unwind items array in orders
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'items.product',   // Match product in items with product _id
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                { $unwind: '$product' },  // Unwind the product array
+                {
+                    $lookup: {
+                        from: 'productsubcategories',  // Lookup from subcategories collection
+                        localField: 'product.productSubCategory',  // Match subcategory ID from product (correct field name)
+                        foreignField: '_id',
+                        as: 'subcategoryDetails'
+                    }
+                },
+                { $unwind: '$subcategoryDetails' },  // Unwind subcategory details
+                {
+                    $lookup: {
+                        from: 'productcategories',  // Lookup to get parent category from productcategories collection
+                        localField: 'subcategoryDetails.productCategory',  // Assuming category field is named `productCategory`
+                        foreignField: '_id',
+                        as: 'categoryDetails'
+                    }
+                },
+                { $unwind: '$categoryDetails' },  // Unwind category details
+                {
+                    $group: {
+                        _id: '$product.productSubCategory',  // Group by subcategory
+                        subcategoryName: { $first: '$subcategoryDetails.name' },  // Get subcategory name
+                        categoryName: { $first: '$categoryDetails.name' },  // Get parent category name
+                        totalQuantity: { $sum: '$items.quantity' },  // Sum total quantities sold
+                        totalRevenue: { $sum: '$items.totalPrice' },  // Sum total revenue
+                        orders: { $addToSet: '$_id' }  // Collect order IDs
+                    }
+                },
+                {
+                    $project: {
+                        subcategory: '$subcategoryName',  // Project subcategory name
+                        parentCategory: '$categoryName',  // Project parent category name
+                        totalQuantity: 1,
+                        totalRevenue: 1,
+                        orderCount: { $size: '$orders' }  // Count of unique orders
+                    }
+                },
+                { $sort: { totalQuantity: -1 } },  // Sort by total quantity in descending order
+                { $limit: 10 }  // Limit to top 10
+            ])
+        ]);
 
         // Prepare sales data for graph
         const salesData = [];
@@ -90,206 +292,6 @@ const dashboard = async (req, res) => {
 
             currentDate.add(1, 'days');                    // Move to the next day
         }
-
-
-        // Summary statistics
-        const totalOrders = await Order.countDocuments({
-            createdAt: { $gte: start.toDate(), $lte: end.toDate() }
-        });
-
-        const totalRevenue = await Order.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: start.toDate(), $lte: end.toDate() },
-                    paymentStatus: 'completed'
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: '$totalPrice' }
-                }
-            }
-        ]);
-
-        const orderStatusCount = await Order.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: start.toDate(), $lte: end.toDate() }
-                }
-            },
-            {
-                $group: {
-                    _id: '$orderStatus',          // Group by order status
-                    count: { $sum: 1 }            // Count the number of orders
-                }
-            }
-        ]);
-
-
-        // Fetch top 10 selling products
-        const topProducts = await Order.aggregate([
-            {
-                $match: {
-                    orderStatus: { $ne: 'cancelled' },  // Exclude cancelled orders
-                    paymentStatus: 'completed'          // Only completed payments
-                }
-            },
-            { $unwind: '$items' },                      // Unwind the items array
-            {
-                $group: {
-                    _id: '$items.product',                      // Group by product ID
-                    totalQuantity: { $sum: '$items.quantity' }, // Total quantity sold
-                    totalRevenue: { $sum: '$items.totalPrice' },// Total revenue
-                    orders: { $addToSet: '$_id' }               // Collect unique order IDs
-                }
-            },
-            {
-                $lookup: {
-                    from: 'products',                   // Join with products collection
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'productDetails'
-                }
-            },
-            { $unwind: '$productDetails' },             // Get individual product details
-
-            {
-                $project: {
-                    name: '$productDetails.title',      // Include product name
-                    totalQuantity: 1,
-                    totalRevenue: 1,
-                    orderCount: { $size: '$orders' }   // Count of unique orders
-                }
-            },
-            { $sort: { totalQuantity: -1 } },         // Sort by quantity sold
-            { $limit: 10 }                            // Limit to top 10 products
-        ]);
-
-
-
-
-        // Fetch top 10 product categories 
-        const topCategories = await Order.aggregate([
-
-            {
-                $match: {
-                    orderStatus: { $ne: 'cancelled' },  // Only include non-cancelled orders
-                    paymentStatus: 'completed'  // Only include completed payment orders
-                }
-            },
-            { $unwind: '$items' },  // Unwind the items array to treat each item individually
-            {
-                $lookup: {
-                    from: 'products',  // Lookup from the 'products' collection
-                    localField: 'items.product',  // Match product ID from the order items
-                    foreignField: '_id',  // Match the _id field in the 'products' collection
-                    as: 'product'  // Alias the matched product details as 'product'
-                }
-            },
-            { $unwind: '$product' },  // Unwind the product array to access individual product details
-            {
-                $group: {
-                    _id: '$product.productCategory',  // Group by product category ID
-                    totalQuantity: { $sum: '$items.quantity' },  // Sum the quantities for each category
-                    totalRevenue: { $sum: '$items.totalPrice' },  // Sum the total price for each category
-                    orders: { $addToSet: '$_id' },  // Collect unique order IDs
-                    genderCategoryId: { $first: '$product.genderCategory' }  // Get the gender category ID from the product
-                }
-            },
-            {
-                $lookup: {
-                    from: 'productcategories',  // Lookup from the 'categories' collection
-                    localField: '_id',  // Match the product category ID
-                    foreignField: '_id',  // Match with the _id field in the 'categories' collection
-                    as: 'categoryDetails'  // Alias the matched category details as 'categoryDetails'
-                }
-            },
-            { $unwind: '$categoryDetails' },  // Unwind to get the category name
-            {
-                $lookup: {
-                    from: 'gendercategories',  // Lookup from the 'gendercategories' collection
-                    localField: 'genderCategoryId',  // Match the gender category ID
-                    foreignField: '_id',  // Match the _id field in the 'gendercategories' collection
-                    as: 'genderCategoryDetails'  // Alias the matched gender category details as 'genderCategoryDetails'
-                }
-            },
-            { $unwind: '$genderCategoryDetails' },  // Unwind to get the gender category details
-            {
-                $project: {
-                    category: '$categoryDetails.name',  // Replace _id with the category name
-                    genderCategory: '$genderCategoryDetails.name',  // Include the gender category name
-                    totalQuantity: 1,  // Include total quantity in the result
-                    totalRevenue: 1,  // Include total revenue in the result
-                    orderCount: { $size: '$orders' }  // Calculate the number of unique orders
-                }
-            },
-            { $sort: { totalQuantity: -1 } },  // Sort by total quantity in descending order
-            { $limit: 10 }  // Limit the results to the top 10 categories
-        ]);
-
-
-
-
-
-
-        const topSubcategories = await Order.aggregate([
-            {
-                $match: {
-                    orderStatus: { $ne: 'cancelled' },  // Only non-cancelled orders
-                    paymentStatus: 'completed'          // Only completed payments
-                }
-            },
-            { $unwind: '$items' },  // Unwind items array in orders
-            {
-                $lookup: {
-                    from: 'products',
-                    localField: 'items.product',   // Match product in items with product _id
-                    foreignField: '_id',
-                    as: 'product'
-                }
-            },
-            { $unwind: '$product' },  // Unwind the product array
-            {
-                $lookup: {
-                    from: 'productsubcategories',  // Lookup from subcategories collection
-                    localField: 'product.productSubCategory',  // Match subcategory ID from product (correct field name)
-                    foreignField: '_id',
-                    as: 'subcategoryDetails'
-                }
-            },
-            { $unwind: '$subcategoryDetails' },  // Unwind subcategory details
-            {
-                $lookup: {
-                    from: 'productcategories',  // Lookup to get parent category from productcategories collection
-                    localField: 'subcategoryDetails.productCategory',  // Assuming category field is named `productCategory`
-                    foreignField: '_id',
-                    as: 'categoryDetails'
-                }
-            },
-            { $unwind: '$categoryDetails' },  // Unwind category details
-            {
-                $group: {
-                    _id: '$product.productSubCategory',  // Group by subcategory
-                    subcategoryName: { $first: '$subcategoryDetails.name' },  // Get subcategory name
-                    categoryName: { $first: '$categoryDetails.name' },  // Get parent category name
-                    totalQuantity: { $sum: '$items.quantity' },  // Sum total quantities sold
-                    totalRevenue: { $sum: '$items.totalPrice' },  // Sum total revenue
-                    orders: { $addToSet: '$_id' }  // Collect order IDs
-                }
-            },
-            {
-                $project: {
-                    subcategory: '$subcategoryName',  // Project subcategory name
-                    parentCategory: '$categoryName',  // Project parent category name
-                    totalQuantity: 1,
-                    totalRevenue: 1,
-                    orderCount: { $size: '$orders' }  // Count of unique orders
-                }
-            },
-            { $sort: { totalQuantity: -1 } },  // Sort by total quantity in descending order
-            { $limit: 10 }  // Limit to top 10
-        ]);
 
 
 

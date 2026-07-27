@@ -1,7 +1,4 @@
 
-
-
-
 <div class="p-4">
       <h1>ADD PRODUCT...</h1>
       <hr>
@@ -155,11 +152,6 @@
  }
 
 
-
-
-
-
-
 let cropper ;
         const inputImage = document.getElementById('productImages');
         const image = document.getElementById('image');
@@ -306,10 +298,6 @@ let cropper ;
          return true;
        }
 
-
-
-
-
        //size validation
     function validateSize(sizeInput) {
          const size = sizeInput.value.trim();
@@ -396,12 +384,6 @@ function validateMinImages() {
        highlights.addEventListener("keyup" , validateHighlights  ) ;
        details.addEventListener( "keyup" ,  validateDetails ) ; 
        
-       
-
-
-        
-
-
 
         document.getElementById('form').addEventListener( 'submit' , function( event ) {
           event.preventDefault(); // Prevent form from submitting by default
@@ -532,12 +514,6 @@ function validateMinImages() {
             row.parentNode.removeChild(row);
         }
 
-
-
-
-        
-
-       
  
   </script> 
  

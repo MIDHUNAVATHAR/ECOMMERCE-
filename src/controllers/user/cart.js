@@ -1,5 +1,4 @@
 
-
 //import modules
 const fs = require('fs');  // For file operations (if the image is stored as a file)
 const path = require('path');  // To handle file paths
@@ -13,6 +12,7 @@ const GenderCategory = require("../../models/genderCategory");
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
 const Product = require("../../models/product");
+const Coupon = require("../../models/couponSchema");
 
 
 
@@ -64,19 +64,43 @@ const getCart = async (req, res) => {
 
       let totalP = parseFloat(totalPrice.toFixed(2));
 
-      let couponDiscount = cart.couponBalance || 0;
+      let couponDiscount = 0;
+
+      // Recalculate coupon discount based on active user coupon
+      if (user && user.coupon) {
+        const userCouponEntry = user.appliedCoupons.find(ac => ac._id.equals(user.coupon));
+        if (userCouponEntry) {
+          const activeCoupon = await Coupon.findOne({ code: userCouponEntry.couponCode });
+          if (activeCoupon) {
+            if (totalP >= activeCoupon.minPurchaseAmount) {
+              let calculatedDiscount = (totalP * activeCoupon.discountPercentage) / 100;
+              if (activeCoupon.maxDiscountAmount && calculatedDiscount > activeCoupon.maxDiscountAmount) {
+                calculatedDiscount = activeCoupon.maxDiscountAmount;
+              }
+              couponDiscount = parseFloat(calculatedDiscount.toFixed(2));
+              cart.couponBalance = couponDiscount;
+              user.couponBalance = couponDiscount;
+            } else {
+              cart.couponBalance = 0;
+              user.couponBalance = 0;
+              couponDiscount = 0;
+            }
+          }
+        }
+      } else {
+        cart.couponBalance = cart.couponBalance || 0;
+        couponDiscount = cart.couponBalance;
+      }
+
       let walletDiscount = cart.walletBalance || 0;
 
 
       // Apply coupon first 
       if (couponDiscount > 0) {
         if (totalP <= couponDiscount) {
-          // Coupon is larger than or equal to totalPrice, so totalPrice becomes 0
           couponDiscount = totalP;
-          //cart.couponBalance = totalP; // Full coupon is used
           totalP = 0;
         } else {
-          // Apply part of the coupon 
           totalP -= couponDiscount;
         }
       }
@@ -137,10 +161,6 @@ const getCart = async (req, res) => {
   }
 
 }
-
-
-
-
 
 
 //POST ADD TO CART
@@ -245,10 +265,6 @@ const addToCart = async (req, res) => {
 
 
 
-
-
-
-
 const increQuantity = async (req, res) => {
   try {
     const { userId, itemId } = req.body;
@@ -324,6 +340,31 @@ const increQuantity = async (req, res) => {
     // Round totalPrice to 2 decimal places
     const totalPrice = parseFloat(totals.totalPrice.toFixed(2));
 
+    // Recalculate active coupon discount
+    const userObj = await User.findById(userId);
+    if (userObj && userObj.coupon) {
+      const userCouponEntry = userObj.appliedCoupons.find(ac => ac._id.equals(userObj.coupon));
+      if (userCouponEntry) {
+        const activeCoupon = await Coupon.findOne({ code: userCouponEntry.couponCode });
+        if (activeCoupon) {
+          if (totalPrice >= activeCoupon.minPurchaseAmount) {
+            let discount = (totalPrice * activeCoupon.discountPercentage) / 100;
+            if (activeCoupon.maxDiscountAmount && discount > activeCoupon.maxDiscountAmount) {
+              discount = activeCoupon.maxDiscountAmount;
+            }
+            discount = parseFloat(discount.toFixed(2));
+            updatedCart.couponBalance = discount;
+            userObj.couponBalance = discount;
+          } else {
+            updatedCart.couponBalance = 0;
+            userObj.couponBalance = 0;
+          }
+          await updatedCart.save();
+          await userObj.save();
+        }
+      }
+    }
+
     let totalAmount = totalPrice - (updatedCart.walletBalance + updatedCart.couponBalance);
     totalAmount = totalAmount < 0 ? 0 : totalAmount;
 
@@ -331,6 +372,7 @@ const increQuantity = async (req, res) => {
       message: 'Product quantity updated',
       ...totals,
       totalAmount: parseFloat(totalAmount.toFixed(2)),
+      couponDiscount: updatedCart.couponBalance,
       quantity,
       success: true
     });
@@ -343,8 +385,6 @@ const increQuantity = async (req, res) => {
     });
   }
 };
-
-
 
 
 
@@ -384,7 +424,32 @@ const decreQuantity = async (req, res) => {
         }), { totalItems: 0, totalPrice: 0 });
 
         const totalPrice = parseFloat(totals.totalPrice.toFixed(2));
-        console.log(totalPrice)
+
+        // Recalculate active coupon discount
+        const userObj = await User.findById(userId);
+        if (userObj && userObj.coupon) {
+          const userCouponEntry = userObj.appliedCoupons.find(ac => ac._id.equals(userObj.coupon));
+          if (userCouponEntry) {
+            const activeCoupon = await Coupon.findOne({ code: userCouponEntry.couponCode });
+            if (activeCoupon) {
+              if (totalPrice >= activeCoupon.minPurchaseAmount) {
+                let discount = (totalPrice * activeCoupon.discountPercentage) / 100;
+                if (activeCoupon.maxDiscountAmount && discount > activeCoupon.maxDiscountAmount) {
+                  discount = activeCoupon.maxDiscountAmount;
+                }
+                discount = parseFloat(discount.toFixed(2));
+                updatedCart.couponBalance = discount;
+                userObj.couponBalance = discount;
+              } else {
+                updatedCart.couponBalance = 0;
+                userObj.couponBalance = 0;
+              }
+              await updatedCart.save();
+              await userObj.save();
+            }
+          }
+        }
+
         let totalAmount = totalPrice - (updatedCart.walletBalance + updatedCart.couponBalance);
 
         totalAmount = parseFloat(totalAmount).toFixed(2);
@@ -395,7 +460,16 @@ const decreQuantity = async (req, res) => {
         const status = updatedCart.items.find(item => item._id.toString() === itemId)?.status || 0;
 
 
-        return res.status(HTTP_STATUS.OK).json({ message: "one quantity removed", quantity, totalPrice, totalItems, status, totalAmount, success: true });
+        return res.status(HTTP_STATUS.OK).json({ 
+          message: "one quantity removed", 
+          quantity, 
+          totalPrice, 
+          totalItems, 
+          status, 
+          totalAmount, 
+          couponDiscount: updatedCart.couponBalance,
+          success: true 
+        });
 
       } else {
 
@@ -425,8 +499,6 @@ const decreQuantity = async (req, res) => {
 
 
 
-
-
 //remove item
 const removeItem = async (req, res) => {
   try {
@@ -441,9 +513,6 @@ const removeItem = async (req, res) => {
   }
 
 }
-
-
-
 
 
 

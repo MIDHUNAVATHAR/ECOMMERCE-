@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 
 const couponSchema = new mongoose.Schema({
   code: { type: String , required: true,  },//unique: true
-  couponBalance : { type: Number, required: true }, 
+  // couponBalance : { type: Number, required: true }, 
+  discountPercentage:{type:Number,required:true},
+  minPurchaseAmount:{type:Number,required:true},
+  maxDiscountAmount:{type:Number,required:true},
   expiryDate: { type: Date, required: true }, // Coupon expiration date
   usageLimit: { type: Number, default : 1 }, // Number of times the coupon can be used
 }, { timestamps: true });

@@ -1,147 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wishlist</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100">
 
-  <!-- Header --> 
-  <%- include("partials/header") %> 
+  <!-- Header -->
+  <%- include("partials/header") %>
 
-  
-
-<div class="p-5 bg-white" style="min-height: 75vh;">
-
-
-
-  
-    
+  <div class="p-5 bg-white" style="min-height: 75vh;">
     <div class="container mx-auto mt-10">
       <h1 class="text-2xl font-bold mb-6">Your Wishlist</h1>
-      
-      <% if (wishlist && wishlist.items.length > 0) { %> 
+
+      <% if (wishlist && wishlist.items && wishlist.items.length > 0) { %>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <% wishlist.items.forEach(item => { %>
-              
-                <!-- Check if product, image, title, and size exist -->
-                <% if (item.product && item.product.images && item.product.images[0] && item.product.title && item.product.sizes && item.product.sizes.length > 0) { %>
-                
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                  <a href="/product/<%= item.product._id %>?id=<%= item.sizeId %>" target="_blank">
-                    <!-- Product Image -->
-                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-full h-48 object-cover rounded">
-                  
-                    <!-- Product Title -->
-                    <h2 class="text-lg font-semibold mt-2"><%= item.product.title %></h2>
-                    
-                    <% 
-                      // Find the selected size
-                      const selectedSize = item.product.sizes ? item.product.sizes.find(size => size._id.toString() === item.sizeId.toString()) : null; 
-                    %>  
-  
-                    <!-- Display Size and Price -->
-                    <p class="text-gray-600">
-                      Size: <%= selectedSize ? selectedSize.size : "Not available" %>
-                    </p>
-                    <p class="text-gray-600">
-                      Price: ₹ <%= selectedSize ? selectedSize.discountedPrice : "N/A" %>
-                    </p>
-                  </a>
-                  <div class="mt-4 flex justify-between">
-                      <!-- Remove from Wishlist Button -->
-                      <button onclick="removeItem('<%=item._id %>')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                          Remove from Wishlist
-                      </button>
-                      <!-- Add to Cart Button -->
-                      <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700" onclick="addToCart('<%= item.product._id %>', '<%= item.sizeId %>', '<%= selectedSize ? selectedSize.size : "" %>', '<%= selectedSize ? selectedSize.price : '' %>', '<%= selectedSize ? selectedSize.discountedPrice : '' %>', '<%= selectedSize ? selectedSize.discountedPercentage : '' %>' )" > ADD TO CART</button> 
-                  </div>
+          <% wishlist.items.forEach(item => { %>
+
+            <!-- Check if product, image, title, and size exist -->
+            <% if (item.product && item.product.images && item.product.images[0] && item.product.title && item.product.sizes && item.product.sizes.length > 0) { %>
+
+              <% 
+                /* Find the selected size safely */
+                const selectedSize = (item.product.sizes && item.sizeId) 
+                  ? (item.product.sizes.find(size => size._id && size._id.toString() === item.sizeId.toString()) || item.product.sizes[0])
+                  : (item.product.sizes ? item.product.sizes[0] : null);
+                const effectiveSizeId = item.sizeId || (selectedSize ? selectedSize._id : "");
+              %>
+
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <a href="/product/<%= item.product._id %>?id=<%= effectiveSizeId %>" target="_blank">
+                  <!-- Product Image -->
+                  <img src="<%= item.product.images[0] %>" alt="<%= item.product.title %>" class="w-full h-48 object-cover rounded">
+
+                  <!-- Product Title -->
+                  <h2 class="text-lg font-semibold mt-2">
+                    <%= item.product.title %>
+                  </h2>
+
+                  <!-- Display Size and Price -->
+                  <p class="text-gray-600">
+                    Size: <%= selectedSize ? selectedSize.size : "Not available" %>
+                  </p>
+                  <p class="text-gray-600">
+                    Price: ₹ <%= selectedSize ? selectedSize.discountedPrice : "N/A" %>
+                  </p>
+                </a>
+                <div class="mt-4 flex justify-between">
+                  <!-- Remove from Wishlist Button -->
+                  <button onclick="removeItem('<%= item._id %>')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Remove from Wishlist
+                  </button>
+                  <!-- Add to Cart Button -->
+                  <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700" onclick="addToCart('<%= item.product._id %>', '<%= effectiveSizeId %>', '<%= selectedSize ? selectedSize.size : '' %>', '<%= selectedSize ? selectedSize.price : '' %>', '<%= selectedSize ? selectedSize.discountedPrice : '' %>', '<%= selectedSize ? selectedSize.discountedPercentage : '' %>' )">
+                    ADD TO CART
+                  </button>
                 </div>
-  
-                <% }  %> <!-- End of check for required fields -->
-            <% }) %>
+              </div>
+
+            <% } %> <!-- End of check for required fields -->
+          <% }) %>
         </div>
       <% } else { %>
         <p class="mt-4 text-gray-600">Your wishlist is currently empty.</p>
       <% } %>
+    </div>
   </div>
-  
-  
-  
-</div>
- 
-  </div>     
 
-
-  
-   <!-- modal for product add to cart : success -->
-   <div id="successModal" class="modal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+  <!-- Modal for product add to cart : success -->
+  <div id="successModal" class="modal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%; max-width:300px; text-align:center;">
       <p id="modalMessage"></p>
       <button id="closeModal" style="background-color:#4CAF50; color:white; padding:10px 20px; border:none; cursor:pointer;">Close</button>
     </div>
   </div>
 
-
-
-
   <!-- Footer -->
   <%- include("partials/footer") %>
 
-
   <script>
-
- 
-
-   async function removeItem(itemId ){
-     const response =  await fetch(`/removeWishlistItem/${itemId}` , { method : "DELETE"} )
+    async function removeItem(itemId) {
+      const response = await fetch(`/removeWishlistItem/${itemId}`, { method: "DELETE" });
       if (response.ok) {
         window.location.reload();
       }
-   }
+    }
 
+    async function addToCart(prodId, sizeId, size, price, discountedPrice, discountedPercentage) {
+      const userId = "<%= user ? user._id : '' %>";
+      if (!userId) {
+        window.location.href = "/userLogin";
+        return;
+      }
 
-  
-   
-   async function addToCart(prodId, sizeId, size, price, discountedPrice, discountedPercentage) {
-        const userId = "<%= user ? user._id : '' %>";
-        if (!userId) {
-          window.location.href = "/userlogin";
-          return;
-        }
-
-        fetch('/addToCart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, productId: prodId, sizeId, size, price, discountedPrice, discountPercentage: discountedPercentage }),
-        })
+      fetch('/addToCart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, productId: prodId, sizeId, size, price, discountedPrice, discountPercentage: discountedPercentage }),
+      })
         .then(response => response.json())
         .then(data => showModal(data.message))
         .catch(error => console.error('Error:', error));
-  }
+    }
 
+    function showModal(message) {
+      document.getElementById('modalMessage').textContent = message;
+      document.getElementById('successModal').style.display = 'block';
+    }
 
-
-  function showModal(message) {
-    document.getElementById('modalMessage').textContent = message;
-    document.getElementById('successModal').style.display = 'block';
-  }
-
-  document.getElementById('closeModal').onclick = function() {
-    document.getElementById('successModal').style.display = 'none';
-  };
-
-
-
-
-
-
-
-
-
-  
+    document.getElementById('closeModal').onclick = function () {
+      document.getElementById('successModal').style.display = 'none';
+    };
   </script>
 </body>
+
 </html>

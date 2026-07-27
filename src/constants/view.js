@@ -4,9 +4,12 @@ const VIEWS = {
     },
 
     ADMIN: {
-        LOGIN: "admin/login",
-        DASHBOARD: "admin/dashboard",
-        // ...
+        LOGIN: "backend/admin-login",
+        DASHBOARD: "backend/admin-dashboard",
+        FORGOT_PASSWORD: "backend/admin-forgot-password",
+        OTP_VERIFY: "backend/admin-otp-verify",
+        RESET_PASSWORD: "backend/admin-reset-password",
+        SIGNUP: "backend/admin-signup",
     },
 
     USER: {

@@ -1,6 +1,4 @@
 
-
-
 //import schemas
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
@@ -13,9 +11,7 @@ const { HTTP_STATUS } = require("../../constants/statusCodes")
 
 
 
-
-
-
+//add coupon
 //add coupon
 const couponAddCart = async (req, res) => {
     try {
@@ -23,64 +19,70 @@ const couponAddCart = async (req, res) => {
         const user = await User.findById(userId);
         const cart = await Cart.findOne({ user: userId });
 
+        if (!user || !cart) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ user: false });
+        }
+
         const couponCode = req.body.couponCode ? req.body.couponCode.trim() : "";
         const coupon = await Coupon.findOne({ code: couponCode });
 
-        //check coupon should have min cart value 
-        if (coupon) {
-
-            let cartValue = 0;
-
-            for (let i = 0; i < cart.items.length; i++) {
-                if (cart.items[i].status == "Available") {
-                    for (let m = 0; m < cart.items[i].quantity; m++) {
-                        cartValue += cart.items[i].discountedPrice;
-                    }
-                }
-            }
-
-            if (coupon.couponBalance > (cartValue - cart.walletBalance)) {
-                return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `cart must be minimum cart value - ${coupon.couponBalance}` })
-            };
+        if (!coupon) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Enter a valid Coupon` });
+        } else if (new Date(coupon.expiryDate) <= new Date()) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Coupon Expired` });
         }
 
+        // Calculate available cart total value
+        let cartValue = 0;
+        for (let i = 0; i < cart.items.length; i++) {
+            if (cart.items[i].status == "Available") {
+                for (let m = 0; m < cart.items[i].quantity; m++) {
+                    cartValue += cart.items[i].discountedPrice;
+                }
+            }
+        }
 
-        const userCoupon = user.appliedCoupons.find(coupon => coupon.couponCode === couponCode);
+        // Check min purchase amount requirement
+        if (coupon.minPurchaseAmount && cartValue < coupon.minPurchaseAmount) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
+                success: false,
+                message: `Minimum purchase amount for this coupon is ₹${coupon.minPurchaseAmount}`
+            });
+        }
 
-        if (!coupon) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Enter a valid Coupon` })
+        // Check usage limit for user
+        const userCoupon = user.appliedCoupons.find(c => c.couponCode === couponCode);
 
-        } else if (coupon.expiryDate <= Date.now()) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Coupon Expired` })
-        } else if (userCoupon) {
+        if (userCoupon) {
             if (userCoupon.totalApply >= coupon.usageLimit) {
-
-                return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Coupon limit Exceeded` })
+                return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: `Coupon limit Exceeded` });
             }
-            // Increment the usage limit if it's still within the allowed limit
-            else {
-                userCoupon.totalApply += 1;
-                user.couponBalance = coupon.couponBalance;
-                user.coupon = userCoupon._id;
-                cart.couponBalance = coupon.couponBalance;
-            }
+            userCoupon.totalApply += 1;
         } else {
             user.appliedCoupons.push({
                 couponCode: couponCode,
                 totalApply: 1, // Initial usage
             });
-            user.couponBalance = coupon.couponBalance;
-            cart.couponBalance = coupon.couponBalance;
         }
 
-        // Save the updated user document 
-        const Updateduser = await user.save();
-        const usercoupon = Updateduser.appliedCoupons.find(coupon => coupon.couponCode === couponCode);
-        Updateduser.coupon = usercoupon._id;
+        // Calculate percentage discount, capped by maxDiscountAmount
+        let calculatedDiscount = (cartValue * coupon.discountPercentage) / 100;
+        if (coupon.maxDiscountAmount && calculatedDiscount > coupon.maxDiscountAmount) {
+            calculatedDiscount = coupon.maxDiscountAmount;
+        }
+        calculatedDiscount = parseFloat(calculatedDiscount.toFixed(2));
+
+        user.couponBalance = calculatedDiscount;
+        cart.couponBalance = calculatedDiscount;
+
+        const updatedUser = await user.save();
+        const appliedUserCoupon = updatedUser.appliedCoupons.find(c => c.couponCode === couponCode);
+        updatedUser.coupon = appliedUserCoupon._id;
 
         await cart.save();
-        await user.save();
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: true })
+        await updatedUser.save();
+
+        return res.status(HTTP_STATUS.OK).json({ success: true, message: "Coupon applied successfully" });
 
     } catch (err) {
         console.log(err);
@@ -101,14 +103,20 @@ const removeCoupon = async (req, res) => {
         const user = await User.findById(userId);
         const cart = await Cart.findOne({ user: userId });
 
-        const userCoupon = user.appliedCoupons.find(coupon => coupon._id.equals(couponId));
+        if (user && user.appliedCoupons) {
+            const userCoupon = user.appliedCoupons.find(coupon => coupon._id.equals(couponId));
 
-        userCoupon.totalApply = userCoupon.totalApply - 1;
-        user.couponBalance = 0;
-        user.coupon = null;
-        cart.couponBalance = 0;
-        user.save();
-        cart.save();
+            if (userCoupon && userCoupon.totalApply > 0) {
+                userCoupon.totalApply = userCoupon.totalApply - 1;
+            }
+            user.couponBalance = 0;
+            user.coupon = null;
+            await user.save();
+        }
+        if (cart) {
+            cart.couponBalance = 0;
+            await cart.save();
+        }
 
         res.status(HTTP_STATUS.OK).json({ success: true });
 
@@ -188,9 +196,6 @@ const coupons = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
-
 
 
 

@@ -173,7 +173,6 @@ const postReturnOrder = async (req, res) => {
 
 
 
-
 //GET ORDER RETURNS PAGE
 const orderReturn = async (req, res) => {
     try {
@@ -224,8 +223,6 @@ const orderReturn = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 

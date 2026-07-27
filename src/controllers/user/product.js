@@ -15,12 +15,7 @@ const Reviews = require("../../models/reviewSchema");
 
 
 
-
-
 //$-----------------------------------------------------------------------------$//
-
-
-
 
 //GET PRODUCTS PAGE 
 const products = async (req, res) => {
@@ -209,9 +204,6 @@ const product = async (req, res) => {
   }
 
 }
-
-
-
 
 
 module.exports = {

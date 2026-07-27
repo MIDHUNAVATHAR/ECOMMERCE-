@@ -1,6 +1,4 @@
 
-
-
 //import  schemas
 const ReturnOrder = require("../../models/returnOrder");
 const Product = require("../../models/product");
@@ -43,7 +41,6 @@ const returnOrders = async (req, res) => {
     }
 
 }
-
 
 
 
@@ -117,8 +114,6 @@ const updateStatus = async (req, res) => {
 
 
 
-
-
 //VIEW RETURN ORDER
 const getReturnOrderDetails = async (req, res) => {
     try {
@@ -146,8 +141,6 @@ const getReturnOrderDetails = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("frontend/404");
     }
 }
-
-
 
 
 
