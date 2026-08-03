@@ -10,6 +10,27 @@
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-2xl font-bold mb-6">Return Orders Management</h1>
+
+        <form method="GET" class="mb-6 flex flex-col md:flex-row gap-3 items-end">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search by email</label>
+                <input type="text" name="search" value="<%= typeof searchEmail !== 'undefined' ? searchEmail : '' %>"
+                       placeholder="Enter customer email"
+                       class="w-full border border-gray-300 rounded px-3 py-2" />
+            </div>
+            <div class="w-full md:w-48">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Filter by status</label>
+                <select name="status" class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="" <%= typeof statusFilter !== 'undefined' && statusFilter === '' ? 'selected' : '' %>>All</option>
+                    <option value="pending" <%= typeof statusFilter !== 'undefined' && statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="approved" <%= typeof statusFilter !== 'undefined' && statusFilter === 'approved' ? 'selected' : '' %>>Approved</option>
+                    <option value="rejected" <%= typeof statusFilter !== 'undefined' && statusFilter === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                    <option value="completed" <%= typeof statusFilter !== 'undefined' && statusFilter === 'completed' ? 'selected' : '' %>>Completed</option>
+                </select>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+            <a href="/admin/returnOrders" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Clear</a>
+        </form>
         
         <div class="bg-white rounded-lg shadow overflow-x-auto">
             <table class="min-w-full table-auto">
@@ -89,21 +110,21 @@
         <!-- Pagination -->
         <div class="mt-4">
             <div class="flex justify-center mt-4">
-                <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) : '#' %>" 
+                <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) + (typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '') + (typeof searchEmail !== 'undefined' && searchEmail ? '&search=' + encodeURIComponent(searchEmail) : '') : '#' %>" 
                     class="px-4 py-2 mx-1 rounded 
                            <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
                      &laquo; Prev
                 </a>
 
                 <% for (let i = 1; i <= totalPages; i++) { %>
-                    <a href="?page=<%= i %>"  
+                    <a href="?page=<%= i %><%= typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '' %><%= typeof searchEmail !== 'undefined' && searchEmail ? '&search=' + encodeURIComponent(searchEmail) : '' %>"  
                        class="px-4 py-2 mx-1 rounded 
                               <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
                         <%= i %>
                     </a>
                 <% } %>
               
-                <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) : '#' %>" 
+                <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) + (typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '') + (typeof searchEmail !== 'undefined' && searchEmail ? '&search=' + encodeURIComponent(searchEmail) : '') : '#' %>" 
                     class="px-4 py-2 mx-1 rounded 
                            <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
                      &raquo; Next

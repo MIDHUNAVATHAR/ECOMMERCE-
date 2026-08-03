@@ -53,7 +53,7 @@ const salesReport = async (req, res) => {
 
         const salesReport = await Order.find({
             createdAt: { $gte: startDate, $lte: endDate },
-        }).populate("userId");
+        }).sort({ createdAt: -1 }).populate("userId");
 
 
         // Calculate summary data
@@ -78,7 +78,7 @@ const salesReport = async (req, res) => {
 
         const orders = await Order.find({
             createdAt: { $gte: startDate, $lte: endDate },
-        }).skip(skip).limit(limit).populate("userId");
+        }).sort({ createdAt: -1 }).skip(skip).limit(limit).populate("userId");
 
 
         const totalPages = Math.ceil(totalOrders / limit);
@@ -144,7 +144,7 @@ const generatePDF = async (req, res) => {
         // Fetch orders
         const salesReport = await Order.find({
             createdAt: { $gte: startDate, $lte: endDate }
-        }).populate([
+        }).sort({ createdAt: -1 }).populate([
             { path: 'userId', select: 'firstName lastName email' },
             { path: 'items.product', select: 'title category price' }
         ]);
@@ -223,7 +223,7 @@ const generatePDF = async (req, res) => {
             }
 
             // Order details
-            const orderId = order._id?.toString().substring(0, 8) || 'N/A';
+            const orderId = order.orderId ?? order._id?.toString() ?? 'N/A';
             const customerName = order.userId ? `${order.userId.firstName} ${order.userId.lastName}` : 'N/A';
             const orderDate = moment(order.createdAt).format('DD/MM/YYYY');
             const status = order.orderStatus || 'N/A';
@@ -312,7 +312,7 @@ const generateExcel = async (req, res) => {
         // Fetch sales data
         const salesReport = await Order.find({
             createdAt: { $gte: startDate, $lte: endDate }
-        }).populate([
+        }).sort({ createdAt: -1 }).populate([
             { path: 'userId', select: 'firstName lastName email' },
             { path: 'shippingAddress' },
             { path: 'items.product', select: 'title' }
@@ -386,7 +386,7 @@ const generateExcel = async (req, res) => {
             const row = worksheet.getRow(currentRow);
 
             // Main order information
-            row.getCell(1).value = order._id.toString();
+            row.getCell(1).value = order.orderId ?? order._id?.toString() ?? 'N/A';
             row.getCell(2).value = `${order.userId?.firstName || 'N/A'} ${order.userId?.lastName || ''}`;
             row.getCell(3).value = moment(order.createdAt).format('DD/MM/YYYY'); // Format date in Indian format
             row.getCell(4).value = order.orderStatus;

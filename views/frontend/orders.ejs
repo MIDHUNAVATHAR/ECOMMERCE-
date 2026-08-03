@@ -122,11 +122,16 @@
                               <p class="text-sm text-gray-600">Payment Status: <span class="font-bold text-red-500"><%= order.paymentStatus %></span></p>
                               <% } %>
                           </p>
+                          <% if (order.items && order.items.some(item => item.itemStatus === 'cancelled')) { %>
+                            <p class="mt-1 text-xs font-bold text-red-600">Cancelled product in this order</p>
+                          <% } %>
                       </div>
                   </div>
 
                   <div class="mt-6 flex justify-between">
-                      <button type="submit" class="text-white bg-red-500 hover:bg-red-600 font-semibold py-2 px-4 rounded-lg" onclick="cancelOrder('<%= order._id %>')">
+                      <button type="button" class="text-white bg-red-500 hover:bg-red-600 font-semibold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                              <%= (order.productCancellationLocked || order.items.some(item => item.itemStatus === 'cancelled')) ? 'disabled' : '' %>
+                              onclick="openCancelModal('<%= order._id %>')">
                           Cancel Order
                       </button>
                       <a href="/myOrders/<%= order._id %>" class="text-white bg-blue-500 hover:bg-blue-600 font-semibold py-2 px-4 rounded-lg">
@@ -177,6 +182,9 @@
                               <span class="font-bold text-red-500"><%= order.orderStatus %></span>
                               <% } %>
                           </p>
+                          <% if (order.items && order.items.some(item => item.itemStatus === 'cancelled')) { %>
+                            <p class="mt-1 text-xs font-bold text-red-600">Cancelled product in this order</p>
+                          <% } %>
                       </div>
                   </div>
 
@@ -260,10 +268,57 @@
   </div>
 </div>
 
+<div id="cancelProductModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-2xl p-6">
+    <div class="flex justify-between items-start gap-4 mb-4">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800">Cancel Product</h2>
+        <p class="text-sm text-red-600 mt-1">Once any product is cancelled from this order, you cannot cancel other products from the same order.</p>
+      </div>
+      <button type="button" onclick="closeCancelModal()" class="text-2xl leading-none text-gray-500 hover:text-red-600">&times;</button>
+    </div>
+
+    <div id="cancelProductList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+
+    <div class="mt-5 flex justify-end gap-3">
+      <button type="button" onclick="closeCancelModal()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">Close</button>
+      <button type="button" id="confirmProductCancelBtn" onclick="confirmProductCancellation()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+        Cancel Selected Product
+      </button>
+    </div>
+  </div>
+</div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
+    const cancelOrders = <%- JSON.stringify(orders.map(order => ({
+      id: order._id,
+      locked: Boolean(order.productCancellationLocked || (order.items && order.items.some(item => item.itemStatus === 'cancelled'))),
+      appliedCoupon: order.appliedCoupon || 0,
+      items: (order.items || []).map(item => ({
+        id: item._id,
+        title: item.product && item.product.title ? item.product.title : item.title,
+        image: item.product && item.product.images && item.product.images.length > 0 ? item.product.images[0] : '',
+        size: item.size,
+        quantity: item.quantity,
+        totalPrice: item.totalPrice,
+        status: item.itemStatus || 'active'
+      }))
+    }))).replace(/</g, '\\u003c') %>;
+    let selectedCancelOrderId = '';
+    let selectedCancelItemId = '';
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
      
     function orderStatus(status){
       const currentUrl = new URL(window.location.href) ; 
@@ -288,11 +343,60 @@
     }
 
 
-    //cancel order
-    function cancelOrder(id){
+    function openCancelModal(orderId) {
+      const order = cancelOrders.find(order => order.id === orderId);
+      const list = document.getElementById('cancelProductList');
+      const confirmBtn = document.getElementById('confirmProductCancelBtn');
+
+      selectedCancelOrderId = orderId;
+      selectedCancelItemId = '';
+      confirmBtn.disabled = true;
+      list.innerHTML = '';
+
+      if (!order || order.locked) {
+        list.innerHTML = '<p class="text-red-600 font-semibold">A product from this order is already cancelled. You cannot cancel another product.</p>';
+      } else {
+        order.items.forEach(item => {
+          const disabled = item.status === 'cancelled';
+          const refundPreview = Math.max(Number(item.totalPrice || 0) - Number(order.appliedCoupon || 0), 0).toFixed(2);
+          const itemTitle = escapeHtml(item.title || 'Product');
+          const row = document.createElement('label');
+          row.className = `flex items-center gap-3 border rounded-lg p-3 ${disabled ? 'bg-gray-100 opacity-70' : 'cursor-pointer hover:bg-gray-50'}`;
+          row.innerHTML = `
+            <input type="radio" name="cancelProductItem" value="${item.id}" class="h-4 w-4" ${disabled ? 'disabled' : ''}>
+            ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${itemTitle}" class="w-14 h-14 object-cover rounded">` : '<div class="w-14 h-14 bg-gray-200 rounded"></div>'}
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800">${itemTitle}</p>
+              <p class="text-sm text-gray-600">Size: ${escapeHtml(item.size)} | Qty: ${Number(item.quantity || 0)} | Subtotal: ₹${Number(item.totalPrice || 0).toFixed(2)}</p>
+              <p class="text-xs text-gray-500">Estimated wallet credit after coupon deduction: ₹${refundPreview}</p>
+            </div>
+            ${disabled ? '<span class="text-xs font-bold text-red-600">Cancelled</span>' : ''}
+          `;
+          row.querySelector('input').addEventListener('change', (event) => {
+            selectedCancelItemId = event.target.value;
+            confirmBtn.disabled = false;
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById('cancelProductModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancelProductModal').classList.add('hidden');
+    }
+
+    //cancel selected product
+    function confirmProductCancellation(){
+      if (!selectedCancelOrderId || !selectedCancelItemId) {
+        toastr.error('Please select a product to cancel.');
+        return;
+      }
+
       Swal.fire({
       title  : 'Are you sure?',
-      text:  "Cancel this order ?",
+      text:  "Cancel the selected product from this order?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -307,7 +411,7 @@
           headers: {
             'Content-Type'  : 'application/json'
           },
-          body : JSON.stringify({ id })
+          body : JSON.stringify({ id: selectedCancelOrderId, itemId: selectedCancelItemId })
         })
         .then(response => response.json())
         .then(data => {
@@ -323,12 +427,12 @@
              toastr.success(`${data.wallet} added to your wallet`, 'Wallet');
              }
 
-
+            closeCancelModal();
             setTimeout(()=>location.reload() , 3000)
           } else {
             Swal.fire(
               'Error!',
-              'There was a problem cancelling your item.',
+              data.message || 'There was a problem cancelling your item.',
               'error'
             );
           }

@@ -19,11 +19,25 @@ const returnOrders = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
+        const statusFilter = req.query.status || '';
+        const searchEmail = (req.query.search || '').trim();
 
-        const totalOrders = await ReturnOrder.countDocuments();
+        const query = {};
+
+        if (statusFilter) {
+            query.returnStatus = statusFilter;
+        }
+
+        if (searchEmail) {
+            const users = await User.find({ email: { $regex: searchEmail, $options: 'i' } }).select('_id');
+            const userIds = users.map(user => user._id);
+            query.userId = { $in: userIds };
+        }
+
+        const totalOrders = await ReturnOrder.countDocuments(query);
         const totalPages = Math.ceil(totalOrders / limit);
 
-        const returnOrders = await ReturnOrder.find()
+        const returnOrders = await ReturnOrder.find(query)
             .populate('orderId')
             .populate('userId')
             .populate('pickupAddress')
@@ -33,7 +47,8 @@ const returnOrders = async (req, res) => {
 
         res.render("backend/admin-dashboard.ejs", {
             message: '', admin: req.session.admin.email, partial: "partials/returnOrders",
-            returnOrders, currentPage: page, totalPages, totalOrders
+            returnOrders, currentPage: page, totalPages, totalOrders,
+            statusFilter, searchEmail
         })
     } catch (err) {
         console.log(err);
@@ -87,15 +102,16 @@ const updateStatus = async (req, res) => {
             // Add refund amount to user's wallet
             const user = await User.findById(returnOrder.userId);
             if (user) {
-                user.walletBalance += returnOrder.totalRefundAmount;
+                const refundAmount = toTwoDecimals(returnOrder.totalRefundAmount);
+                user.walletBalance = toTwoDecimals(user.walletBalance + refundAmount);
 
                 // Create wallet transaction record
                 const walletTransaction = new WalletTransaction({
                     userId: user._id,
-                    amount: returnOrder.totalRefundAmount,
+                    amount: refundAmount,
                     type: 'credit',
                     description: `Refund for returned order ${returnOrder._id}`,
-                    balanceAfterTransaction: user.walletBalance
+                    balanceAfterTransaction: toTwoDecimals(user.walletBalance)
                 });
 
                 await walletTransaction.save();

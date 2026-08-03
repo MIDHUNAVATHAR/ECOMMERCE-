@@ -61,7 +61,7 @@ const getCart = async (req, res) => {
         }
       }
 
-
+      totalPrice = parseFloat(totalPrice.toFixed(2));
       let totalP = parseFloat(totalPrice.toFixed(2));
 
       let couponDiscount = 0;

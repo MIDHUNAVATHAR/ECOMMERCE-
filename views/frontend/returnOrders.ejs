@@ -113,8 +113,9 @@
     <h1 class="text-3xl font-bold mb-6 text-center">Your Return Orders</h1>
 
     <% if (returnOrders.length > 0) { %>
+      <% const sortedReturnOrders = returnOrders.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); %>
       <div class="grid grid-cols-1 gap-6">
-        <% returnOrders.forEach(order => { %>
+        <% sortedReturnOrders.forEach(order => { %>
           <div class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-xl font-bold mb-4">Return Order ID: <%=order.returnOrderId? order.returnOrderId : order._id%></h2> 
 

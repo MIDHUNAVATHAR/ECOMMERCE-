@@ -22,6 +22,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="">
+<% function formatPrice(value) { return Number(value || 0).toFixed(2); } %>
 
   <!-- Header --> 
   <%- include("partials/header") %> 
@@ -77,8 +78,8 @@
                         <p class="text-sm text-gray-600 truncate-description-mobile">Spec: <%= item.product && item.product.productDescription ? item.product.productDescription : 'No specifications available' %></p>
                         <!-- Price and Discount Info -->
                         <div class="flex items-center mt-2">
-                            <span class="text-lg font-bold">₹<%= item.discountedPrice %></span>
-                            <span class="text-sm text-gray-500 line-through ml-2">₹<%= item.price %></span>
+                            <span class="text-lg font-bold">₹<%= formatPrice(item.discountedPrice) %></span>
+                            <span class="text-sm text-gray-500 line-through ml-2">₹<%= formatPrice(item.price) %></span>
                             <span class="text-sm text-green-500 ml-2"><%= item.discountPercentage ? item.discountPercentage : '0' %>% OFF</span>
                         </div>
                     </div>
@@ -111,23 +112,23 @@
                 <h2 class="text-lg font-semibold mb-4">PRICE DETAILS</h2>
                 <div class="flex justify-between mb-2">
                   <span id="totalItems">Price (<%= totalItems %> items)</span>
-                  <span id="totalPrice">₹<%= totalPrice %></span>
+                  <span id="totalPrice">₹<%= formatPrice(totalPrice) %></span>
                   
                 </div>
                 <div class="flex justify-between mb-2">
                     <span>Coupon Discount</span>
-                    <span>₹<%= cart.couponBalance %></span>
+                    <span>₹<%= formatPrice(cart.couponBalance) %></span>
                 </div>
                 <div class="flex justify-between mb-2">
                   <span>Wallet Discount</span>
-                  <span id="cartWalletBalance">₹<%= walletDiscount %></span>
+                  <span id="cartWalletBalance">₹<%= formatPrice(walletDiscount) %></span>
               </div>
             
                 <div class="border-t pt-2 mt-2">
         
                     <div class="flex justify-between font-semibold">
                         <span>Total Amount</span>
-                        <span id="totalAmount" class="text-green-500">₹<%= totalAmount %></span>
+                        <span id="totalAmount" class="text-green-500">₹<%= formatPrice(totalAmount) %></span>
 
                     </div>
                 </div>

@@ -4,6 +4,7 @@
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
 const WalletTransaction = require("../../models/walletTransaction");
+const Order = require("../../models/orderSchema");
 const Logo = require("../../models/logoSchema");
 const GenderCategory = require("../../models/genderCategory");
 
@@ -92,6 +93,29 @@ const walletRemoveCart = async (req, res) => {
 
 
 //GET WALLET HISTORY PAGE
+const formatWalletTransactionDescription = async (transaction) => {
+    try {
+        if (!transaction?.description) {
+            return transaction?.description || '';
+        }
+
+        const orderMatch = transaction.description.match(/order\s+([a-fA-F0-9]{8,24})/i);
+        if (!orderMatch) {
+            return transaction.description;
+        }
+
+        const order = await Order.findById(orderMatch[1]);
+        if (order?.orderId != null) {
+            return transaction.description.replace(orderMatch[1], String(order.orderId));
+        }
+
+        return transaction.description;
+    } catch (err) {
+        console.error('Error formatting wallet transaction description:', err);
+        return transaction?.description || '';
+    }
+};
+
 const getWalletHistory = async (req, res) => {
     try {
         const userId = req.session.user ? req.session.user.id : "" || req.session.passport ? req.session.passport.user : "";
@@ -119,13 +143,20 @@ const getWalletHistory = async (req, res) => {
         const walletTransactions = await WalletTransaction.find({ userId }).sort({ createdAt: -1 }).skip((page - 1) * limit)
             .limit(limit);
 
+        const formattedTransactions = await Promise.all(
+            walletTransactions.map(async (transaction) => ({
+                ...transaction.toObject(),
+                description: await formatWalletTransactionDescription(transaction)
+            }))
+        );
+
         const totalWalletTransactions = await WalletTransaction.countDocuments();
         const totalPages = Math.ceil(totalWalletTransactions / limit);
 
 
 
         res.render('frontend/walletHistory', {
-            walletTransactions, logo, genderCategory, user, userId,
+            walletTransactions: formattedTransactions, logo, genderCategory, user, userId,
             currentPage: page, totalPages, cartTotal
         });
     } catch (error) {

@@ -26,6 +26,9 @@
           <% } else { %>
             <span class="font-semibold text-red-600"><%= order.orderStatus %></span> <!-- Use a different color for non-completed statuses -->
           <% } %>
+          <% if (order.items && order.items.some(item => item.itemStatus === 'cancelled')) { %>
+            <span class="ml-2 inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">Product Cancelled</span>
+          <% } %>
         </p>
         <h2 class="text-lg font-semibold mb-2">Payment Method</h2> 
         <p id="paymentMethod" class="font-semibold text-blue-900"> <%=order.paymentMethod%> </p> 
@@ -53,6 +56,7 @@
               <th class="px-4 py-2">Quantity</th>
               <th class="px-4 py-2">Price</th>
               <th class="px-4 py-2">Subtotal</th>
+              <th class="px-4 py-2">Status</th>
             </tr>
           </thead>
           <tbody id="orderItems">
@@ -82,6 +86,14 @@
                 <td class="border px-4 py-2"><%= item.quantity %></td>
                 <td class="border px-4 py-2">₹<%= item.price %></td>
                 <td class="border px-4 py-2">₹<%= item.totalPrice %></td>
+                <td class="border px-4 py-2">
+                  <% if (item.itemStatus === 'cancelled') { %>
+                    <span class="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">Cancelled</span>
+                    <div class="text-xs text-gray-500 mt-1">Refund: ₹<%= Number(item.cancellationRefundAmount || 0).toFixed(2) %></div>
+                  <% } else { %>
+                    <span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">Active</span>
+                  <% } %>
+                </td>
               </tr>
             <% }) %>
           </tbody>
@@ -91,8 +103,10 @@
 
     <!-- Total Price Section -->
     <div class="flex justify-end mt-6">
-      <div class="text-right">
-        <p class="text-xl font-semibold">Total Price: <span id="totalPrice">   ₹ <%=order.totalPrice%></span></p>
+      <div class="text-right space-y-2">
+        <p class="text-xl font-semibold">Total Price: <span id="totalPrice">₹ <%= Number(order.totalPrice || 0).toFixed(2) %></span></p>
+        <p class="text-lg text-gray-600">Wallet Deduction: <span class="font-semibold text-red-600">- ₹ <%= Number(order.appliedWallet || 0).toFixed(2) %></span></p>
+        <p class="text-lg text-gray-600">Coupon Deduction: <span class="font-semibold text-red-600">- ₹ <%= Number(order.appliedCoupon || 0).toFixed(2) %></span></p>
       </div>
     </div>
 

@@ -48,7 +48,23 @@ const orderSchema = new Schema({
         type: Number,
         required: true,
       }, 
-      image: { type: Buffer }  
+      image: { type: Buffer },
+      itemStatus: {
+        type: String,
+        enum: ['active', 'cancelled'],
+        default: 'active'
+      },
+      cancelledAt: {
+        type: Date
+      },
+      cancellationRefundAmount: {
+        type: Number,
+        default: 0
+      },
+      cancellationCouponDeduction: {
+        type: Number,
+        default: 0
+      }
   }],
   paymentMethod: {
     type: String,
@@ -82,6 +98,10 @@ const orderSchema = new Schema({
   },
   deliveryCharge : {
     type : Number , default : 0,
+  },
+  productCancellationLocked: {
+    type: Boolean,
+    default: false
   },
   returnRequested :{ type : Boolean , default : false }
 } , { timestamps : true } ) ;  

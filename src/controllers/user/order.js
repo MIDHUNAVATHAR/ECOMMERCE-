@@ -2,6 +2,7 @@
 //import modules
 const PDFDocument = require('pdfkit');
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 const { HTTP_STATUS } = require("../../constants/statusCodes")
 
@@ -18,8 +19,21 @@ const WalletTransaction = require("../../models/walletTransaction");
 const Address = require("../../models/addressSchema");
 const Counter = require("../../models/orderIdSchema");
 
+const toTwoDecimals = (value) => Number(parseFloat(value || 0).toFixed(2));
 
+const findOrderByIdentifier = async (identifier) => {
+  if (!identifier) return null;
 
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    return Order.findOne({ _id: identifier }).populate("shippingAddress").populate("items.product");
+  }
+
+  if (/^\d+$/.test(identifier)) {
+    return Order.findOne({ orderId: Number(identifier) }).populate("shippingAddress").populate("items.product");
+  }
+
+  return null;
+};
 
 //POST PLACE-ORDER - CASH-ON-DELIVERY
 const placeorder = async (req, res) => {
@@ -279,12 +293,16 @@ const viewOrder = async (req, res) => {
   try {
     const logo = await Logo.findOne().sort({ updatedAt: -1 });
     const genderCategory = await GenderCategory.find({ softDelete: false });
-    const order = await Order.findById(req.params.orderId).populate("shippingAddress").populate("items.product");
+    const order = await findOrderByIdentifier(req.params.orderId);
+
+    if (!order) {
+      return res.status(HTTP_STATUS.NOT_FOUND).render("frontend/404");
+    }
 
     // Format order date
     const orderDate = new Date(order.createdAt).toLocaleString();
     const userId = req.session.user ? req.session.user.id : "" || req.session.passport ? req.session.passport.user : "";
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
 
 
     let cartTotal;
@@ -301,7 +319,7 @@ const viewOrder = async (req, res) => {
       logo,
       genderCategory,
       user,
-      userId: user._id,
+      userId: user ? user._id : userId,
       order,
       orderDate,
       cartTotal
@@ -318,56 +336,101 @@ const viewOrder = async (req, res) => {
 //CANCEL ORDER
 const cancelOrder = async (req, res) => {
   try {
-    const orderId = req.body.id;
-    const savedOrder = await Order.findByIdAndUpdate(orderId, {
-      orderStatus: "cancelled",
-    });
+    const { id: orderId, itemId } = req.body;
+    const userId = req.session.user ? req.session.user.id : "" || req.session.passport ? req.session.passport.user : "";
+    const existingOrder = await Order.findById(orderId);
 
+    if (!existingOrder) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ status: false, message: "Order not found." });
+    }
 
-    //increase the quantity of products in the database . 
-    for (let i = 0; i < savedOrder.items.length; i++) {
-      let productId = savedOrder.items[i].product;
-      let size = savedOrder.items[i].size;
-      let orderQuantity = savedOrder.items[i].quantity;
+    if (existingOrder.userId.toString() !== userId.toString()) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ status: false, message: "You cannot cancel this order." });
+    }
 
-      // Find the product by its ID
-      let product = await Product.findById(productId);
+    if (!["pending", "shipped"].includes(existingOrder.orderStatus)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: false, message: "Only pending or shipped order products can be cancelled." });
+    }
 
-      if (product) {
-        // Find the item in the product.items array with the matching size
-        let itemToUpdate = product.sizes.find(item => item.size === size);
+    if (existingOrder.orderStatus === "cancelled") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: false, message: "This order is already cancelled." });
+    }
 
-        if (itemToUpdate) {
-          // Decrease the quantity by the order's quantity
-          itemToUpdate.quantity += orderQuantity;
+    if (!itemId) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: false, message: "Please select a product to cancel." });
+    }
 
-          // Save the updated product back to the database
-          await product.save();
-        }
+    if (existingOrder.productCancellationLocked || existingOrder.items.some(item => item.itemStatus === "cancelled")) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        status: false,
+        message: "A product from this order is already cancelled. You cannot cancel another product from the same order."
+      });
+    }
+
+    const selectedItem = existingOrder.items.id(itemId);
+
+    if (!selectedItem) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ status: false, message: "Selected product not found in this order." });
+    }
+
+    if (selectedItem.itemStatus === "cancelled") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: false, message: "This product is already cancelled." });
+    }
+
+    const product = await Product.findById(selectedItem.product);
+
+    if (product) {
+      const itemToUpdate = product.sizes.find(item => item.size === selectedItem.size);
+
+      if (itemToUpdate) {
+        itemToUpdate.quantity += selectedItem.quantity;
+        await product.save();
       }
     }
 
-    //add to wallet
-    const userId = req.session.user ? req.session.user.id : "" || req.session.passport ? req.session.passport.user : "";
+    const itemTotal = toTwoDecimals(selectedItem.totalPrice);
+    const couponDeduction = toTwoDecimals(Math.min(existingOrder.appliedCoupon || 0, itemTotal));
+    const refundAfterCoupon = toTwoDecimals(Math.max(itemTotal - couponDeduction, 0));
+
     const user = await User.findById(userId);
 
-    let amountPayable = (savedOrder.paymentMethod != "cash-on-delivery" && savedOrder.paymentStatus === "completed") ? savedOrder.totalPrice : 0;
-    user.walletBalance += (savedOrder.appliedWallet + amountPayable);
+    let walletRefundAmount = 0;
+    if (existingOrder.paymentMethod !== "cash-on-delivery" && existingOrder.paymentStatus === "completed") {
+      walletRefundAmount = refundAfterCoupon;
+    } else if (existingOrder.appliedWallet > 0) {
+      walletRefundAmount = toTwoDecimals(Math.min(existingOrder.appliedWallet, refundAfterCoupon));
+    }
 
-    let wallet = savedOrder.appliedWallet > 0 ? savedOrder.appliedWallet + amountPayable : false;
+    selectedItem.itemStatus = "cancelled";
+    selectedItem.cancelledAt = new Date();
+    selectedItem.cancellationRefundAmount = walletRefundAmount;
+    selectedItem.cancellationCouponDeduction = couponDeduction;
+    existingOrder.productCancellationLocked = true;
 
-    const savedUser = await user.save();
+    if (existingOrder.items.every(item => item.itemStatus === "cancelled")) {
+      existingOrder.orderStatus = "cancelled";
+    }
+
+    const wallet = walletRefundAmount > 0 ? walletRefundAmount : false;
+
+    let savedUser = user;
+    if (user && walletRefundAmount > 0) {
+      user.walletBalance = toTwoDecimals((user.walletBalance || 0) + walletRefundAmount);
+      savedUser = await user.save();
+    }
+
+    const savedOrder = await existingOrder.save();
 
     //wallet transaction 
-    if ((savedOrder.appliedWallet + amountPayable) > 0) {
+    if (walletRefundAmount > 0) {
 
       // Create wallet transaction record for the order placement
       const walletTransaction = new WalletTransaction({
         userId,
-        amount: savedOrder.appliedWallet + amountPayable,
+        amount: walletRefundAmount,
         type: 'credit',
-        description: `Refund for cancel  order ${savedOrder._id}`,
-        balanceAfterTransaction: savedUser.walletBalance
+        description: `Refund for cancelled product ${selectedItem.title || selectedItem.product} in order ${savedOrder._id}`,
+        balanceAfterTransaction: toTwoDecimals(savedUser.walletBalance)
       });
 
       await walletTransaction.save();
@@ -420,14 +483,20 @@ const submitReview = async (req, res) => {
 const generateOrderPDF = async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    const order = await Order.findById(orderId).populate('items.product').populate("shippingAddress");
+    const order = await findOrderByIdentifier(orderId);
     if (!order) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Order not found' });
     }
 
+    const hasCancelledItems = order.items.some(item => item.itemStatus === 'cancelled');
+    const totalCancelledRefund = toTwoDecimals(order.items.reduce((total, item) => {
+      return total + (item.itemStatus === 'cancelled' ? Number(item.cancellationRefundAmount || 0) : 0);
+    }, 0));
+    const displayOrderId = order.orderId ? order.orderId : order._id;
+
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=order-${orderId}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=order-${displayOrderId}.pdf`);
 
     doc.pipe(res);
 
@@ -442,11 +511,13 @@ const generateOrderPDF = async (req, res) => {
     doc
       .fontSize(14)
       .fillColor('black')
-      .text(`Order ID: ${order._id}`)
+      .text(`Order ID: ${displayOrderId}`)
       .moveDown(0.5)
       .text(`Order Date: ${new Date(order.createdAt).toLocaleDateString()}`)
       .moveDown(0.5)
       .text(`Order Status: ${order.orderStatus}`)
+      .moveDown(0.5)
+      .text(`Product Cancellation: ${hasCancelledItems ? 'Cancelled product included in this order' : 'No cancelled products'}`)
       .moveDown(0.5)
       .text(`Payment Method: ${order.paymentMethod}`)
       .moveDown(0.5)
@@ -482,10 +553,12 @@ const generateOrderPDF = async (req, res) => {
     // Table headers
     const tableTop = doc.y;
     const itemX = 50;
-    const sizeX = 200;
-    const qtyX = 280;
-    const priceX = 350;
-    const totalX = 450;
+    const sizeX = 190;
+    const qtyX = 235;
+    const priceX = 285;
+    const totalX = 345;
+    const statusX = 415;
+    const refundX = 485;
 
     doc
       .fontSize(12)
@@ -495,6 +568,8 @@ const generateOrderPDF = async (req, res) => {
       .text('Qty', qtyX, tableTop)
       .text('Price', priceX, tableTop)
       .text('Total', totalX, tableTop)
+      .text('Status', statusX, tableTop)
+      .text('Refund', refundX, tableTop)
       .moveTo(50, tableTop + 15)
       .lineTo(550, tableTop + 15)
       .stroke();
@@ -509,11 +584,16 @@ const generateOrderPDF = async (req, res) => {
 
       doc
         .fontSize(12)
-        .text(item.product.title, itemX, yPosition)
+        .fillColor('black')
+        .text(item.product ? item.product.title : item.title, itemX, yPosition, { width: 130 })
         .text(item.size, sizeX, yPosition)
         .text(item.quantity.toString(), qtyX, yPosition)
-        .text(`₹${item.price}`, priceX, yPosition)
-        .text(`₹${item.totalPrice}`, totalX, yPosition)
+        .text(`₹${Number(item.price || 0).toFixed(2)}`, priceX, yPosition)
+        .text(`₹${Number(item.totalPrice || 0).toFixed(2)}`, totalX, yPosition)
+        .fillColor(item.itemStatus === 'cancelled' ? '#DC2626' : '#15803D')
+        .text(item.itemStatus === 'cancelled' ? 'Cancelled' : 'Active', statusX, yPosition)
+        .fillColor('black')
+        .text(`₹${Number(item.cancellationRefundAmount || 0).toFixed(2)}`, refundX, yPosition)
         .moveTo(50, yPosition + 15)
         .lineTo(550, yPosition + 15)
         .stroke();
@@ -526,7 +606,7 @@ const generateOrderPDF = async (req, res) => {
       doc
         .fontSize(14)
         .fillColor('black')
-        .text(`Coupon Deduction: ₹${order.appliedCoupon}`, 50, yPosition + 10)
+        .text(`Coupon Deduction: - ₹${Number(order.appliedCoupon || 0).toFixed(2)}`, 50, yPosition + 10)
         .moveDown(0.5);
       yPosition += 20; // Adjust for next item
     }
@@ -535,9 +615,18 @@ const generateOrderPDF = async (req, res) => {
       doc
         .fontSize(14)
         .fillColor('black')
-        .text(`Wallet Deduction: ₹${order.appliedWallet}`, 50, yPosition + 10)
+        .text(`Wallet Deduction: - ₹${Number(order.appliedWallet || 0).toFixed(2)}`, 50, yPosition + 10)
         .moveDown(0.5);
       yPosition += 20; // Adjust for next item
+    }
+
+    if (hasCancelledItems) {
+      doc
+        .fontSize(14)
+        .fillColor('#DC2626')
+        .text(`Refunded to Wallet for Cancelled Product: ₹${totalCancelledRefund.toFixed(2)}`, 50, yPosition + 10)
+        .moveDown(0.5);
+      yPosition += 20;
     }
 
     // Total amount after deductions
@@ -545,7 +634,7 @@ const generateOrderPDF = async (req, res) => {
     doc
       .fontSize(16)
       .fillColor('black')
-      .text(`Total Amount: ₹${finalAmount}`, 50, yPosition + 30, { align: 'right' })
+      .text(`Total Amount: ₹${Number(finalAmount || 0).toFixed(2)}`, 50, yPosition + 30, { align: 'right' })
       .moveDown(2);
 
     // Footer

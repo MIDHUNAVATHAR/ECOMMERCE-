@@ -102,7 +102,7 @@
       <tbody>
         <% orders.forEach(order => { %>
           <tr>
-            <td class="py-2 px-4 border-b"><%= order._id %></td>
+            <td class="py-2 px-4 border-b"><%= order.orderId ?? order._id %></td>
             <td class="py-2 px-4 border-b">
               <% if (order.userId && order.userId.firstName) { %>
                 <%= order.userId.firstName %>

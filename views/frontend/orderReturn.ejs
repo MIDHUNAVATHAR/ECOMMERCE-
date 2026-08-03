@@ -52,7 +52,7 @@
                         <!-- Product Image -->
                         <% if (item.product && item.product.images && item.product.images.length > 0) { %>
                             <div class="w-24 h-24 flex-shrink-0">
-                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" 
+                                <img src="<%= item.product.images[0] %>" alt="<%= item.product && item.product.title ? item.product.title : (item.title ? item.title : 'Product') %>" 
                                      class="w-full h-full object-cover rounded-md">
                             </div>
                         <% } %>
@@ -60,7 +60,7 @@
                         
                         <!-- Product Details -->
                         <div class="flex-grow">
-                            <h3 class="font-medium text-lg"><%= item.product && item.product.name ? item.product.name : 'Product name unavailable' %></h3>
+                            <h3 class="font-medium text-lg"><%= item.product && item.product.title ? item.product.title : (item.title ? item.title : 'Product name unavailable') %></h3>
                             <p class="text-gray-600">Size: <%= item.size ? item.size : 'N/A' %></p>
                             <p class="text-gray-600">Price: ₹<%= item.price ? item.price : '0.00' %></p>
                             <p class="text-gray-600">Ordered Quantity: <%= item.quantity ? item.quantity : 'N/A' %></p>

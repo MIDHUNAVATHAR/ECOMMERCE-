@@ -12,8 +12,7 @@ const ReturnCounter = require("../../models/returnOrderIdSchema");
 
 const { HTTP_STATUS } = require("../../constants/statusCodes")
 
-
-
+const toTwoDecimals = (value) => Number(parseFloat(value || 0).toFixed(2));
 
 //GET RETURN ORDER PAGE
 const returnOrder = async (req, res) => {
@@ -123,7 +122,7 @@ const postReturnOrder = async (req, res) => {
 
         const proportionalDiscount = (totalProductValue / totalOrderValue) * totalDiscountApplied;
 
-        const refundAmount = totalProductValue - proportionalDiscount;
+        const refundAmount = toTwoDecimals(totalProductValue - proportionalDiscount);
 
 
         const getNextReturnOrderID = async () => {
@@ -198,19 +197,20 @@ const orderReturn = async (req, res) => {
 
         const currentPage = parseInt(req.query.page) || 1;
         const limit = 2;
+        const currentUserId = user?._id || userId;
 
-        const totalReturnOrders = await ReturnOrder.countDocuments({});
+        const totalReturnOrders = await ReturnOrder.countDocuments({ userId: currentUserId });
         const skip = (currentPage - 1) * limit;
-
 
         const totalPages = Math.ceil(totalReturnOrders / limit);
 
-
         // Fetch return orders for the logged-in user, and populate the necessary fields
-        const returnOrders = await ReturnOrder.find({ userId })
+        const returnOrders = await ReturnOrder.find({ userId: currentUserId })
+            .sort({ createdAt: -1, _id: -1 })
             .populate('items.product') // Populating product details
             .populate('pickupAddress')  // Populating pickup address details
-            .skip(skip).limit(limit);
+            .skip(skip)
+            .limit(limit);
 
         // Render the return orders page with the fetched return orders
         res.render('frontend/returnOrders', {

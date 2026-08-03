@@ -16,7 +16,7 @@ const logFormat = winston.format.combine(
     winston.format.json()
 );
 
-// Console log format for human-readable output
+
 const consoleFormat = winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),

@@ -1,3 +1,24 @@
+ <div class="mb-6 flex flex-col md:flex-row gap-3 items-end">
+   <div class="flex-1">
+     <label class="block text-sm font-medium text-gray-700 mb-1">Search by email</label>
+     <input type="text" id="orderSearch" value="<%= typeof searchKeyword !== 'undefined' ? searchKeyword : '' %>"
+            placeholder="Enter customer email"
+            class="w-full border border-gray-300 rounded px-3 py-2" />
+   </div>
+   <div class="w-full md:w-48">
+     <label class="block text-sm font-medium text-gray-700 mb-1">Filter by status</label>
+     <select id="orderStatusFilter" class="w-full border border-gray-300 rounded px-3 py-2">
+       <option value="" <%= typeof statusFilter !== 'undefined' && statusFilter === '' ? 'selected' : '' %>>All</option>
+       <option value="pending" <%= typeof statusFilter !== 'undefined' && statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+       <option value="shipped" <%= typeof statusFilter !== 'undefined' && statusFilter === 'shipped' ? 'selected' : '' %>>Shipped</option>
+       <option value="delivered" <%= typeof statusFilter !== 'undefined' && statusFilter === 'delivered' ? 'selected' : '' %>>Delivered</option>
+       <option value="cancelled" <%= typeof statusFilter !== 'undefined' && statusFilter === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+     </select>
+   </div>
+   <button onclick="applyOrderFilters()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+   <a href="/admin/orders" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Clear</a>
+ </div>
+
  <!-- Orders Table -->
  <div class="overflow-x-auto">
     <table class="min-w-full bg-white shadow-md rounded">
@@ -34,12 +55,15 @@
         <%=( order.orderStatus == 'delivered' || order.orderStatus == 'cancelled' ) ? 'disabled' : '' %>  
           class="order-status-select"
           data-order-id="<%= order._id %>"
-          onchange="updateOrderStatus(this)"> 
+          onchange="updateOrderStatus(this)">
           <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
           <option value="shipped" <%= order.orderStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
           <option value="delivered" <%= order.orderStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
           <option value="cancelled" <%= order.orderStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
         </select>
+        <% if (order.items && order.items.some(item => item.itemStatus === 'cancelled')) { %>
+          <div class="mt-1 text-xs font-bold text-red-600">Product cancelled</div>
+        <% } %>
       </td>
 
       <!-- Payment Status -->
@@ -67,21 +91,21 @@
     <!-- Pagination -->
     <div class="mt-4">
       <div class="flex justify-center mt-4">
-          <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) + '&search=' + searchKeyword : '#' %>" 
+          <a href="<%= currentPage > 1 ? '?page=' + (currentPage - 1) + (typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '') + (typeof searchKeyword !== 'undefined' && searchKeyword ? '&search=' + encodeURIComponent(searchKeyword) : '') : '#' %>" 
               class="px-4 py-2 mx-1 rounded 
                      <%= currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
                &laquo; Prev
           </a>
 
           <% for (let i = 1; i <= totalPages; i++) { %>
-              <a href="?page=<%= i %>&search=<%= searchKeyword %>"  
+              <a href="?page=<%= i %><%= typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '' %><%= typeof searchKeyword !== 'undefined' && searchKeyword ? '&search=' + encodeURIComponent(searchKeyword) : '' %>"  
                  class="px-4 py-2 mx-1 rounded 
                         <%= currentPage === i ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-white hover:bg-gray-400' %>">
                   <%= i %>
               </a>
           <% } %>
         
-          <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) + '&search=' + searchKeyword : '#' %>" 
+          <a href="<%= currentPage < totalPages ? '?page=' + (currentPage + 1) + (typeof statusFilter !== 'undefined' && statusFilter ? '&status=' + statusFilter : '') + (typeof searchKeyword !== 'undefined' && searchKeyword ? '&search=' + encodeURIComponent(searchKeyword) : '') : '#' %>" 
               class="px-4 py-2 mx-1 rounded 
                      <%= currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600' %>">
                &raquo; Next   
@@ -96,6 +120,22 @@
 
   <script>
     //update order status
+    function applyOrderFilters() {
+      const searchValue = document.getElementById('orderSearch').value.trim();
+      const statusValue = document.getElementById('orderStatusFilter').value;
+      const params = new URLSearchParams();
+
+      if (searchValue) {
+        params.set('search', searchValue);
+      }
+
+      if (statusValue) {
+        params.set('status', statusValue);
+      }
+
+      window.location.href = `/admin/orders?${params.toString()}`;
+    }
+
     function updateOrderStatus(elm){
       const orderStatus = elm.value ;
       const orderId =  elm.dataset.orderId ;
